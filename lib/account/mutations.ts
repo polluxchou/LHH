@@ -74,16 +74,26 @@ export async function createSpace(input: { name: string; theme: string; adminUse
   if (!app) throw new Error("forbidden");
   if (!canCreateSpace({ isOwner: true, role: owner?.role ?? "member" })) throw new Error("forbidden");
 
-  const { data: space, error } = await supabase.from("spaces")
+  // Ownership is already enforced above (the RLS-scoped applications lookup only returns
+  // the caller's own app), so the writes go through the admin client.
+  const admin = createSupabaseAdminClient();
+  const { data: space, error } = await admin.from("spaces")
     .insert({ application_id: app.id, name: input.name, theme: input.theme }).select("*").single();
   if (error) throw new Error(error.message);
 
+  // The owner always joins the space they create, so it appears in their workbench and
+  // stays manageable. They take the admin seat only when no separate admin is assigned
+  // (preserves the one-admin-per-space invariant).
+  const ownerRole: SpaceRole = input.adminUserId || input.adminEmail ? "member" : "admin";
+  await admin.from("space_members").insert({
+    space_id: space.id, user_id: user.user!.id, role: ownerRole, title: "所有者",
+  });
+
   if (input.adminUserId) {
     // existing account → assign admin directly
-    const admin = createSupabaseAdminClient();
     await admin.from("space_members").insert({ space_id: space.id, user_id: input.adminUserId, role: "admin", title: "管理员" });
   } else if (input.adminEmail) {
-    // new person → owner-issued admin invite
+    // new person → owner-issued admin invite (becomes admin on acceptance)
     await createInvite({ spaceId: space.id, email: input.adminEmail, role: "admin" });
   }
   return { spaceId: space.id };
