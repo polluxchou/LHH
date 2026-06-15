@@ -123,7 +123,8 @@ function defaultDeps(): GenerateDeps {
         model: "deepseek-v4-flash",
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
-        max_tokens: 4000,
+        // 长视频(12-15 min)需 4 段脚本 + ~10-13 个分镜的完整 JSON;留足上限避免截断导致 JSON 解析失败。
+        max_tokens: 8000,
       });
       return res.choices[0]?.message?.content ?? "";
     },
