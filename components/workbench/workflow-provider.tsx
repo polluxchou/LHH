@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import { useRouter } from "next/navigation";
 import type { TeamMember } from "@/lib/domain/types";
 import { useSpaceSession } from "@/components/account/space-provider";
-import { addTrackingObjectToSpace, runSearchForObject, setSubscription } from "@/lib/account/content-mutations";
+import { addTrackingObjectToSpace, deleteTrackingObject, runSearchForObject, setSubscription } from "@/lib/account/content-mutations";
 import {
   appendWorkflowLog,
   claimTopicCard,
@@ -15,6 +15,7 @@ import {
   setProductionDraft,
   runFailedMockSearchForTrackingObject,
   screenBrief,
+  removeTrackingObject,
   selectTrackingObject,
   switchTeamMember,
   toggleProductionChecklistItem,
@@ -71,6 +72,7 @@ export interface WorkbenchStore {
   switchMember: (memberId: string) => void;
   subToggle: (trackingObjectId: string) => void;
   addTracked: (input: AddTrackingObjectInput) => void;
+  removeTracked: (trackingObjectId: string) => void;
   logDemo: (level: WorkflowRunLogEntry["level"], message: string, briefId?: string) => void;
   /** select object + brief + expand + right tab — used by cross-page jumps */
   focusBrief: (briefId: string, tab?: RightTab) => void;
@@ -376,6 +378,26 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
             ),
           ),
         );
+    },
+
+    removeTracked: (trackingObjectId) => {
+      const spaceId = session.currentSpaceId;
+      if (!spaceId) return;
+      // Optimistically drop it locally (and its signals/briefs/subscriptions), then persist.
+      // On failure, router.refresh() pulls the authoritative server state back.
+      setState((current) => removeTrackingObject(current, trackingObjectId, { now: nowIso() }));
+      deleteTrackingObject(spaceId, trackingObjectId)
+        .then(() => router.refresh())
+        .catch((error) => {
+          setState((current) =>
+            appendWorkflowLog(
+              current,
+              { level: "error", message: `删除追踪对象失败 · ${error instanceof Error ? error.message : "未知错误"}` },
+              { now: nowIso() },
+            ),
+          );
+          router.refresh();
+        });
     },
 
     logDemo: (level, message, briefId) => {

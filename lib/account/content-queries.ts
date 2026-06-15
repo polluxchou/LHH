@@ -40,6 +40,7 @@ export async function getSpaceContent(spaceId: string): Promise<SpaceContent> {
     whyTrack: r.why_track, keywords: r.keywords ?? [], excludedTerms: r.excluded_terms ?? [],
     languages: r.languages ?? [], regions: r.regions ?? [], preferredSources: r.preferred_sources ?? [],
     searchFrequency: r.search_frequency, priority: r.priority, createdAt: r.created_at, updatedAt: r.updated_at,
+    createdBy: r.created_by ?? null,
   }));
 
   const searchRuns: SearchRun[] = rows(runRes.data).map((r) => ({

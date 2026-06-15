@@ -4,9 +4,11 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/copy";
 import { useWorkflow } from "@/components/workbench/workflow-provider";
+import { useSpaceSession } from "@/components/account/space-provider";
 import { getSignalCounts } from "@/components/workbench/selectors";
 import { priorityClass } from "@/components/workbench/helpers";
-import type { TrackingObjectType } from "@/lib/domain/types";
+import { canDeleteTrackingObject } from "@/lib/workflow/can-delete-tracking-object";
+import type { TrackingObject, TrackingObjectType } from "@/lib/domain/types";
 
 const TYPE_LABEL: Record<TrackingObjectType, string> = { company: "公司", facility: "设施", program: "项目", project: "项目" };
 const TYPE_GLYPH: Record<TrackingObjectType, string> = { company: "🏢", facility: "🚀", program: "🛰", project: "🛰" };
@@ -24,9 +26,11 @@ const SORTS: Array<[SortKey, string]> = [
 export function TrackedManageView({ locale }: { locale: Locale }) {
   const store = useWorkflow();
   const { state } = store;
+  const session = useSpaceSession();
   const router = useRouter();
   const home = locale === "zh" ? "/zh" : "/";
   const [sortBy, setSortBy] = useState<SortKey>("signals");
+  const [pendingDelete, setPendingDelete] = useState<TrackingObject | null>(null);
 
   const signalCounts = useMemo(() => getSignalCounts(state), [state]);
   const briefCounts = useMemo(() => {
@@ -139,6 +143,12 @@ export function TrackedManageView({ locale }: { locale: Locale }) {
             const subscribers = state.teamMembers.filter((member) => member.trackingObjectIds.includes(object.id));
             const prio = priorityClass(object.priority);
             const displayName = object.nameZh ?? object.name;
+            const canDelete = canDeleteTrackingObject({
+              createdBy: object.createdBy,
+              userId: session.userId,
+              role: session.currentRole,
+              isOwner: session.isOwnerOfCurrent,
+            });
 
             return (
               <div key={object.id} className={`vv-row tracked-row prio-${prio}`}>
@@ -188,12 +198,65 @@ export function TrackedManageView({ locale }: { locale: Locale }) {
                   >
                     {isSubscribed ? "✓ 已订" : "+ 订阅"}
                   </button>
+                  {canDelete ? (
+                    <button
+                      type="button"
+                      className="vbtn danger"
+                      onClick={() => setPendingDelete(object)}
+                      title="删除我添加的对象"
+                    >
+                      🗑 删除
+                    </button>
+                  ) : null}
                 </span>
               </div>
             );
           })}
         </div>
       </div>
+
+      {pendingDelete ? (
+        <div className="at-backdrop" onClick={() => setPendingDelete(null)}>
+          <div className="at-dialog" onClick={(event) => event.stopPropagation()}>
+            <header className="at-head">
+              <div>
+                <div className="at-kicker">删除追踪对象</div>
+                <h2 className="at-title">删除「{pendingDelete.nameZh ?? pendingDelete.name}」？</h2>
+                <div className="at-sub">
+                  此操作不可撤销，将
+                  <span className="at-warn">
+                    {" "}
+                    一并永久删除 {signalCounts[pendingDelete.id] ?? 0} 条信号 ·{" "}
+                    {briefCounts[pendingDelete.id] ?? 0} 份已生成简报 ·{" "}
+                    {state.teamMembers.filter((m) => m.trackingObjectIds.includes(pendingDelete.id)).length} 个订阅
+                  </span>
+                  。
+                </div>
+              </div>
+              <button type="button" className="at-close" onClick={() => setPendingDelete(null)} aria-label="关闭">
+                ✕
+              </button>
+            </header>
+            <footer className="at-foot">
+              <span className="at-foot-info">仅你添加的对象、或管理员/所有者可删除</span>
+              <span className="at-foot-spacer" />
+              <button type="button" className="at-foot-btn ghost" onClick={() => setPendingDelete(null)}>
+                取消
+              </button>
+              <button
+                type="button"
+                className="at-foot-btn danger"
+                onClick={() => {
+                  store.removeTracked(pendingDelete.id);
+                  setPendingDelete(null);
+                }}
+              >
+                确认删除
+              </button>
+            </footer>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getMySpaces } from "@/lib/account/queries";
 import { ingestTrackingObject } from "@/lib/ingest/run";
+import { canDeleteTrackingObject } from "@/lib/workflow/can-delete-tracking-object";
 import type { AddTrackingObjectInput } from "@/lib/workflow/local-workflow";
 
 /**
@@ -59,6 +60,9 @@ export async function addTrackingObjectToSpace(spaceId: string, input: AddTracki
   const mine = await getMySpaces();
   if (!mine.some((m) => m.space.id === spaceId)) throw new Error("forbidden");
 
+  const supabase = await createSupabaseServerClient();
+  const { data: user } = await supabase.auth.getUser();
+  const createdBy = user.user?.id ?? null;
   const admin = createSupabaseAdminClient();
   const now = new Date().toISOString();
   const { data, error } = await admin
@@ -82,9 +86,47 @@ export async function addTrackingObjectToSpace(spaceId: string, input: AddTracki
       priority: input.priority,
       created_at: now,
       updated_at: now,
+      created_by: createdBy,
     })
     .select("id")
     .single();
   if (error) throw new Error(error.message);
   return { trackingObjectId: data.id as string };
+}
+
+/**
+ * Hard-delete a tracking object the caller is allowed to remove. Authorization mirrors
+ * canDeleteTrackingObject (creator, or space admin/owner) and is enforced HERE — the
+ * client only uses it to decide whether to show the button. The DB's `on delete cascade`
+ * removes the object's search runs, candidate signals, briefs and subscriptions.
+ */
+export async function deleteTrackingObject(spaceId: string, trackingObjectId: string): Promise<void> {
+  const mine = await getMySpaces();
+  const membership = mine.find((m) => m.space.id === spaceId);
+  if (!membership) throw new Error("forbidden");
+
+  const admin = createSupabaseAdminClient();
+  const { data: obj, error } = await admin
+    .from("tracking_objects")
+    .select("id, space_id, created_by")
+    .eq("id", trackingObjectId)
+    .single();
+  if (error || !obj) throw new Error("object_not_found");
+  if (obj.space_id !== spaceId) throw new Error("forbidden");
+
+  const supabase = await createSupabaseServerClient();
+  const { data: user } = await supabase.auth.getUser();
+  const userId = user.user?.id ?? null;
+
+  const allowed = canDeleteTrackingObject({
+    createdBy: obj.created_by, userId, role: membership.role, isOwner: membership.isOwner,
+  });
+  if (!allowed) throw new Error("forbidden");
+
+  const { error: delError } = await admin
+    .from("tracking_objects")
+    .delete()
+    .eq("id", trackingObjectId)
+    .eq("space_id", spaceId);
+  if (delError) throw new Error(delError.message);
 }
