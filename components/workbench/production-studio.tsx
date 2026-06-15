@@ -157,7 +157,7 @@ export function ProductionStudio({
         </main>
 
         <footer className="studio-foot">
-          <span className="studio-foot-info">草稿状态 · 由 AI 自候选信号自动展开 · 编辑可随时二次修改</span>
+          <span className="studio-foot-info">草稿状态</span>
           <span className="studio-foot-spacer" />
           <button
             type="button"
@@ -170,28 +170,17 @@ export function ProductionStudio({
             <>
               <span className="studio-foot-dur" title="目标视频时长">
                 <span className="dur-label">时长</span>
-                {["1", "3", "9"].map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    className={`studio-foot-btn ghost dur-chip ${durationMin.trim() === m ? "active" : ""}`}
-                    disabled={generating}
-                    onClick={() => setDurationMin(m)}
-                  >
-                    {m} min
-                  </button>
-                ))}
-                <input
-                  type="number"
-                  min="1"
-                  className="dur-input"
-                  style={{ width: "3.4em" }}
+                <select
+                  className="dur-select"
                   value={durationMin}
                   disabled={generating}
                   onChange={(event) => setDurationMin(event.target.value)}
-                  aria-label="自定义时长（分钟）"
-                />
-                <span className="dur-unit">min</span>
+                  aria-label="目标时长（分钟）"
+                >
+                  <option value="1">1 min</option>
+                  <option value="3">3 min</option>
+                  <option value="9">9 min</option>
+                </select>
               </span>
               <button
                 type="button"

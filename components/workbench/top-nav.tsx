@@ -100,9 +100,7 @@ export function TopNav({ locale, active, badges }: TopNavProps) {
   return (
     <header className="topnav">
       <div className="brand">
-        <span className="brand-mark">
-          林哈哈<span className="dot">·</span>聊太空
-        </span>
+        <span className="brand-mark">Signals</span>
         <span className="brand-sub">{chrome.brandSub}</span>
       </div>
       <div className="brand-divider"></div>
