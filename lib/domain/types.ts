@@ -87,6 +87,8 @@ export interface TrackingObject {
   priority: number;
   createdAt: string;
   updatedAt: string;
+  /** auth user id of who added this object; null/undefined for seeded demo/team data */
+  createdBy?: string | null;
 }
 
 export interface LocationAnchor {

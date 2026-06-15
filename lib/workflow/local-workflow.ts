@@ -55,6 +55,7 @@ export type WorkflowRunLogEvent =
   | "user_switched"
   | "subscription_changed"
   | "tracking_object_added"
+  | "tracking_object_removed"
   | "topic_claimed"
   | "ui_action";
 
@@ -525,6 +526,7 @@ export function addTrackingObject(
     priority: input.priority,
     createdAt: now,
     updatedAt: now,
+    createdBy: member.id,
   };
 
   return {
@@ -552,6 +554,57 @@ export function addTrackingObject(
           ? { name: trackingObject.nameZh ?? trackingObject.name, subscriber: member.name }
           : { name: trackingObject.nameZh ?? trackingObject.name },
         trackingObjectId: trackingObject.id,
+      },
+      options.now,
+    ),
+  };
+}
+
+/**
+ * Remove a tracking object and everything that hangs off it, keeping local state
+ * self-consistent. Mirrors the DB cascade (signals / briefs / search runs / each
+ * member's subscriptions). No-op if the id is unknown (optimistic callers may race a
+ * server refresh). If the removed object was selected, fall back to the first remaining.
+ */
+export function removeTrackingObject(
+  state: LocalWorkflowState,
+  trackingObjectId: string,
+  options: WorkflowCallOptions = {},
+): LocalWorkflowState {
+  const trackingObject = state.trackingObjects.find((object) => object.id === trackingObjectId);
+  if (!trackingObject) return state;
+
+  const trackingObjects = state.trackingObjects.filter((object) => object.id !== trackingObjectId);
+  const remainingBriefIds = new Set(
+    state.editorialBriefs.filter((brief) => brief.trackingObjectId !== trackingObjectId).map((brief) => brief.id),
+  );
+
+  return {
+    ...state,
+    trackingObjects,
+    teamMembers: state.teamMembers.map((member) => ({
+      ...member,
+      trackingObjectIds: member.trackingObjectIds.filter((id) => id !== trackingObjectId),
+    })),
+    searchRuns: state.searchRuns.filter((run) => run.trackingObjectId !== trackingObjectId),
+    candidateSignals: state.candidateSignals.filter((signal) => signal.trackingObjectId !== trackingObjectId),
+    editorialBriefs: state.editorialBriefs.filter((brief) => brief.trackingObjectId !== trackingObjectId),
+    productionDrafts: Object.fromEntries(
+      Object.entries(state.productionDrafts).filter(([briefId]) => remainingBriefIds.has(briefId)),
+    ),
+    selectedTrackingObjectId:
+      state.selectedTrackingObjectId === trackingObjectId
+        ? (trackingObjects[0]?.id ?? "")
+        : state.selectedTrackingObjectId,
+    activeBriefId: state.activeBriefId && remainingBriefIds.has(state.activeBriefId) ? state.activeBriefId : null,
+    runLog: appendRunLog(
+      state,
+      {
+        level: "info",
+        event: "tracking_object_removed",
+        message: `Tracking object removed: ${trackingObject.name}.`,
+        data: { name: trackingObject.nameZh ?? trackingObject.name },
+        trackingObjectId,
       },
       options.now,
     ),
