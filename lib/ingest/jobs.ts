@@ -63,3 +63,18 @@ export async function claimNextJob(
   }
   return null;
 }
+
+/** 成功:置 done,记录是否真写了内容。 */
+export async function completeJob(store: JobStore, job: IngestJob, opts: { wrote: boolean }): Promise<void> {
+  await store.setStatus(job.id, { status: "done", wrote: opts.wrote, last_error: null });
+}
+
+/** 失败:已达重试上限置 failed,否则置回 pending 等下轮。job.attempts 是认领后(已 +1)的值。 */
+export async function failJob(
+  store: JobStore,
+  job: IngestJob,
+  opts: { error: string; maxAttempts: number },
+): Promise<void> {
+  const status: JobStatus = job.attempts >= opts.maxAttempts ? "failed" : "pending";
+  await store.setStatus(job.id, { status, last_error: opts.error.slice(0, 500) });
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { enqueueDailyJobs, claimNextJob, type JobStore, type IngestJob } from "@/lib/ingest/jobs";
+import { enqueueDailyJobs, claimNextJob, completeJob, failJob, type JobStore, type IngestJob } from "@/lib/ingest/jobs";
 
 /** 内存版 JobStore,用于单测队列逻辑。 */
 function makeFakeStore(opts?: { objects?: { id: string; space_id: string }[] }): JobStore & { jobs: IngestJob[] } {
@@ -84,5 +84,32 @@ describe("claimNextJob", () => {
     const job = await claimNextJob(store, { runDate: "2026-06-15", maxAttempts: 3 });
     expect(job).not.toBeNull();
     expect(job!.status).toBe("running");
+  });
+});
+
+describe("completeJob / failJob", () => {
+  it("completeJob → done + wrote", async () => {
+    const store = makeFakeStore();
+    await enqueueDailyJobs(store, { runDate: "2026-06-15" });
+    const job = (await claimNextJob(store, { runDate: "2026-06-15", maxAttempts: 3 }))!;
+    await completeJob(store, job, { wrote: true });
+    const after = store.jobs.find((j) => j.id === job.id)!;
+    expect(after.status).toBe("done");
+  });
+  it("failJob:attempts < max → 置回 pending(可重试)", async () => {
+    const store = makeFakeStore();
+    await enqueueDailyJobs(store, { runDate: "2026-06-15" });
+    const job = (await claimNextJob(store, { runDate: "2026-06-15", maxAttempts: 3 }))!; // attempts=1
+    await failJob(store, job, { error: "gemini timeout", maxAttempts: 3 });
+    const after = store.jobs.find((j) => j.id === job.id)!;
+    expect(after.status).toBe("pending");
+  });
+  it("failJob:attempts >= max → failed", async () => {
+    const store = makeFakeStore();
+    await enqueueDailyJobs(store, { runDate: "2026-06-15" });
+    const job = { ...(await claimNextJob(store, { runDate: "2026-06-15", maxAttempts: 3 }))!, attempts: 3 };
+    await failJob(store, job, { error: "boom", maxAttempts: 3 });
+    const after = store.jobs.find((j) => j.id === job.id)!;
+    expect(after.status).toBe("failed");
   });
 });
