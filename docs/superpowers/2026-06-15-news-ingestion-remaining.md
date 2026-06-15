@@ -15,7 +15,7 @@
 | # | 项 | 状态 | 优先级 | 说明 |
 |---|---|---|---|---|
 | A1 | **并行/分批跑多品牌** | ⬜ | 🔴 高(上规模必做) | 现单请求串行,单品牌 ~57s,Hobby 60s 上限 → 50-100 品牌必超时。需并行/分批/后台队列/或 Pro 300s。1 品牌现在没问题 |
-| A2 | **分镜/脚本接 DeepSeek 真生成** | ⬜ | 🟡 中 | 现 `createStubProduction` 纯模板、无 LLM。换成 DeepSeek(输入 brief+topicCard 产脚本+分镜,保留二次编辑,引擎其余复用)。归我,在隔离 worktree 错开账号层文件 |
+| A2 | **分镜/脚本接 DeepSeek 真生成** | ✅ 完成(2026-06-15) | — | 已实现:`lib/production/deepseek-script.ts`(buildScriptPrompt+b-cna-01 few-shot / parseProduction 守卫 / generateProduction 注入+组装+**失败重试1次**)、server action `app/actions/generate-production.ts`、reducer `setProductionDraft`、工作室「✨AI生成」按钮+loading、provider `generateProduction`。106 单测绿、tsc/build 通过。**真实 DeepSeek 实测:7/7 近期调用产出高质量中文脚本+分镜(12-15min→12-14镜)**;偶发不达标已用重试兜底,失败保留 stub+runLog。spec/plan:`docs/superpowers/{specs/2026-06-15-lhh-production-deepseek-design,plans/2026-06-15-lhh-production-deepseek}.md`。**唯一 collision `workflow-provider.tsx` 的二次合并待账号层 B2 落定后由我解**(generateProduction 为新方法,与其 runSearchForObject 物理不重叠) |
 | A3 | 来源 URL 规范化 | ⬜ | 🟢 低 | grounding 重定向 URL(`vertexaisearch.../grounding-api-redirect/…`)→ 解析成干净出版方 URL |
 | A4 | RSS 兜底盘 | ⭕ | 后续 | 已验证 19 源在 `space-feeds-verified.opml`;用 pubDate 保证"确定性新鲜+不漏",与 Gemini 结果去重合并 |
 | A5 | X 账号接入 | ⭕ | 后续 | 官方 API(合规付费)或 Apify 爬(灰色)二选一 |
