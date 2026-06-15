@@ -20,6 +20,7 @@ const RANGE_OPTIONS: Array<[RangeKey, string]> = [
 
 /** 一个"日程模块"的数据与文案；按空间切换（航天发射 / 紧固件展会）。 */
 interface ScheduleConfig {
+  kind: "launch" | "expo";
   simToday: string;
   items: Launch[];
   orgs: Record<string, LaunchOrg>;
@@ -36,6 +37,7 @@ interface ScheduleConfig {
 }
 
 const LAUNCH_SCHEDULE: ScheduleConfig = {
+  kind: "launch",
   simToday: LAUNCH_SIM_TODAY,
   items: launches,
   orgs: launchOrgs,
@@ -52,6 +54,7 @@ const LAUNCH_SCHEDULE: ScheduleConfig = {
 };
 
 const EXPO_SCHEDULE: ScheduleConfig = {
+  kind: "expo",
   simToday: EXPO_SIM_TODAY,
   items: fastenerExpos,
   orgs: expoOrgs,
@@ -276,8 +279,17 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
                           style={{ "--cc": org.color } as CSSProperties}
                         >
                           <div className="lv-time">
-                            <span className="lv-time-utc">{launch.timeUTC}</span>
-                            <span className="lv-time-z">UTC</span>
+                            {config.kind === "expo" ? (
+                              <>
+                                <span className="lv-time-utc">{launch.window}</span>
+                                <span className="lv-time-z">展期</span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="lv-time-utc">{launch.timeUTC}</span>
+                                <span className="lv-time-z">UTC</span>
+                              </>
+                            )}
                           </div>
                           <div className="lv-org-stripe" />
                           <div className="lv-main">
@@ -298,8 +310,12 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
                               ) : null}
                             </div>
                             <div className="lv-vehicle-row">
-                              <span className="lv-vehicle">{launch.vehicle}</span>
-                              <span className="lv-sep">·</span>
+                              {launch.vehicle ? (
+                                <>
+                                  <span className="lv-vehicle">{launch.vehicle}</span>
+                                  <span className="lv-sep">·</span>
+                                </>
+                              ) : null}
                               <span className="lv-org">
                                 <span className="lv-org-flag-small">{org.flag}</span> {org.name}
                               </span>
@@ -312,10 +328,14 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
                               <span className="lv-orbit">{launch.orbit}</span>
                               <span className="lv-sep">·</span>
                               <span className="lv-payload">{launch.payload}</span>
-                              <span className="lv-sep">·</span>
-                              <span className="lv-window">
-                                {config.windowLabel} {launch.window}
-                              </span>
+                              {config.kind === "expo" ? null : (
+                                <>
+                                  <span className="lv-sep">·</span>
+                                  <span className="lv-window">
+                                    {config.windowLabel} {launch.window}
+                                  </span>
+                                </>
+                              )}
                             </div>
                           </div>
                           <div className="lv-side">
