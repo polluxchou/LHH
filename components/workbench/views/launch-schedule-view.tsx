@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/copy";
 import type { Launch, LaunchOrg, LaunchStatus } from "@/lib/domain/types";
@@ -82,8 +82,16 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
   const [orgFilter, setOrgFilter] = useState<ReadonlySet<string>>(() => new Set());
   const [statusFilter, setStatusFilter] = useState<LaunchStatus | "all">("all");
 
+  // "今天"取真实本机日期（按展示时区上海）；首屏先用写死的 simToday 以避免 SSR hydration 不一致，
+  // 挂载后用 useEffect 切到真实日期。
+  const [today, setToday] = useState<string | null>(null);
+  useEffect(() => {
+    setToday(new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Shanghai" }).format(new Date()));
+  }, []);
+  const refToday = today ?? config.simToday;
+
   const dayDiff = (date: string) =>
-    Math.round((new Date(date).getTime() - new Date(config.simToday).getTime()) / 86_400_000);
+    Math.round((new Date(date).getTime() - new Date(refToday).getTime()) / 86_400_000);
 
   const dayLabel = (date: string): string => {
     const diff = dayDiff(date);
@@ -120,7 +128,7 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
       })
       .sort((a, b) => (a.date + a.timeUTC).localeCompare(b.date + b.timeUTC));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config, range, orgFilter, statusFilter]);
+  }, [config, range, orgFilter, statusFilter, refToday]);
 
   const byDate = useMemo(() => {
     const groups = new Map<string, typeof filtered>();
