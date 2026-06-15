@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "seed:account": "node --env-file=.env.local scripts/seed-account.ts"
   },
   "dependencies": {
     "@google/genai": "^2.8.0",
