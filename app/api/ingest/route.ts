@@ -26,7 +26,7 @@ async function handle(req: Request) {
   const db = getServiceClient();
   const { data: brands, error } = await db
     .from("tracking_objects")
-    .select("id, name, aliases, keywords, excluded_terms, languages, regions");
+    .select("id, space_id, name, aliases, keywords, excluded_terms, languages, regions");
   if (error) {
     console.error("ingest: load tracking_objects failed", error.message);
     return NextResponse.json({ error: "failed to load tracking objects" }, { status: 500 });
@@ -52,7 +52,7 @@ async function handle(req: Request) {
     try {
       const result = await runIngestForBrand(
         {
-          id: b.id, name: b.name, aliases: b.aliases ?? [],
+          id: b.id, spaceId: b.space_id, name: b.name, aliases: b.aliases ?? [],
           keywords: b.keywords ?? [], excludedTerms: b.excluded_terms ?? [],
           languages: b.languages ?? [], regions: b.regions ?? [],
         },
@@ -73,6 +73,7 @@ async function handle(req: Request) {
       try {
         await db.from("search_runs").insert({
           tracking_object_id: b.id,
+          space_id: b.space_id,
           query_set: [],
           status: "failed",
           error_summary: msg,

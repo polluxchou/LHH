@@ -26,12 +26,13 @@ export async function writeIngestResult(
   db: SupabaseClient,
   result: IngestResult,
 ): Promise<{ wrote: boolean; reason?: string }> {
-  const { trackingObjectId, querySet, freshItems, analyzed } = result;
+  const { trackingObjectId, spaceId, querySet, freshItems, analyzed } = result;
 
   const { data: run, error: runErr } = await db
     .from("search_runs")
     .insert({
       tracking_object_id: trackingObjectId,
+      space_id: spaceId,
       query_set: querySet,
       status: "completed",
       result_count: freshItems.length,
@@ -63,6 +64,7 @@ export async function writeIngestResult(
     .upsert(
       {
         tracking_object_id: trackingObjectId,
+        space_id: spaceId,
         search_run_id: run.id,
         signal_type: analyzed.signalType,
         headline: analyzed.headline,
@@ -85,6 +87,7 @@ export async function writeIngestResult(
       {
         candidate_signal_id: signal.id,
         tracking_object_id: trackingObjectId,
+        space_id: spaceId,
         brief_title: analyzed.briefTitle,
         fact_summary: analyzed.factSummary,
         source_summary: freshItems.map((i) => i.title).join("; "),
@@ -103,6 +106,7 @@ export async function writeIngestResult(
   const sc = analyzed.score;
   const { error: scErr } = await db.from("content_value_scores").upsert({
     editorial_brief_id: brief.id,
+    space_id: spaceId,
     freshness_score: sc.freshnessScore,
     importance_score: sc.importanceScore,
     rarity_score: sc.rarityScore,
