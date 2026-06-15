@@ -60,7 +60,7 @@ const EXPO_SCHEDULE: ScheduleConfig = {
   orgs: expoOrgs,
   statusLabels: { confirmed: "确认", window: "报名中", tentative: "筹备中", standby: "待定" },
   kicker: "行业展会 · FASTENER EXPOS",
-  title: "全球紧固件展会日程 · 未来 30 天",
+  title: "全球紧固件展会日程 · 2026 全年",
   emptyGlyph: "🔩",
   emptyTitle: "所选范围内没有展会",
   emptySub: "尝试放宽时间范围或调整地区筛选。",
@@ -81,7 +81,8 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
   const spaceName = mySpaces.find((s) => s.space.id === currentSpaceId)?.space.name;
   const config = usesExpoSchedule(spaceName) ? EXPO_SCHEDULE : LAUNCH_SCHEDULE;
 
-  const [range, setRange] = useState<RangeKey>("week");
+  // 展会按全年分布、稀疏，默认看「全部」（也让 1–5 月已过的展会出现）；发射保持「未来 7 天」。
+  const [range, setRange] = useState<RangeKey>(config.kind === "expo" ? "all" : "week");
   const [orgFilter, setOrgFilter] = useState<ReadonlySet<string>>(() => new Set());
   const [statusFilter, setStatusFilter] = useState<LaunchStatus | "all">("all");
 
