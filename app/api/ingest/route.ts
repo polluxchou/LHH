@@ -68,7 +68,19 @@ async function handle(req: Request) {
       const w = await writeIngestResult(db, result);
       summary.push({ brand: b.name, wrote: w.wrote, reason: w.reason });
     } catch (e) {
-      summary.push({ brand: b.name, wrote: false, reason: (e as Error).message });
+      const msg = (e as Error).message;
+      // 失败品牌也记一条 failed run，便于排查（best-effort，不让记录失败掩盖原始错误）。
+      try {
+        await db.from("search_runs").insert({
+          tracking_object_id: b.id,
+          query_set: [],
+          status: "failed",
+          error_summary: msg,
+        });
+      } catch {
+        // ignore run-logging failure
+      }
+      summary.push({ brand: b.name, wrote: false, reason: msg });
     }
   }
 

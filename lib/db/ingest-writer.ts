@@ -1,12 +1,26 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { IngestResult } from "@/lib/ingest/types";
 import { canonicalizeUrl } from "@/lib/search/dedupe";
+import { createHash } from "node:crypto";
+
+/**
+ * 稳定、与顺序无关的事件去重键：eventDate + 排序后的 canonical source URLs 的哈希。
+ * 取代之前"LLM 排序的首条 URL"（顺序易变）。同一事件、同一组来源 → 同一 key，
+ * 不受搜索结果排序影响。
+ */
+export function computeDedupeKey(eventDate: string | null, urls: readonly string[]): string {
+  const sorted = urls.map((u) => canonicalizeUrl(u)).sort();
+  return createHash("sha256")
+    .update(`${eventDate ?? ""}|${sorted.join("|")}`)
+    .digest("hex")
+    .slice(0, 40);
+}
 
 /**
  * 幂等写入一次品牌的产出：
  * search_run → sources(upsert on url) → candidate_signal(upsert on (tracking_object_id,dedupe_key))
  * → editorial_brief → content_value_score。
- * dedupeKey = 该信号首条 source 的 canonical url（足以保证同一品牌同事件不重复）。
+ * dedupeKey = computeDedupeKey(eventDate, 全部 source url)（与顺序无关的稳定事件键）。
  */
 export async function writeIngestResult(
   db: SupabaseClient,
@@ -43,7 +57,7 @@ export async function writeIngestResult(
   const sourceIds = (sources ?? []).map((s) => s.id as string);
   if (sourceIds.length !== sourceRows.length) return { wrote: false, reason: `sources: expected ${sourceRows.length}, got ${sourceIds.length}` };
 
-  const dedupeKey = canonicalizeUrl(freshItems[0].url);
+  const dedupeKey = computeDedupeKey(analyzed.eventDate, freshItems.map((it) => it.url));
   const { data: signal, error: sigErr } = await db
     .from("candidate_signals")
     .upsert(
