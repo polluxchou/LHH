@@ -36,4 +36,14 @@ describe("parseAnalysis", () => {
   it("returns null on non-json", () => {
     expect(parseAnalysis("oops")).toBeNull();
   });
+
+  it("returns null when required text fields are blank", () => {
+    const json = JSON.stringify({ signalType: "policy_regulatory_change", headline: "", summary: "", factSummary: "", whyItMatters: "", score: {} });
+    expect(parseAnalysis(json)).toBeNull();
+  });
+
+  it("returns null when score object is missing", () => {
+    const json = JSON.stringify({ signalType: "policy_regulatory_change", headline: "h", summary: "s", factSummary: "f", whyItMatters: "w" });
+    expect(parseAnalysis(json)).toBeNull();
+  });
 });

@@ -33,13 +33,11 @@ export function parseGeminiResponse(
     return [];
   }
   if (!Array.isArray(raw)) return [];
-  const chunkUrls = groundingChunks
-    .map((c) => c.web?.uri)
-    .filter((u): u is string => Boolean(u));
+  void groundingChunks;
   return raw
-    .map((r, i): GeminiNewsItem => {
+    .map((r): GeminiNewsItem => {
       const o = (r ?? {}) as Record<string, unknown>;
-      const url = (typeof o.url === "string" && o.url) || chunkUrls[i] || "";
+      const url = (typeof o.url === "string" && o.url) || "";
       return {
         title: typeof o.title === "string" ? o.title : "",
         url,

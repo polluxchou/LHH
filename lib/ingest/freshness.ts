@@ -9,8 +9,13 @@ export function filterFreshItems(
   nowISO: string,
   windowDays: number,
 ): GeminiNewsItem[] {
-  const now = new Date(nowISO).getTime();
-  const lower = now - windowDays * 24 * 60 * 60 * 1000;
+  const dayEnd = new Date(nowISO);
+  dayEnd.setUTCHours(23, 59, 59, 999);
+  const now = dayEnd.getTime();
+  const lowerDay = new Date(nowISO);
+  lowerDay.setUTCDate(lowerDay.getUTCDate() - windowDays);
+  lowerDay.setUTCHours(0, 0, 0, 0);
+  const lower = lowerDay.getTime();
   return items.filter((it) => {
     if (!it.publishedDate) return false;
     const t = new Date(it.publishedDate).getTime();

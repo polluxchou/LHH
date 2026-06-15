@@ -27,13 +27,23 @@ async function handle(req: Request) {
   const { data: brands, error } = await db
     .from("tracking_objects")
     .select("id, name, aliases, keywords, excluded_terms, languages, regions");
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("ingest: load tracking_objects failed", error.message);
+    return NextResponse.json({ error: "failed to load tracking objects" }, { status: 500 });
+  }
 
   // 跨运行去重：加载已入库 source url（canonical），分析前剔除已处理过的。
-  const { data: seenRows } = await db.from("sources").select("url");
-  const seenCanonicalUrls = new Set(
-    (seenRows ?? []).map((r) => canonicalizeUrl(r.url as string)),
-  );
+  const seenCanonicalUrls = new Set<string>();
+  const PAGE = 1000;
+  for (let from = 0; ; from += PAGE) {
+    const { data: page, error: pErr } = await db
+      .from("sources")
+      .select("url")
+      .range(from, from + PAGE - 1);
+    if (pErr) break;
+    for (const r of page ?? []) seenCanonicalUrls.add(canonicalizeUrl(r.url as string));
+    if (!page || page.length < PAGE) break;
+  }
 
   const now = new Date().toISOString();
   const summary: { brand: string; wrote: boolean; reason?: string }[] = [];

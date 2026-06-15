@@ -29,4 +29,9 @@ describe("filterFreshItems", () => {
   it("drops future-dated items (likely parse error)", () => {
     expect(filterFreshItems([item("future", "2026-07-01")], now, 7)).toEqual([]);
   });
+
+  it("keeps an item dated exactly windowDays ago", () => {
+    // now = 2026-06-15; window 7 → 2026-06-08 must be kept
+    expect(filterFreshItems([item("edge", "2026-06-08")], now, 7).map((i) => i.url)).toEqual(["edge"]);
+  });
 });

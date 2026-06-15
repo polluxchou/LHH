@@ -24,9 +24,8 @@ describe("parseGeminiResponse", () => {
     expect(parseGeminiResponse("no json here", [])).toEqual([]);
   });
 
-  it("backfills missing url from grounding chunks by order", () => {
+  it("drops items that have no url of their own", () => {
     const text = '[{"title":"T","url":"","publishedDate":"2026-06-14","summary":"s"}]';
-    const items = parseGeminiResponse(text, [{ web: { uri: "https://src/1", title: "T" } }]);
-    expect(items[0].url).toBe("https://src/1");
+    expect(parseGeminiResponse(text, [{ web: { uri: "https://src/1", title: "T" } }])).toEqual([]);
   });
 });

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { IngestResult } from "@/lib/ingest/types";
+import { canonicalizeUrl } from "@/lib/search/dedupe";
 
 /**
  * 幂等写入一次品牌的产出：
@@ -40,8 +41,9 @@ export async function writeIngestResult(
     .select("id");
   if (srcErr) return { wrote: false, reason: `sources: ${srcErr.message}` };
   const sourceIds = (sources ?? []).map((s) => s.id as string);
+  if (sourceIds.length !== sourceRows.length) return { wrote: false, reason: `sources: expected ${sourceRows.length}, got ${sourceIds.length}` };
 
-  const dedupeKey = freshItems[0].url;
+  const dedupeKey = canonicalizeUrl(freshItems[0].url);
   const { data: signal, error: sigErr } = await db
     .from("candidate_signals")
     .upsert(
@@ -76,7 +78,7 @@ export async function writeIngestResult(
         possible_angles: analyzed.possibleAngles,
         open_questions: analyzed.openQuestions,
         risk_notes: analyzed.riskNotes,
-        status: "ready_for_screening",
+        status: "draft",
       },
       { onConflict: "candidate_signal_id" },
     )
@@ -97,6 +99,12 @@ export async function writeIngestResult(
     scoring_notes: sc.scoringNotes,
   });
   if (scErr) return { wrote: false, reason: `score: ${scErr.message}` };
+
+  const { error: promoteErr } = await db
+    .from("editorial_briefs")
+    .update({ status: "ready_for_screening" })
+    .eq("id", brief.id);
+  if (promoteErr) return { wrote: false, reason: `promote: ${promoteErr.message}` };
 
   return { wrote: true };
 }

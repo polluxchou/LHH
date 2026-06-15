@@ -48,17 +48,23 @@ export function parseAnalysis(jsonText: string): AnalyzedBrief | null {
   }
   if (!o || typeof o !== "object") return null;
   if (!SIGNAL_TYPES.includes(o.signalType as CandidateSignalType)) return null;
-  const s = (o.score ?? {}) as Record<string, unknown>;
+  const headline = String(o.headline ?? "").trim();
+  const summary = String(o.summary ?? "").trim();
+  const factSummary = String(o.factSummary ?? o.summary ?? "").trim();
+  const whyItMatters = String(o.whyItMatters ?? "").trim();
+  if (!headline || !summary || !factSummary || !whyItMatters) return null;
+  if (!o.score || typeof o.score !== "object") return null;
+  const s = o.score as Record<string, unknown>;
   const rec = s.overallRecommendation;
   return {
     signalType: o.signalType as CandidateSignalType,
-    headline: String(o.headline ?? ""),
-    summary: String(o.summary ?? ""),
+    headline,
+    summary,
     eventDate: typeof o.eventDate === "string" && o.eventDate ? o.eventDate : null,
     confidence: Math.min(1, Math.max(0, Number(o.confidence) || 0.5)),
     briefTitle: String(o.briefTitle ?? o.headline ?? ""),
-    factSummary: String(o.factSummary ?? o.summary ?? ""),
-    whyItMatters: String(o.whyItMatters ?? ""),
+    factSummary,
+    whyItMatters,
     possibleAngles: Array.isArray(o.possibleAngles) ? o.possibleAngles.map(String) : [],
     openQuestions: Array.isArray(o.openQuestions) ? o.openQuestions.map(String) : [],
     riskNotes: Array.isArray(o.riskNotes) ? o.riskNotes.map(String) : [],
