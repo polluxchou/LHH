@@ -35,15 +35,23 @@ describe("seedSpaceContent — 聊太空 (explicit map, name-based)", () => {
   });
 });
 
-describe("seedSpaceContent — new space (heuristic)", () => {
+describe("seedSpaceContent — new space (starts empty)", () => {
   const members = [member("uid-a", "admin", "甲"), member("uid-b", "member", "乙")];
 
-  it("falls back to admin-first round-robin when no explicit map given", () => {
+  it("has the real members but no cloned content", () => {
     const state = seedSpaceContent({ members, currentUserId: "uid-a" });
     expect(state.teamMembers.map((m) => m.id)).toEqual(["uid-a", "uid-b"]);
-    const realIds = new Set(["uid-a", "uid-b"]);
-    for (const card of state.topicCards) {
-      if (card.ownerId) expect(realIds.has(card.ownerId)).toBe(true);
-    }
+    expect(state.currentMemberId).toBe("uid-a");
+    // no 聊太空 demo data leaks into a fresh space
+    expect(state.trackingObjects).toEqual([]);
+    expect(state.candidateSignals).toEqual([]);
+    expect(state.editorialBriefs).toEqual([]);
+    expect(state.topicCards).toEqual([]);
+    expect(state.locationAnchors).toEqual([]);
+  });
+
+  it("gives new-space members empty subscriptions", () => {
+    const state = seedSpaceContent({ members, currentUserId: "uid-a" });
+    expect(state.teamMembers.every((m) => m.trackingObjectIds.length === 0)).toBe(true);
   });
 });

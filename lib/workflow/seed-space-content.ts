@@ -12,59 +12,81 @@ export const LIN_HAHA_MEMBER_MAP: Record<string, string> = {
 interface SeedArgs {
   members: SpaceMember[];
   currentUserId: string;
-  /** explicit fixture-id → display-name map (聊太空). Omit for new spaces (heuristic). */
+  /**
+   * Explicit fixture-id → display-name map. Only the seeded 聊太空 space passes this;
+   * its presence means "clone the demo fixtures into this space". Newly created spaces
+   * omit it and start EMPTY (no tracking objects / signals / briefs).
+   */
   contentMemberMap?: Record<string, string>;
 }
 
-export function seedSpaceContent({ members, currentUserId, contentMemberMap }: SeedArgs): LocalWorkflowState {
-  const fixtureState = createInitialWorkflowState();
-  const fixtureMembers = fixtureState.teamMembers;
+function toTeamMember(m: SpaceMember, trackingObjectIds: string[]): TeamMember {
+  return {
+    id: m.userId,
+    name: m.profile.displayName,
+    role: m.title,
+    avatarChar: m.profile.avatarChar,
+    color: m.profile.color,
+    trackingObjectIds,
+  };
+}
 
-  // Build fixtureMemberId → realUserId.
-  const map: Record<string, string> = {};
-  if (contentMemberMap) {
-    // Resolve fixture id → display name → real user id.
-    const byName: Record<string, string> = {};
-    for (const m of members) byName[m.profile.displayName] = m.userId;
-    for (const [fixtureId, name] of Object.entries(contentMemberMap)) {
-      if (byName[name]) map[fixtureId] = byName[name];
-    }
-  } else {
-    // Heuristic: admin first, then members round-robin over fixture slots.
-    const ordered = [...members].sort((a, b) => (a.role === "admin" ? -1 : 0) - (b.role === "admin" ? -1 : 0));
-    fixtureMembers.forEach((fm, i) => {
-      if (ordered.length > 0) map[fm.id] = ordered[i % ordered.length].userId;
-    });
-  }
+export function seedSpaceContent({ members, currentUserId, contentMemberMap }: SeedArgs): LocalWorkflowState {
   const realIds = new Set(members.map((m) => m.userId));
+  const currentMemberId = realIds.has(currentUserId) ? currentUserId : (members[0]?.userId ?? currentUserId);
+  const base = createInitialWorkflowState();
+
+  // ── New space → start empty (members only, no cloned content) ──
+  if (!contentMemberMap) {
+    return {
+      ...base,
+      teamMembers: members.map((m) => toTeamMember(m, [])),
+      currentMemberId,
+      trackingObjects: [],
+      searchRuns: [],
+      sources: [],
+      candidateSignals: [],
+      editorialBriefs: [],
+      contentValueScores: [],
+      screeningDecisions: [],
+      topicCards: [],
+      locationAnchors: [],
+      productionDrafts: {},
+      selectedTrackingObjectId: "",
+      activeBriefId: null,
+      lastFeedback: null,
+      runLog: [],
+    };
+  }
+
+  // ── 聊太空 → clone the demo fixtures, remapping member references by display name ──
+  const fixtureMembers = base.teamMembers;
+  const byName: Record<string, string> = {};
+  for (const m of members) byName[m.profile.displayName] = m.userId;
+  const map: Record<string, string> = {};
+  for (const [fixtureId, name] of Object.entries(contentMemberMap)) {
+    if (byName[name]) map[fixtureId] = byName[name];
+  }
   const remapId = (id: string | null | undefined): string | null => {
     if (!id) return null;
     const mapped = map[id] ?? id;
     return realIds.has(mapped) ? mapped : (members[0]?.userId ?? null);
   };
 
-  // Real members in TeamMember shape, inheriting fixture subscriptions through the map.
   const subsByReal: Record<string, Set<string>> = {};
   for (const fm of fixtureMembers) {
     const real = map[fm.id];
     if (!real) continue;
     subsByReal[real] = new Set([...(subsByReal[real] ?? []), ...fm.trackingObjectIds]);
   }
-  const teamMembers: TeamMember[] = members.map((m) => ({
-    id: m.userId,
-    name: m.profile.displayName,
-    role: m.title,
-    avatarChar: m.profile.avatarChar,
-    color: m.profile.color,
-    trackingObjectIds: [...(subsByReal[m.userId] ?? [])],
-  }));
+  const teamMembers = members.map((m) => toTeamMember(m, [...(subsByReal[m.userId] ?? [])]));
 
   return {
-    ...fixtureState,
+    ...base,
     teamMembers,
-    currentMemberId: realIds.has(currentUserId) ? currentUserId : (members[0]?.userId ?? currentUserId),
-    topicCards: fixtureState.topicCards.map((c) => ({ ...c, ownerId: remapId(c.ownerId) })),
-    screeningDecisions: fixtureState.screeningDecisions.map((d) => ({
+    currentMemberId,
+    topicCards: base.topicCards.map((c) => ({ ...c, ownerId: remapId(c.ownerId) })),
+    screeningDecisions: base.screeningDecisions.map((d) => ({
       ...d,
       decidedBy: remapId(d.decidedBy) ?? d.decidedBy,
     })),
