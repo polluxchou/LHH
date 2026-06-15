@@ -44,3 +44,22 @@ export async function enqueueDailyJobs(store: JobStore, opts: { runDate: string 
   if (rows.length === 0) return 0;
   return store.insertJobsIgnoreDup(rows);
 }
+
+/**
+ * 领取下一条可处理 job:乐观锁。selectOnePending → tryClaim;被抢(null)则取下一条重试,
+ * 最多 maxTries 次防活锁;无可领则 null。
+ */
+export async function claimNextJob(
+  store: JobStore,
+  opts: { runDate: string; maxAttempts: number; maxTries?: number },
+): Promise<IngestJob | null> {
+  const maxTries = opts.maxTries ?? 12;
+  for (let i = 0; i < maxTries; i++) {
+    const candidate = await store.selectOnePending(opts.runDate, opts.maxAttempts);
+    if (!candidate) return null;
+    const claimed = await store.tryClaim(candidate.id, candidate.attempts);
+    if (claimed) return claimed;
+    // 被别的链抢走 → 继续取下一条
+  }
+  return null;
+}

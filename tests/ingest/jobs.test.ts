@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { enqueueDailyJobs, type JobStore, type IngestJob } from "@/lib/ingest/jobs";
+import { enqueueDailyJobs, claimNextJob, type JobStore, type IngestJob } from "@/lib/ingest/jobs";
 
 /** 内存版 JobStore,用于单测队列逻辑。 */
 function makeFakeStore(opts?: { objects?: { id: string; space_id: string }[] }): JobStore & { jobs: IngestJob[] } {
@@ -58,3 +58,31 @@ describe("enqueueDailyJobs", () => {
 });
 
 export { makeFakeStore };
+
+describe("claimNextJob", () => {
+  it("领取一条 pending → 置 running、attempts+1", async () => {
+    const store = makeFakeStore();
+    await enqueueDailyJobs(store, { runDate: "2026-06-15" });
+    const job = await claimNextJob(store, { runDate: "2026-06-15", maxAttempts: 3 });
+    expect(job).not.toBeNull();
+    expect(job!.status).toBe("running");
+    expect(job!.attempts).toBe(1);
+  });
+  it("无 pending → null", async () => {
+    const store = makeFakeStore({ objects: [] });
+    expect(await claimNextJob(store, { runDate: "2026-06-15", maxAttempts: 3 })).toBeNull();
+  });
+  it("竞态:selectOnePending 选中但被抢(tryClaim 返回 null)→ 跳过该条取下一条", async () => {
+    const store = makeFakeStore();
+    await enqueueDailyJobs(store, { runDate: "2026-06-15" });
+    let firstCall = true;
+    const orig = store.tryClaim.bind(store);
+    store.tryClaim = async (id, currentAttempts) => {
+      if (firstCall) { firstCall = false; return null; } // 第一条被抢
+      return orig(id, currentAttempts);
+    };
+    const job = await claimNextJob(store, { runDate: "2026-06-15", maxAttempts: 3 });
+    expect(job).not.toBeNull();
+    expect(job!.status).toBe("running");
+  });
+});
