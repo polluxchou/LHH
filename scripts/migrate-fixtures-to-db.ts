@@ -31,11 +31,22 @@ async function main() {
   }));
   await upsert("tracking_objects", trackRows, "id");
 
-  // 2. sources (global, no space_id). Keyed by fid(id); rare url-collision with ingest rows is tolerated.
-  const sourceRows = sources.map((s) => ({
-    id: fid(s.id), url: s.url, title: s.title, publisher: s.publisher, published_at: s.publishedAt,
-    retrieved_at: s.retrievedAt, source_type: s.sourceType, confidence: s.confidence, notes: s.notes,
-  }));
+  // 2. sources (global, no space_id). Dedupe by url (sources.url is unique): first
+  //    occurrence wins; later same-url ids remap to it. finalSourceId() is then used
+  //    for every signal/brief source_ids reference so links stay valid.
+  const urlToCanonical = new Map<string, string>();
+  const srcRemap = new Map<string, string>(); // originalId → canonical originalId
+  for (const s of sources) {
+    if (!urlToCanonical.has(s.url)) urlToCanonical.set(s.url, s.id);
+    srcRemap.set(s.id, urlToCanonical.get(s.url)!);
+  }
+  const finalSourceId = (origId: string) => fid(srcRemap.get(origId) ?? origId);
+  const sourceRows = sources
+    .filter((s) => srcRemap.get(s.id) === s.id) // canonical (first-per-url) only
+    .map((s) => ({
+      id: fid(s.id), url: s.url, title: s.title, publisher: s.publisher, published_at: s.publishedAt,
+      retrieved_at: s.retrievedAt, source_type: s.sourceType, confidence: s.confidence, notes: s.notes,
+    }));
   await upsert("sources", sourceRows, "id");
 
   // 3. search_runs (space-scoped)
@@ -50,7 +61,7 @@ async function main() {
   const signalRows = candidateSignals.map((c) => ({
     id: fid(c.id), space_id: spaceId, tracking_object_id: fid(c.trackingObjectId),
     search_run_id: fid(c.searchRunId), signal_type: c.signalType, headline: c.headline, summary: c.summary,
-    event_date: c.eventDate, detected_at: c.detectedAt, source_ids: fids(c.sourceIds), dedupe_key: c.dedupeKey,
+    event_date: c.eventDate, detected_at: c.detectedAt, source_ids: c.sourceIds.map(finalSourceId), dedupe_key: c.dedupeKey,
     novelty_status: c.noveltyStatus, confidence: c.confidence,
   }));
   await upsert("candidate_signals", signalRows, "id");
