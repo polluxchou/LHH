@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { WorkflowProvider } from "@/components/workbench/workflow-provider";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
 
@@ -12,9 +11,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="zh-Hans">
-      <body>
-        <WorkflowProvider>{children}</WorkflowProvider>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

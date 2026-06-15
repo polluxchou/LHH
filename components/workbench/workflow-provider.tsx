@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { TeamMember } from "@/lib/domain/types";
+import { useSpaceSession } from "@/components/account/space-provider";
 import {
   addTrackingObject,
   appendWorkflowLog,
@@ -93,7 +94,16 @@ export function useWorkflow(): WorkbenchStore {
 }
 
 export function WorkflowProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState(createInitialWorkflowState);
+  const session = useSpaceSession();
+  // Content state is owned per-space by SpaceProvider; mirror it here behind the
+  // existing setState(updater) contract so every action below stays unchanged.
+  const state = session.contentState ?? createInitialWorkflowState();
+  const setState = (updater: LocalWorkflowState | ((current: LocalWorkflowState) => LocalWorkflowState)) => {
+    const next = typeof updater === "function"
+      ? (updater as (current: LocalWorkflowState) => LocalWorkflowState)(state)
+      : updater;
+    session.setContentState(next);
+  };
   const [scope, setScope] = useState<TrackedScope>("mine");
   const [rightTab, setRightTab] = useState<RightTab>("sources");
   const [expandedBriefIds, setExpandedBriefIds] = useState<ReadonlySet<string>>(

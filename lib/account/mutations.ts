@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { generateInviteToken, canAcceptInvite } from "@/lib/account/invite";
 import { canCreateSpace, canIssueInvite, type ActorContext } from "@/lib/account/permissions";
-import { getMySpaces, mapInviteRow } from "@/lib/account/queries";
+import { getMySpaces, mapInviteRow, type InviteRow } from "@/lib/account/queries";
 import type { SpaceRole } from "@/lib/domain/account";
 
 async function actorFor(spaceId: string): Promise<ActorContext | null> {
@@ -29,7 +29,7 @@ export async function createInvite(input: { spaceId: string; email: string; role
   }).select("*").single();
   if (error) throw new Error(error.message);
   const link = `${process.env.NEXT_PUBLIC_SITE_URL}/invite/${token}`;
-  return { invite: mapInviteRow(data), link };
+  return { invite: mapInviteRow(data as unknown as InviteRow), link };
 }
 
 export async function revokeInvite(inviteId: string, spaceId: string) {
@@ -48,7 +48,7 @@ export async function acceptInvite(token: string, profile: { displayName: string
   const admin = createSupabaseAdminClient();
   const { data: row } = await admin.from("space_invites").select("*").eq("token", token).single();
   if (!row) throw new Error("invite_not_found");
-  const invite = mapInviteRow(row);
+  const invite = mapInviteRow(row as unknown as InviteRow);
   const check = canAcceptInvite(invite, user.email ?? "", new Date().toISOString());
   if (!check.ok) throw new Error(check.reason);
 
