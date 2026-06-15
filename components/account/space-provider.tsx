@@ -1,7 +1,8 @@
 "use client";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import type { LocalWorkflowState } from "@/lib/workflow/local-workflow";
 import type { MySpace, Profile, SpaceMember } from "@/lib/domain/account";
+import { resolveInitialSpaceId, SPACE_COOKIE } from "@/lib/account/resolve-space";
 
 export interface SpaceSession {
   userId: string;
@@ -39,10 +40,19 @@ export function SpaceProvider({
   initialSpaceId?: string;
   children: ReactNode;
 }) {
-  const firstValid = initialSpaceId && mySpaces.some((s) => s.space.id === initialSpaceId)
-    ? initialSpaceId
-    : (mySpaces[0]?.space.id ?? null);
+  // AccountShell already resolved explicit `?space=` + cookie server-side into
+  // `initialSpaceId`; this just re-validates against the member list defensively.
+  const firstValid = resolveInitialSpaceId({ explicit: initialSpaceId }, mySpaces.map((s) => s.space.id));
   const [currentSpaceId, setCurrentSpaceId] = useState<string | null>(firstValid);
+
+  // Persist the selection so it survives navigation (each view is its own route that
+  // remounts this provider) and refresh. AccountShell reads this cookie server-side.
+  const selectSpace = useCallback((id: string) => {
+    setCurrentSpaceId(id);
+    if (typeof document !== "undefined") {
+      document.cookie = `${SPACE_COOKIE}=${encodeURIComponent(id)}; path=/; max-age=31536000; samesite=lax`;
+    }
+  }, []);
 
   // Local mutable copy for in-session editorial edits; re-synced to the server-built
   // content whenever it changes (e.g. after router.refresh() following a search/add).
@@ -54,7 +64,7 @@ export function SpaceProvider({
   const contentState = currentSpaceId ? (store[currentSpaceId] ?? null) : null;
 
   const value: SpaceSession = {
-    userId, email, profile, mySpaces, currentSpaceId, setCurrentSpaceId,
+    userId, email, profile, mySpaces, currentSpaceId, setCurrentSpaceId: selectSpace,
     currentRole: current?.role ?? null,
     isOwnerOfCurrent: current?.isOwner ?? false,
     members,

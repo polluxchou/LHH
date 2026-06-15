@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 import { getMySpaces, getSessionUser, getSpaceMembers } from "@/lib/account/queries";
 import { getSpaceContent, getSpaceSubscriptions } from "@/lib/account/content-queries";
+import { resolveInitialSpaceId, SPACE_COOKIE } from "@/lib/account/resolve-space";
 import { buildSpaceState } from "@/lib/workflow/build-space-state";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SpaceProvider } from "@/components/account/space-provider";
@@ -23,6 +25,15 @@ export async function AccountShell({
 
   const mySpaces = await getMySpaces();
   if (mySpaces.length === 0) redirect(locale === "zh" ? "/zh/no-space" : "/no-space");
+
+  // Persisted space selection: an explicit `?space=` deep link wins, otherwise fall
+  // back to the cookie written by the space switcher so switching views (each a
+  // separate route that remounts SpaceProvider) doesn't snap the user back to mySpaces[0].
+  const cookieSpace = (await cookies()).get(SPACE_COOKIE)?.value ?? null;
+  const resolvedSpaceId = resolveInitialSpaceId(
+    { explicit: initialSpaceId, cookie: cookieSpace },
+    mySpaces.map((s) => s.space.id),
+  );
 
   const supabase = await createSupabaseServerClient();
   const { data: prof } = await supabase.from("profiles").select("*").eq("id", user.id).single();
@@ -50,7 +61,7 @@ export async function AccountShell({
       mySpaces={mySpaces}
       membersBySpace={membersBySpace}
       contentBySpace={contentBySpace}
-      initialSpaceId={initialSpaceId}
+      initialSpaceId={resolvedSpaceId ?? undefined}
     >
       <WorkflowProvider>{children}</WorkflowProvider>
     </SpaceProvider>
