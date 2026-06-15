@@ -1,10 +1,11 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import type { TeamMember } from "@/lib/domain/types";
 import { useSpaceSession } from "@/components/account/space-provider";
+import { addTrackingObjectToSpace } from "@/lib/account/content-mutations";
 import {
-  addTrackingObject,
   appendWorkflowLog,
   claimTopicCard,
   createInitialWorkflowState,
@@ -95,6 +96,7 @@ export function useWorkflow(): WorkbenchStore {
 
 export function WorkflowProvider({ children }: { children: ReactNode }) {
   const session = useSpaceSession();
+  const router = useRouter();
   // Content state is owned per-space by SpaceProvider; mirror it here behind the
   // existing setState(updater) contract so every action below stays unchanged.
   const state = session.contentState ?? createInitialWorkflowState();
@@ -324,8 +326,21 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     },
 
     addTracked: (input) => {
-      setState((current) => addTrackingObject(current, input, { now: nowIso() }));
-      setScope(input.subscribe ? "mine" : "team");
+      const spaceId = session.currentSpaceId;
+      if (!spaceId) return;
+      // Persist to DB, then refresh so the server-built state picks up the new object.
+      setScope("team");
+      addTrackingObjectToSpace(spaceId, input)
+        .then(() => router.refresh())
+        .catch((error) =>
+          setState((current) =>
+            appendWorkflowLog(
+              current,
+              { level: "error", message: `新增追踪对象失败 · ${error instanceof Error ? error.message : "未知错误"}` },
+              { now: nowIso() },
+            ),
+          ),
+        );
     },
 
     logDemo: (level, message, briefId) => {
