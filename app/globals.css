@@ -4874,3 +4874,152 @@ body.theme-dark .lv-day-marker { background: var(--color-bg-card); }
 body.theme-dark .lv-day-marker::after { background: var(--color-bg-card); }
 body.theme-dark .lv-org-chip { background: rgba(255,255,255,0.04); }
 body.theme-dark .lv-day-n { background: rgba(255,255,255,0.06); }
+
+/* ════════════════════════════════════════════════════════════
+   Account layer — auth, invites, member/space management
+   ════════════════════════════════════════════════════════════ */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--grad-hero);
+  padding: 24px;
+}
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--color-bg-card);
+  border-radius: 16px;
+  padding: 32px 28px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.28);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.auth-card h1 { font-family: var(--font-display); font-size: 22px; color: var(--color-text); margin: 0; }
+.auth-card label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--color-text-sub); }
+.auth-card input,
+.invite-dialog input,
+.create-space input,
+.invite-accept input {
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--color-text);
+  background: #fff;
+  outline: none;
+}
+.auth-card input:focus,
+.invite-dialog input:focus,
+.create-space input:focus,
+.invite-accept input:focus { border-color: var(--color-primary); }
+.auth-card button,
+.invite-dialog button,
+.create-space button,
+.invite-accept button {
+  background: var(--grad-primary);
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.auth-card button:disabled,
+.invite-dialog button:disabled,
+.create-space button:disabled,
+.invite-accept button:disabled { opacity: 0.45; cursor: not-allowed; }
+.auth-error { color: var(--color-danger); font-size: 12.5px; margin: 2px 0 0; }
+.muted { color: var(--color-text-light); font-size: 13px; }
+
+/* invite landing card */
+.invite-card { text-align: center; align-items: center; }
+.invite-kicker { font-size: 12px; letter-spacing: 1px; color: var(--color-text-light); text-transform: uppercase; margin: 0; }
+.invite-card h1 { font-size: 26px; }
+.invite-theme { color: var(--color-text-sub); font-size: 14px; margin: 0; }
+.invite-role {
+  display: inline-block; font-size: 12px; color: var(--color-primary);
+  background: var(--color-bg-muted); border-radius: 999px; padding: 3px 12px; margin: 4px 0 8px;
+}
+.invite-accept { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+.invite-accept label { text-align: left; }
+
+/* generic account page (members / spaces / no-space) */
+.account-page {
+  min-height: 100vh;
+  background: var(--color-bg);
+  padding: 28px clamp(20px, 6vw, 80px);
+  color: var(--color-text);
+}
+.account-page-head { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+.account-page-head h1 { font-family: var(--font-display); font-size: 24px; margin: 0; }
+.account-page h2 { font-size: 16px; margin: 28px 0 12px; color: var(--color-text); }
+.account-page h3 { font-size: 13.5px; color: var(--color-text-sub); margin: 22px 0 10px; }
+.link-btn {
+  background: none; border: none; color: var(--color-primary);
+  font-size: 13px; cursor: pointer; padding: 4px 8px; border-radius: 6px; text-decoration: none;
+}
+.link-btn:hover { background: var(--color-bg-muted); }
+
+/* member panel */
+.member-panel { max-width: 640px; }
+.member-count {
+  font-size: 12px; color: var(--color-text-sub); background: var(--color-bg-muted);
+  border-radius: 999px; padding: 1px 9px; margin-left: 6px; vertical-align: middle;
+}
+.member-list, .invite-list, .spaces-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.member-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--color-bg-card); border: 1px solid var(--color-border);
+  border-radius: 10px; padding: 10px 14px;
+}
+.member-name { font-weight: 600; font-size: 14px; }
+.member-title { color: var(--color-text-light); font-size: 12.5px; flex: 1; }
+.role-badge { font-size: 11px; border-radius: 999px; padding: 2px 10px; font-weight: 600; }
+.role-admin { background: var(--color-bg-muted); color: var(--color-primary); }
+.role-member { background: var(--color-info-bg); color: var(--color-info); }
+
+/* invite dialog */
+.invite-dialog { display: flex; flex-direction: column; gap: 10px; max-width: 560px; }
+.invite-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.invite-row input[type=email] { flex: 1; min-width: 200px; }
+.invite-admin { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--color-text-sub); }
+.invite-link {
+  background: var(--color-bg-muted); border-radius: 9px; padding: 10px 12px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.invite-link code { font-size: 12px; color: var(--color-text); word-break: break-all; flex: 1; }
+.invite-link button { padding: 6px 12px; font-size: 12px; }
+.invite-hint { font-size: 11.5px; color: var(--color-text-light); margin: 2px 0 0; width: 100%; }
+.invite-row-item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--color-bg-card); border: 1px solid var(--color-border);
+  border-radius: 10px; padding: 8px 14px;
+}
+.invite-email { flex: 1; font-size: 13px; }
+
+/* spaces overview */
+.space-card {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--color-bg-card); border: 1px solid var(--color-border);
+  border-radius: 10px; padding: 14px 16px;
+}
+.space-card-main { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.space-card-name { font-weight: 600; font-size: 15px; color: var(--color-text); text-decoration: none; }
+.space-card-name:hover { color: var(--color-primary); }
+.space-card-theme { font-size: 12.5px; color: var(--color-text-light); }
+.space-card-count { font-size: 12.5px; color: var(--color-text-sub); }
+
+/* create-space + no-space */
+.create-space { display: flex; flex-direction: column; gap: 10px; max-width: 420px; }
+.no-space { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; }
+.no-space h1 { font-family: var(--font-display); }
+
+/* space switcher trigger: keep the pill compact without an avatar */
+.space-switcher .user-switcher-trigger { padding-left: 12px; }
