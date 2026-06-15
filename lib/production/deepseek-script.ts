@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import type { ScriptSection, StoryboardShot } from "@/lib/domain/production";
+import type { ScriptSection, StoryboardShot, ProductionPackage } from "@/lib/domain/production";
 import type { EditorialBrief, TopicCard } from "@/lib/domain/types";
 import { productions } from "@/lib/data/phase1-fixtures";
 import { buildTaskScaffold, deriveTargetDuration } from "@/lib/production/stub-production";
@@ -106,4 +106,43 @@ export function parseProduction(
   }
 
   return { sections, storyboard };
+}
+
+export interface GenerateDeps {
+  complete: (prompt: string) => Promise<string>;
+}
+
+function defaultDeps(): GenerateDeps {
+  const client = new OpenAI({
+    apiKey: process.env.DEEPSEEK_API_KEY,
+    baseURL: "https://api.deepseek.com",
+  });
+  return {
+    complete: async (prompt) => {
+      const res = await client.chat.completions.create({
+        model: "deepseek-v4-flash",
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+        max_tokens: 4000,
+      });
+      return res.choices[0]?.message?.content ?? "";
+    },
+  };
+}
+
+export async function generateProduction(
+  opts: { brief: EditorialBrief; topicCard?: TopicCard | null },
+  deps: GenerateDeps = defaultDeps(),
+): Promise<ProductionPackage> {
+  const topicCard = opts.topicCard ?? null;
+  const formatLabel = topicCard?.formatLabel ?? "深度短视频（5-8 min）";
+  const raw = await deps.complete(buildScriptPrompt(opts.brief, topicCard));
+  const parsed = parseProduction(raw);
+  if (!parsed) throw new Error("DeepSeek 生产包解析失败");
+  const wordCount = parsed.sections.reduce((sum, s) => sum + s.body.length, 0);
+  return {
+    script: { targetDuration: deriveTargetDuration(formatLabel), wordCount, sections: parsed.sections },
+    storyboard: parsed.storyboard,
+    task: buildTaskScaffold(opts.brief, topicCard),
+  };
 }

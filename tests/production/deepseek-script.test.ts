@@ -72,3 +72,23 @@ describe("parseProduction", () => {
     expect(parseProduction(JSON.stringify({ sections: goodSections, storyboard: bad }))).toBeNull();
   });
 });
+
+import { generateProduction } from "@/lib/production/deepseek-script";
+
+describe("generateProduction", () => {
+  const okJson = JSON.stringify({ sections: goodSections, storyboard: goodShots });
+
+  it("注入 mock complete → 组装出完整 ProductionPackage", async () => {
+    const pkg = await generateProduction({ brief, topicCard: card }, { complete: async () => okJson });
+    expect(pkg.script.sections).toHaveLength(4);
+    expect(pkg.storyboard).toHaveLength(6);
+    expect(pkg.script.targetDuration).toBe("12-15 min"); // 来自 formatLabel
+    expect(pkg.script.wordCount).toBeGreaterThan(0);      // 由正文统计
+    expect(pkg.task.title).toBe("中国月球计划国际化");      // 来自脚手架
+    expect(pkg.task.checklist.length).toBeGreaterThanOrEqual(7);
+  });
+
+  it("complete 返回坏 JSON → 抛错", async () => {
+    await expect(generateProduction({ brief, topicCard: card }, { complete: async () => "garbage" })).rejects.toThrow();
+  });
+});
