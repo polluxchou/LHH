@@ -9,7 +9,7 @@ export interface PipelineDeps {
   windowDays: number;
   /** 以往运行已处理过的 canonical url 集合，用于跨运行去重（分析前过滤，避免重复调用 DeepSeek） */
   seenCanonicalUrls?: Set<string>;
-  search: (brand: string, sinceDate: string, todayDate: string) => Promise<GeminiNewsItem[]>;
+  search: (brand: string, sinceDate: string, todayDate: string, keywords: string[], excludedTerms: string[]) => Promise<GeminiNewsItem[]>;
   analyze: (brand: string, items: GeminiNewsItem[]) => Promise<AnalyzedBrief | null>;
 }
 
@@ -28,9 +28,9 @@ export async function runIngestForBrand(
 ): Promise<IngestResult> {
   const today = isoDate(new Date(deps.now));
   const since = isoDate(new Date(new Date(deps.now).getTime() - deps.windowDays * 86400000));
-  const querySet = buildTrackingObjectQueries(brand as TrackingObject);
+  const querySet = buildTrackingObjectQueries(brand);
 
-  const raw = await deps.search(brand.name, since, today);
+  const raw = await deps.search(brand.name, since, today, brand.keywords, brand.excludedTerms);
   // 窗口过滤 → 运行内去重 → 跨运行去重（剔掉以往已处理过的）
   const withinRun = dedupeByCanonicalUrl(filterFreshItems(raw, deps.now, deps.windowDays));
   const seen = deps.seenCanonicalUrls ?? new Set<string>();

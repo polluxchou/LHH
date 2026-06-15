@@ -9,6 +9,12 @@ describe("buildSearchPrompt", () => {
     expect(p).toContain("2026-06-15");
     expect(p.toLowerCase()).toContain("json");
   });
+
+  it("includes keywords and excluded terms when provided", () => {
+    const p = buildSearchPrompt("SpaceX", "2026-06-08", "2026-06-15", ["Starship", "Raptor"], ["招聘"]);
+    expect(p).toContain("Starship");
+    expect(p).toContain("招聘");
+  });
 });
 
 describe("parseGeminiResponse", () => {

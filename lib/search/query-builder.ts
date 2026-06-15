@@ -31,7 +31,7 @@ function formatKeywordGroup(keywords: readonly string[]): string | null {
   return `(${keywords.map((keyword) => `"${keyword}"`).join(" OR ")})`;
 }
 
-export function buildTrackingObjectQueries(trackingObject: TrackingObject): string[] {
+export function buildTrackingObjectQueries(trackingObject: Pick<TrackingObject, "name" | "aliases" | "keywords" | "excludedTerms" | "languages" | "regions">): string[] {
   const identities = uniqueClean([trackingObject.name, ...trackingObject.aliases]);
   const keywords = uniqueClean(trackingObject.keywords);
   const excludedTerms = uniqueClean(trackingObject.excludedTerms);

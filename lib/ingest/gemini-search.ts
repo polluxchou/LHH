@@ -9,14 +9,19 @@ export function buildSearchPrompt(
   brand: string,
   sinceDate: string,
   todayDate: string,
+  keywords: string[] = [],
+  excludedTerms: string[] = [],
 ): string {
-  return [
+  const lines = [
     `今天是 ${todayDate}。请用 Google 搜索，找出关于「${brand}」的航天相关新闻，要求所报道的【事件本身发生】在 ${sinceDate} 至 ${todayDate}（最近一周）之内。`,
     `排除：事件发生在该窗口之外的旧闻、周年回顾、背景科普、综述类文章——即使它们是最近才发布的。`,
     `严格只输出一个 JSON 数组（可包在 \`\`\`json 代码块里），每个元素形如：`,
     `{"title": string, "url": string, "publishedDate": "YYYY-MM-DD", "summary": string}`,
     `publishedDate 必须是该报道的真实发布日期；不确定就省略该条。不要输出 JSON 以外的解释。`,
-  ].join("\n");
+  ];
+  if (keywords.length) lines.push(`重点关注以下方面：${keywords.join("、")}。`);
+  if (excludedTerms.length) lines.push(`排除涉及以下内容的报道：${excludedTerms.join("、")}。`);
+  return lines.join("\n");
 }
 
 /** 从可能夹带文字/代码块的文本里提取 JSON 数组并归一化 */
@@ -72,10 +77,10 @@ function defaultDeps(): SearchDeps {
 }
 
 export async function searchRecentNews(
-  opts: { brand: string; sinceDate: string; todayDate: string },
+  opts: { brand: string; sinceDate: string; todayDate: string; keywords?: string[]; excludedTerms?: string[] },
   deps: SearchDeps = defaultDeps(),
 ): Promise<GeminiNewsItem[]> {
-  const prompt = buildSearchPrompt(opts.brand, opts.sinceDate, opts.todayDate);
+  const prompt = buildSearchPrompt(opts.brand, opts.sinceDate, opts.todayDate, opts.keywords ?? [], opts.excludedTerms ?? []);
   const { text, groundingChunks } = await deps.generate(prompt);
   return parseGeminiResponse(text, groundingChunks);
 }

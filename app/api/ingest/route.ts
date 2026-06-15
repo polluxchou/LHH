@@ -60,8 +60,8 @@ async function handle(req: Request) {
           now,
           windowDays: 7,
           seenCanonicalUrls,
-          search: (brand, since, today) =>
-            searchRecentNews({ brand, sinceDate: since, todayDate: today }),
+          search: (brand, since, today, keywords, excludedTerms) =>
+            searchRecentNews({ brand, sinceDate: since, todayDate: today, keywords, excludedTerms }),
           analyze: (brand, items) => analyzeBrief({ brand, items }),
         },
       );
