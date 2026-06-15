@@ -78,3 +78,70 @@ export async function failJob(
   const status: JobStatus = job.attempts >= opts.maxAttempts ? "failed" : "pending";
   await store.setStatus(job.id, { status, last_error: opts.error.slice(0, 500) });
 }
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+/** service-role supabase 支撑的 JobStore。表 ingest_jobs(见迁移 0008)。 */
+export function createSupabaseJobStore(db: SupabaseClient): JobStore {
+  return {
+    async listTrackingObjects() {
+      const { data, error } = await db.from("tracking_objects").select("id, space_id");
+      if (error) throw new Error(`listTrackingObjects: ${error.message}`);
+      return (data ?? []) as { id: string; space_id: string }[];
+    },
+    async insertJobsIgnoreDup(rows) {
+      if (rows.length === 0) return 0;
+      const { data, error } = await db
+        .from("ingest_jobs")
+        .upsert(
+          rows.map((r) => ({ ...r, status: "pending" })),
+          { onConflict: "tracking_object_id,run_date", ignoreDuplicates: true },
+        )
+        .select("id");
+      if (error) throw new Error(`insertJobsIgnoreDup: ${error.message}`);
+      return data?.length ?? 0;
+    },
+    async selectOnePending(runDate, maxAttempts) {
+      const { data, error } = await db
+        .from("ingest_jobs")
+        .select("id, tracking_object_id, space_id, run_date, status, attempts")
+        .eq("status", "pending")
+        .eq("run_date", runDate)
+        .lt("attempts", maxAttempts)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw new Error(`selectOnePending: ${error.message}`);
+      return (data as IngestJob) ?? null;
+    },
+    async tryClaim(id, currentAttempts) {
+      // 仅当仍 pending 时置 running 并把 attempts 写成 currentAttempts+1(乐观锁:被抢则 0 行返回)。
+      const { data, error } = await db
+        .from("ingest_jobs")
+        .update({ status: "running", attempts: currentAttempts + 1, updated_at: new Date().toISOString() })
+        .eq("id", id)
+        .eq("status", "pending")
+        .select("id, tracking_object_id, space_id, run_date, status, attempts")
+        .maybeSingle();
+      if (error) throw new Error(`tryClaim: ${error.message}`);
+      return (data as IngestJob) ?? null;
+    },
+    async setStatus(id, patch) {
+      const { error } = await db
+        .from("ingest_jobs")
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw new Error(`setStatus: ${error.message}`);
+    },
+    async countPending(runDate, maxAttempts) {
+      const { count, error } = await db
+        .from("ingest_jobs")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending")
+        .eq("run_date", runDate)
+        .lt("attempts", maxAttempts);
+      if (error) throw new Error(`countPending: ${error.message}`);
+      return count ?? 0;
+    },
+  };
+}
