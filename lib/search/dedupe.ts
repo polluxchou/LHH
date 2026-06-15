@@ -4,6 +4,7 @@ const TRACKING_QUERY_PARAMS = new Set([
   "mc_cid",
   "mc_eid",
   "ref",
+  "utm",
   "utm_campaign",
   "utm_content",
   "utm_medium",
