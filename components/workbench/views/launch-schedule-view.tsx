@@ -72,6 +72,29 @@ const EXPO_SCHEDULE: ScheduleConfig = {
 
 const WEEKDAYS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
 
+// 发射机构官网（真实域名）—— 发射卡的 watch 是直播渠道标签（非网址），链到机构官网作为可达入口。
+const LAUNCH_ORG_SITE: Record<string, string> = {
+  spacex: "https://www.spacex.com/launches/",
+  cnsa: "https://www.cctv.com/",
+  rocketlab: "https://www.rocketlabusa.com/",
+  roscosmos: "https://www.roscosmos.ru/",
+  isro: "https://www.isro.gov.in/",
+  arianespace: "https://www.arianespace.com/",
+  jaxa: "https://global.jaxa.jp/",
+  stoke: "https://www.stokespace.com/",
+  lanjian: "https://www.landspace.com/",
+  isar: "https://www.isaraerospace.com/",
+  ula: "https://www.ulalaunch.com/",
+};
+
+/** 展会 watch 是裸域名 → https 链接；发射 watch 是渠道标签 → 链到机构官网。无则不可点。 */
+function watchHrefFor(item: Launch, kind: ScheduleConfig["kind"]): string | undefined {
+  if (kind === "expo") {
+    return item.watch ? `https://${item.watch.replace(/^https?:\/\//, "")}` : undefined;
+  }
+  return LAUNCH_ORG_SITE[item.orgId];
+}
+
 export function LaunchScheduleView({ locale }: { locale: Locale }) {
   const store = useWorkflow();
   const { mySpaces, currentSpaceId } = useSpaceSession();
@@ -340,9 +363,18 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
                             </div>
                           </div>
                           <div className="lv-side">
-                            <button type="button" className="lv-watch">
-                              {config.watchIcon} {launch.watch}
-                            </button>
+                            {(() => {
+                              const href = watchHrefFor(launch, config.kind);
+                              return href ? (
+                                <a className="lv-watch" href={href} target="_blank" rel="noreferrer">
+                                  {config.watchIcon} {launch.watch}
+                                </a>
+                              ) : (
+                                <span className="lv-watch">
+                                  {config.watchIcon} {launch.watch}
+                                </span>
+                              );
+                            })()}
                           </div>
                         </article>
                       );

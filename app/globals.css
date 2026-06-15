@@ -4893,6 +4893,8 @@ body.theme-dark .sb-row.editing { background: rgba(255,255,255,0.04); }
   font-family: inherit;
   font-weight: 500;
   white-space: nowrap;
+  text-decoration: none;
+  display: inline-block;
 }
 .lv-watch:hover {
   border-color: var(--color-primary);
