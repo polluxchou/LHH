@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import { useRouter } from "next/navigation";
 import type { TeamMember } from "@/lib/domain/types";
 import { useSpaceSession } from "@/components/account/space-provider";
-import { addTrackingObjectToSpace } from "@/lib/account/content-mutations";
+import { addTrackingObjectToSpace, runSearchForObject } from "@/lib/account/content-mutations";
 import {
   appendWorkflowLog,
   claimTopicCard,
@@ -13,7 +13,6 @@ import {
   generateBriefForSignal,
   resetProductionDraft,
   runFailedMockSearchForTrackingObject,
-  runMockSearchForTrackingObject,
   screenBrief,
   selectTrackingObject,
   switchTeamMember,
@@ -25,7 +24,6 @@ import {
   type LocalWorkflowState,
   type WorkflowRunLogEntry,
 } from "@/lib/workflow/local-workflow";
-import { buildTrackingObjectQueries } from "@/lib/search/query-builder";
 import type { StoryboardShot } from "@/lib/domain/production";
 import type { TrackedScope } from "@/components/workbench/tracked-list";
 import type { BriefUiStatus } from "@/components/workbench/helpers";
@@ -186,38 +184,60 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const queryCount = buildTrackingObjectQueries(target).length;
-
-      setState((current) =>
-        appendWorkflowLog(
-          current,
-          {
-            level: "info",
-            event: "search_started",
-            message: `日更搜索启动 · ${target.nameZh ?? target.name} · 查询 ${queryCount} 条 · 来源池 ${current.sources.length} 个`,
-            trackingObjectId: target.id,
-          },
-          { now: nowIso() },
-        ),
-      );
-      setRunningIds((previous) => new Set(previous).add(target.id));
-
-      const timer = setTimeout(() => {
-        timersRef.current.delete(timer);
+      const clearRunning = () =>
         setRunningIds((previous) => {
           const next = new Set(previous);
-
           next.delete(target.id);
           return next;
         });
-        setState((current) =>
-          fail
-            ? runFailedMockSearchForTrackingObject(current, target.id, SIMULATED_FAILURE, { now: nowIso() })
-            : runMockSearchForTrackingObject(current, target.id, { now: nowIso() }),
-        );
-      }, fail ? 1200 : 1400);
+      const label = target.nameZh ?? target.name;
+      setRunningIds((previous) => new Set(previous).add(target.id));
 
-      timersRef.current.add(timer);
+      if (fail) {
+        // Demo button「模拟搜索失败」keeps the mock failure path.
+        setState((current) =>
+          appendWorkflowLog(current, { level: "info", event: "search_started", message: `日更搜索启动 · ${label}`, trackingObjectId: target.id }, { now: nowIso() }),
+        );
+        const timer = setTimeout(() => {
+          timersRef.current.delete(timer);
+          clearRunning();
+          setState((current) => runFailedMockSearchForTrackingObject(current, target.id, SIMULATED_FAILURE, { now: nowIso() }));
+        }, 1200);
+        timersRef.current.add(timer);
+        return;
+      }
+
+      // Real on-demand search: Gemini grounding → DeepSeek → write to DB, then refresh.
+      setState((current) =>
+        appendWorkflowLog(current, { level: "info", event: "search_started", message: `真实搜索启动 · ${label} · Gemini→DeepSeek`, trackingObjectId: target.id }, { now: nowIso() }),
+      );
+      runSearchForObject(target.id)
+        .then(({ wrote, reason }) => {
+          clearRunning();
+          setState((current) =>
+            appendWorkflowLog(
+              current,
+              {
+                level: wrote ? "success" : "warning",
+                event: "search_completed",
+                message: wrote ? `真实搜索完成 · 已产出简报 · ${label}` : `真实搜索完成 · 未产出（${reason ?? "无新内容"}）`,
+                trackingObjectId: target.id,
+              },
+              { now: nowIso() },
+            ),
+          );
+          router.refresh();
+        })
+        .catch((error) => {
+          clearRunning();
+          setState((current) =>
+            appendWorkflowLog(
+              current,
+              { level: "error", event: "search_failed", message: `真实搜索失败 · ${error instanceof Error ? error.message : "未知错误"}`, trackingObjectId: target.id },
+              { now: nowIso() },
+            ),
+          );
+        });
     },
 
     generateBrief: (signalId) => {

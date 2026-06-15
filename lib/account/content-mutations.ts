@@ -2,7 +2,33 @@
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getMySpaces } from "@/lib/account/queries";
+import { ingestTrackingObject } from "@/lib/ingest/run";
 import type { AddTrackingObjectInput } from "@/lib/workflow/local-workflow";
+
+/**
+ * On-demand real search for one tracking object: read its row (for space_id + brand
+ * fields), check the caller is a member of that space, then run the real ingest
+ * pipeline (Gemini → DeepSeek → write) via the service-role client. Returns the
+ * writer's { wrote, reason } so the workbench can log "produced / not produced".
+ */
+export async function runSearchForObject(trackingObjectId: string): Promise<{ wrote: boolean; reason?: string }> {
+  const admin = createSupabaseAdminClient();
+  const { data: obj, error } = await admin
+    .from("tracking_objects")
+    .select("id, space_id, name, aliases, keywords, excluded_terms, languages, regions")
+    .eq("id", trackingObjectId)
+    .single();
+  if (error || !obj) throw new Error("object_not_found");
+
+  const mine = await getMySpaces();
+  if (!mine.some((m) => m.space.id === obj.space_id)) throw new Error("forbidden");
+
+  return ingestTrackingObject(admin, {
+    id: obj.id, spaceId: obj.space_id, name: obj.name, aliases: obj.aliases ?? [],
+    keywords: obj.keywords ?? [], excludedTerms: obj.excluded_terms ?? [],
+    languages: obj.languages ?? [], regions: obj.regions ?? [],
+  });
+}
 
 /**
  * Persist a new tracking object into a space. Membership is checked against the
