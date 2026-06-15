@@ -15,11 +15,11 @@
 ### 2.1 生成引擎 `lib/production/deepseek-script.ts`(新增,纯、我的)
 - `buildScriptPrompt(brief: EditorialBrief, topicCard?: TopicCard | null): string`
   - 喂入:`brief.briefTitle / tagline / factBullets / factSummary / whyItMatters`,`topicCard.coreQuestion / formatLabel / workingTitle`。
-  - 以 `b-cna-01` 手写精品包为**结构与口吻范本**(few-shot)。若 prompt 过长,退化为「结构化摘要范本」(列出该精品包的段落结构 + 1-2 句风格说明)。
+  - **整份 `b-cna-01` 生产包(script+storyboard,~5.8KB)作为 few-shot 范本**直接嵌入 prompt(已确认体量可放进 DeepSeek 上下文),让产出向其叙事密度与「林哈哈」口吻看齐。
   - prompt 必含 "json" 字样(DeepSeek json_object 模式要求)。
-  - 明确要求:中文;4 个脚本段对应固定 `id` = `hook|context|core|close`;分镜 6 段含 `n/time/shot/voiceOver/visual/notes`。
+  - 明确要求:中文;**4 个脚本段固定 `id` = `hook|context|core|close`**(stub 与精品一致);分镜每条含 `n/time/shot/voiceOver/visual/notes`,**分镜条数随目标时长伸缩**(参照精品 12-15min→10 条;约每 60-90s 一条,不写死)。`time`/`duration` 要铺满 `targetDuration`。
 - `parseProduction(raw: string): { script: ProductionScript; storyboard: StoryboardShot[] } | null`
-  - 解析 + 校验:`script.sections` 4 段且 id 命中 `hook|context|core|close`、`body` 非空;`storyboard` ≥1 且每条字段(`n/time/shot/voiceOver/visual/notes`)非空。任一不满足 → 返回 `null`(守卫,同 `parseAnalysis`)。`script.targetDuration`/`wordCount` 不由模型给,在 `generateProduction` 组装时补。
+  - 解析 + 校验:`script.sections` 恰 4 段且 id 命中 `hook|context|core|close`、`body` 非空;`storyboard` **≥6 条**且每条字段(`n/time/shot/voiceOver/visual/notes`)非空、`n` 连续。任一不满足 → 返回 `null`(守卫,同 `parseAnalysis`)。`script.targetDuration`/`wordCount` 不由模型给,在 `generateProduction` 组装时补(targetDuration 从 formatLabel 解析,wordCount 统计 sections 正文)。
 - `generateProduction(opts, deps?): Promise<ProductionPackage>`
   - `opts = { brief, topicCard, formatLabel? }`;`deps = { chat }`(可注入 DeepSeek client,默认 `deepseek-v4-flash` + `response_format:{type:"json_object"}`,baseURL `https://api.deepseek.com`)。
   - 组装:DeepSeek 产出的 script+storyboard + 确定性 `task` 脚手架(复用 `createStubProduction` 里 task 段逻辑,抽成 `buildTaskScaffold(brief, topicCard)` 共用)。
