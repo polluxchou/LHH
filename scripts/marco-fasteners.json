@@ -1,0 +1,414 @@
+[
+  {
+    "key": "wurth",
+    "name": "Würth Group",
+    "nameZh": "伍尔特集团",
+    "type": "company",
+    "aliases": ["Adolf Würth GmbH & Co. KG", "伍尔特", "Wurth Group", "Würth Industry North America"],
+    "countryOrRegion": "Germany",
+    "officialUrl": "https://www.wuerth.com",
+    "primaryTrack": "全球紧固件与装配物料分销龙头的增长、并购与物流网络扩张",
+    "whyTrack": "伍尔特是全球最大的紧固件与装配物料分销集团，年销售额超 200 亿欧元、覆盖 80 多国，其业绩、并购与物流扩张是工业紧固件行业景气与渠道格局的风向标。",
+    "keywords": ["Würth", "伍尔特", "fasteners", "screws", "Würth Industry", "distribution center"],
+    "languages": ["en", "de", "zh"],
+    "regions": ["Europe", "North America", "Global"],
+    "priority": 1,
+    "signals": [
+      { "kind": "milestone", "headline": "伍尔特集团 2025 财年销售额创历史新高，达 207 亿欧元", "summary": "2025 财年集团销售额约 207 亿欧元，同比增长 2.3%（汇率调整后 3.2%），再创历史新高；营业利润升至 9.70 亿欧元（2024 年为 9.40 亿欧元）。德国本土销售近 80 亿欧元（+0.8%），海外增长 3.3% 至 127 亿欧元。", "date": "2026-01-21", "confidence": 0.92, "sources": [
+        { "url": "https://news.wuerth.com/wuerth-group-reports-record-sales-in-2025/", "title": "Würth Group reports record sales in 2025", "publisher": "Würth Newsroom", "publishedAt": "2026-01-21", "sourceType": "official" },
+        { "url": "https://distributionstrategy.com/2026/01/wurth-posts-record-sales-in-2025-holds-profit-steady-amid-weak-industrial-demand/", "title": "Würth Posts Record Sales in 2025, Holds Profit Steady Amid Weak Industrial Demand", "publisher": "Distribution Strategy Group", "publishedAt": "2026-01-21", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "伍尔特集团 2024 财年销售额 202 亿欧元，营业利润大幅回落", "summary": "2024 财年集团销售额 202 亿欧元（2023 年 204 亿欧元），按汇率调整后微降 0.3%；营业利润降至 9.40 亿欧元（2023 年为 14.55 亿欧元），受制造业疲软、成本上升及高投资折旧拖累，但仍为历史第四高。", "date": "2025-03-19", "confidence": 0.9, "sources": [
+        { "url": "https://news.wuerth.com/wuerth-group-sales-in-the-2024-fiscal-year-almost-at-previous-years-level/", "title": "Würth Group sales in the 2024 fiscal year almost at previous year's level", "publisher": "Würth Newsroom", "publishedAt": "2025-03-19", "sourceType": "official" },
+        { "url": "https://www.mdm.com/news/operations/earnings/wurth-group-annual-sales-top-24b-for-new-high-water-mark/", "title": "Würth Group Annual Sales Top $24B for New High-Water Mark", "publisher": "Modern Distribution Management", "publishedAt": "2025-03-19", "sourceType": "trade_media" }
+      ] },
+      { "kind": "facility", "headline": "伍尔特投资 4250 万美元在美国俄亥俄州哥伦布新建配送中心", "summary": "伍尔特工业北美公司（WINA）斥资 4250 万美元收购位于哥伦布 Georgesville Road 的 47.2 万平方英尺设施（原 MSC Industrial Supply 厂房，2024 年关闭），预留 50 万平方英尺扩建空间，预计新增至多 160 个全职岗位。", "date": "2025-03-25", "confidence": 0.88, "sources": [
+        { "url": "https://www.prnewswire.com/news-releases/wurth-industry-expands-in-columbus-with-new-distribution-center-302406042.html", "title": "Würth Industry Expands in Columbus with New Distribution Center", "publisher": "PR Newswire", "publishedAt": "2025-03-25", "sourceType": "official" },
+        { "url": "https://www.mdm.com/news/top-distributor-sectors/facilities-maintenance-mro/wurth-industry-adds-former-large-msc-distribution-center-in-ohio/", "title": "Würth Industry Adds Former Large MSC Distribution Center in Ohio", "publisher": "Modern Distribution Management", "publishedAt": "2025-03-25", "sourceType": "trade_media" }
+      ] },
+      { "kind": "facility", "headline": "伍尔特在德国总部启用高度自动化的西部配送中心扩建", "summary": "Adolf Würth GmbH 于 2025 年 1 月 24 日在德国 Künzelsau-Gaisbach 总部正式启用扩建后的西部配送中心，配备超 10.4 万个料箱货位的自动化穿梭系统，满负荷下每日可多处理约 4.8 万个订单行，拣货与仓储能力提升 37%，包装填充材料减少 30%。", "date": "2025-01-24", "confidence": 0.9, "sources": [
+        { "url": "https://news.wuerth.com/delivering-with-even-greater-reliability-wuerth-inaugurates-highly-automated-logistics-expansion/", "title": "Würth inaugurates highly automated logistics expansion", "publisher": "Würth Newsroom", "publishedAt": "2025-01-24", "sourceType": "official" },
+        { "url": "https://www.globalfastenernews.com/wurth-inaugurates-highly-automated-logistics-expansion/", "title": "Würth Opens Automated DC", "publisher": "Global Fastener News", "publishedAt": "2025-01-24", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "伍尔特工业北美收购 Weinstock Bros. 强化建筑紧固业务", "summary": "伍尔特工业北美公司（WINA）收购纽约 Valley Stream 的百年企业 Weinstock Bros.，专供高强度结构螺栓与桥梁、钢结构工程工具设备。该交易为 WINA 三年内第五宗并购，并入新设的 Würth Construction Services 业务部门。", "date": "2025-02-26", "confidence": 0.82, "sources": [
+        { "url": "https://www.inddist.com/mergers-acquisitions/news/13774997/wrth-industry-north-america-acquires-weinstock-bros-to-boost-fastening-portfolio", "title": "Würth Industry North America Acquires Weinstock Bros.", "publisher": "Industrial Distribution", "publishedAt": "2025-02-26", "sourceType": "trade_media" },
+        { "url": "https://www.fastenernewsdesk.com/20207/wurth-industry-north-america-strengthens-construction-business/", "title": "Würth Industry North America Strengthens Its Construction Business", "publisher": "Fastener News Desk", "publishedAt": "2025-02-26", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "伍尔特集团完成对服装品牌 Peter Hahn 的收购", "summary": "2024 年 8 月，伍尔特集团完成收购成立于 1964 年、总部位于德国 Winterbach 的男女服装品牌 Peter Hahn，进一步拓展其多元化业务版图。", "date": "2024-08-01", "confidence": 0.7, "sources": [
+        { "url": "https://tracxn.com/d/acquisitions/acquisitions-by-wurth-group/__AW8YBnfvTKFZuc7YrgpPXvt84Vddk6PHr4d3vjNQpqw", "title": "List of Acquisitions by Würth Group", "publisher": "Tracxn", "publishedAt": "2024-08-01", "sourceType": "database" }
+      ] },
+      { "kind": "milestone", "headline": "伍尔特工业与 Dot Ai 合作展示供应链 AI 物联网解决方案", "summary": "伍尔特工业与 Dot Ai 于 2025 年 1 月宣布将在 Manifest 2025 展会上联合展示前沿供应链解决方案，借助物联网与资产追踪技术强化库存管理与物流可视化能力。", "date": "2025-01-30", "confidence": 0.72, "sources": [
+        { "url": "https://www.businesswire.com/news/home/20250130782959/en/Dot-Ai-and-Wrth-Industry-to-Showcase-Cutting-Edge-Supply-Chain-Solutions-at-Manifest-2025", "title": "Dot Ai and Würth Industry to Showcase Supply Chain Solutions at Manifest 2025", "publisher": "Business Wire", "publishedAt": "2025-01-30", "sourceType": "official" }
+      ] },
+      { "kind": "policy", "headline": "美国钢铝关税升级波及紧固件，分销商成本承压", "summary": "2025 年 8 月美国将 50% 钢铝关税扩大至管材、线材、紧固件等衍生品，业内估算螺钉、螺栓等产品成本上涨 30%-50%；作为依赖跨境供应链的紧固件分销商，伍尔特等企业面临采购成本与定价压力。", "date": "2025-07-29", "confidence": 0.6, "sources": [
+        { "url": "https://threadlineproducts.com/2025/07/29/how-2025-steel-tariffs-are-reshaping-fastener-fabrication-sourcing-strategies/", "title": "How 2025 Steel Tariffs Are Reshaping Fastener Fabrication & Sourcing Strategies", "publisher": "Threadline Products", "publishedAt": "2025-07-29", "sourceType": "trade_media" },
+        { "url": "https://www.scrippsnews.com/life/money/steel-and-aluminum-tariffs-drive-up-costs-for-everyday-fasteners", "title": "Steel and aluminum tariffs drive up costs for everyday nuts and bolts", "publisher": "Scripps News", "publishedAt": "2025-07-29", "sourceType": "authoritative_media" }
+      ] }
+    ]
+  },
+  {
+    "key": "bossard",
+    "name": "Bossard Group",
+    "nameZh": "博沙德集团",
+    "type": "company",
+    "aliases": ["Bossard Holding AG", "博沙德", "Bossard"],
+    "countryOrRegion": "Switzerland",
+    "officialUrl": "https://www.bossard.com",
+    "primaryTrack": "紧固技术与智能工厂物流（SmartFactoryLogistics）龙头的增长、并购与创新",
+    "whyTrack": "博沙德是全球领先的紧固技术与智能工厂物流（C 类件库存管理）供应商，其 Strategy 200、并购与智能物流创新代表紧固件行业向数字化、服务化升级的方向。",
+    "keywords": ["Bossard", "博沙德", "fastening", "SmartFactoryLogistics", "SmartBin", "C-parts"],
+    "languages": ["en", "de", "zh"],
+    "regions": ["Europe", "Americas", "Asia", "Global"],
+    "priority": 1,
+    "signals": [
+      { "kind": "milestone", "headline": "博沙德 2024 财年销售额下滑 7.7% 至 9.864 亿瑞郎", "summary": "2024 财年销售额降至 9.864 亿瑞郎（上年 10.69 亿），本币口径下降 5.8%；EBIT 1.001 亿瑞郎（-11.5%），EBIT 利润率 10.2%；净利润 7530 万瑞郎（-2.0%）。美洲第四季度销售大跌 27.9%，亚洲增长 15.0%。", "date": "2025-02-25", "confidence": 0.9, "sources": [
+        { "url": "https://fastenerandfixing.com/industry-news/bossard-achieves-strategic-progress-in-2024/", "title": "Bossard achieves strategic progress in 2024", "publisher": "Fastener + Fixing Magazine", "publishedAt": "2025-02-25", "sourceType": "trade_media" },
+        { "url": "https://www.bossard.com/us-en/about-us/news-and-press-releases/2025/01/sales-fourth-quarter-and-financial-year-2024-ad-hoc-announcement-pursuant-to-art-53-lr/", "title": "Sales fourth quarter and financial year 2024", "publisher": "Bossard", "publishedAt": "2025-01-21", "sourceType": "official" }
+      ] },
+      { "kind": "milestone", "headline": "博沙德 2025 上半年销售额增 7.6% 至 5.479 亿瑞郎，并购驱动增长", "summary": "2025 上半年销售额 5.479 亿瑞郎（+7.6%），其中并购贡献 11.2%、汇率拖累 2.3%、有机销售下滑 1.3%；调整后 EBIT 5880 万瑞郎，利润率 10.7%；净利润降至 3870 万瑞郎。欧洲 +14.8%，美洲 -11.4%，亚洲 +10.9%。", "date": "2025-07-17", "confidence": 0.85, "sources": [
+        { "url": "https://www.investing.com/news/earnings/bossard-posts-flat-profit-as-currency-headwinds-offset-growth-4542880", "title": "Bossard posts flat profit as currency headwinds offset growth", "publisher": "Investing.com", "publishedAt": "2025-07-17", "sourceType": "authoritative_media" }
+      ] },
+      { "kind": "milestone", "headline": "博沙德完成收购德国紧固技术分销商 Ferdinand Gross 集团", "summary": "博沙德于 2025 年 1 月 7 日完成对德国 Ferdinand Gross 集团的收购（2024 年 10 月 15 日宣布）。该集团总部位于 Leinfelden-Echterdingen，在匈牙利、波兰设点，约 260 名员工，年销售额约 8000 万欧元，强化博沙德在德国及东欧的市场地位。", "date": "2025-01-07", "confidence": 0.9, "sources": [
+        { "url": "https://www.bossard.com/ca-en/about-us/news-and-press-releases/2025/01/acquisition-ferdinand-gross-gmbh-press-release-bossard-holding-ag/", "title": "Acquisition Ferdinand Gross GmbH - Press Release Bossard Holding AG", "publisher": "Bossard", "publishedAt": "2025-01-07", "sourceType": "official" },
+        { "url": "https://www.inddist.com/mergers-acquisitions/news/22923573/bossard-to-acquire-ferdinand-gross-group", "title": "Bossard to Acquire Ferdinand Gross Group", "publisher": "Industrial Distribution", "publishedAt": "2024-10-15", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "博沙德收购比利时盲铆螺母制造商 Dejond Fastening", "summary": "博沙德于 2024 年 6 月 28 日完成收购比利时 Dejond Fastening NV，该公司是盲铆螺母领先制造商、拥有 Tubtara 品牌，68 名员工，预计当年销售额约 1500 万欧元。收购为博沙德带来冷成型与盲铆螺母技术，强化价值链与全球布局。", "date": "2024-07-01", "confidence": 0.88, "sources": [
+        { "url": "https://www.bossard.com/us-en/about-us/news-and-media/press-releases/acquisition-dejond-fastening/", "title": "Bossard acquires Dejond Fastening NV", "publisher": "Bossard", "publishedAt": "2024-07-01", "sourceType": "official" },
+        { "url": "https://www.bluewin.ch/en/news/bossard-acquires-fastening-technology-from-dejond-fastening-2264648.html", "title": "Bossard acquires fastening technology from Dejond Fastening", "publisher": "Blue News", "publishedAt": "2024-07-01", "sourceType": "authoritative_media" }
+      ] },
+      { "kind": "milestone", "headline": "博沙德携手苏黎世联邦理工启动 Exploration Lab，首个项目 SmartBin 电池改造投产", "summary": "博沙德与苏黎世联邦理工（ETH Zurich）可行性实验室合作设立 Bossard Exploration Lab，2024 年 10 月至 2025 年 3 月间逾 50 名员工孵化 30 多个创意。首个进入产业化的项目为 SmartBin 可充电电池改造，使电池成本降低逾 50%、整体碳排放减少 16%。", "date": "2025-07-15", "confidence": 0.82, "sources": [
+        { "url": "https://www.bossard.com/ch-en/about-us/news-and-press-releases/2025/07/bossard-exploration-lab/", "title": "Bossard Exploration Lab: Future of Industrial Innovation", "publisher": "Bossard", "publishedAt": "2025-07-15", "sourceType": "official" }
+      ] },
+      { "kind": "milestone", "headline": "博沙德在 Automate 2025 展示智能装配与智能工厂物流方案", "summary": "博沙德于 2025 年 5 月 12-15 日在底特律 Automate 2025 展会展示其智能装配数字化作业指导与智能工厂物流（SmartFactoryLogistics）解决方案，面向 B/C 类件提供实时监控、自动补货与全链路透明的库存管理。", "date": "2025-05-12", "confidence": 0.72, "sources": [
+        { "url": "https://www.robotics247.com/article/automate-2025-bossard-to-demonstrate-iot-for-assembly-inventory-management", "title": "Automate 2025: Bossard to demonstrate IoT for assembly, inventory management", "publisher": "Robotics 24/7", "publishedAt": "2025-05-12", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "博沙德持续推进 Strategy 200，目标 2031 年大幅提升销售规模", "summary": "博沙德在 CEO Daniel Bossard 主导的 Strategy 200 框架下（公司 2031 年迎来 200 周年），通过有机增长与并购加速在各核心市场扩张，2025 年成功落地多项战略举措，强化技术专长、深耕本地市场并拓展成长型行业。", "date": "2025-02-25", "confidence": 0.68, "sources": [
+        { "url": "https://www.bossard.com/ch-en/about-us/bossard-group/our-strategy/", "title": "Our Strategy", "publisher": "Bossard", "publishedAt": "2025-02-25", "sourceType": "official" }
+      ] },
+      { "kind": "policy", "headline": "美国钢铝关税升级冲击博沙德美洲业务", "summary": "受 2025 年美国 50% 钢铝及衍生品（含紧固件）关税及需求疲软影响，博沙德美洲区销售明显承压——2024 年第四季度美洲销售大跌 27.9% 至 5110 万瑞郎，2025 上半年美洲销售再降 11.4% 至约 1.14 亿瑞郎。", "date": "2025-07-17", "confidence": 0.62, "sources": [
+        { "url": "https://www.marketsandmarkets.com/ResearchInsight/trump-tariff-impact-on-industrial-fasteners-market.asp", "title": "Trump Tariff Impact on Industrial Fasteners Market", "publisher": "MarketsandMarkets", "publishedAt": "2025-04-01", "sourceType": "database" }
+      ] }
+    ]
+  },
+  {
+    "key": "fastenal",
+    "name": "Fastenal Company",
+    "nameZh": "Fastenal（法思诺）",
+    "type": "company",
+    "aliases": ["FAST", "Fastenal"],
+    "countryOrRegion": "United States",
+    "officialUrl": "https://www.fastenal.com",
+    "primaryTrack": "北美工业紧固件分销与现场服务（Onsite/自动售货 FMI）扩张",
+    "whyTrack": "北美最大工业及建筑紧固件分销商，其月度销售、Onsite/FMI 装机与数字化渗透率是观察北美制造业与建筑业景气度的高频前瞻指标。",
+    "keywords": ["Fastenal", "FAST", "fasteners", "Onsite", "FMI", "FASTVend", "FASTBin"],
+    "languages": ["en", "zh"],
+    "regions": ["North America", "Global"],
+    "priority": 1,
+    "signals": [
+      { "kind": "milestone", "headline": "Fastenal 2025 全年净销售额达 82 亿美元，同比增长 8.7%", "summary": "2025 全年净销售额 82.0 亿美元，较 2024 年的 75.5 亿美元增长 8.7%；净利润 12.6 亿美元，同比增长 9.4%，稀释每股收益升至 1.09 美元。", "date": "2026-01-19", "confidence": 0.95, "sources": [
+        { "url": "https://www.businesswire.com/news/home/20260119581991/en/Fastenal-Company-Reports-2025-Annual-and-Fourth-Quarter-Earnings", "title": "Fastenal Company Reports 2025 Annual and Fourth Quarter Earnings", "publisher": "Business Wire", "publishedAt": "2026-01-19", "sourceType": "official" }
+      ] },
+      { "kind": "milestone", "headline": "Fastenal 2025 Q4 净销售额 20.3 亿美元，日均销售增长 11.1%", "summary": "2025 年第四季度净销售额 20.3 亿美元，同比增长 11.1%；毛利 8.987 亿美元增长 9.8%，营业利润增至 3.843 亿美元增长 11.4%，单月销售额 1 万美元以上客户站点数量增加驱动单量增长。", "date": "2026-01-19", "confidence": 0.92, "sources": [
+        { "url": "https://www.tradingview.com/news/tradingview:c2e94ee5c2c97:0-fastenal-company-reports-2025-annual-and-fourth-quarter-earnings/", "title": "Fastenal Company Reports 2025 Annual and Fourth Quarter Earnings", "publisher": "TradingView", "publishedAt": "2026-01-19", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "Fastenal 数字化渠道 2025 全年销售 50.9 亿美元，占比突破 61%", "summary": "2025 年数字化足迹（电商、EDI 与 FMI 管理库存）销售额 50.9 亿美元，占公司总销售额 61.4%；其中 FMI 销售 37.1 亿美元（占比 44.7%），eBusiness 销售 11.0 亿美元同比增长 13.1%。", "date": "2026-01-20", "confidence": 0.9, "sources": [
+        { "url": "https://www.digitalcommerce360.com/2026/01/20/fastenal-ecommerce-sales-q4-2025/", "title": "Fastenal Q4 results shows ecommerce channels drive sales", "publisher": "Digital Commerce 360", "publishedAt": "2026-01-20", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "Fastenal 2025 Q1 签约 6,418 台加权 FMI 设备，全年目标 28,000–30,000 台", "summary": "2025 年第一季度签约 6,418 台加权 FASTBin/FASTVend 设备（以标准机器当量 MEU 计），公司设定 2025 全年加权 FMI 设备签约目标为 28,000 至 30,000 台。", "date": "2025-04-10", "confidence": 0.85, "sources": [
+        { "url": "https://www.sec.gov/Archives/edgar/data/0000815556/000081555625000079/ex_99103312025earningsrele.htm", "title": "Fastenal Co - Form 8-K Q1 2025 Earnings Release", "publisher": "SEC EDGAR", "publishedAt": "2025-04-10", "sourceType": "regulator" }
+      ] },
+      { "kind": "milestone", "headline": "Fastenal 2025 年 5 月日均销售增长 9.3%，创 26 个月新高", "summary": "2025 年 5 月净销售额 6.873 亿美元同比增长 4.3%（当月少一个销售日），日均销售同比增长 9.3% 为 26 个月最高；紧固件增长 8.9%、安全产品 10.4%、其他产品 9.2%。", "date": "2025-06-05", "confidence": 0.88, "sources": [
+        { "url": "https://www.mdm.com/news/top-distributor-sectors/contractor/fastenal-daily-sales-growth-jumps-to-26-month-high-in-may/", "title": "Fastenal Daily Sales Growth Jumps to 26-Month High in May", "publisher": "Modern Distribution Management", "publishedAt": "2025-06-05", "sourceType": "trade_media" }
+      ] },
+      { "kind": "facility", "headline": "Fastenal 在犹他州 Magna 启用 29.8 万平方英尺高科技配送中心", "summary": "Fastenal 投资数百万美元在盐湖城都会区 Magna 新建 298,000 平方英尺配送中心（内部代号 UHUB），2025 年 6 月 16 日投运、7 月 22 日举行开业；地块预留扩建空间可使建筑面积翻倍至约 60 万平方英尺。", "date": "2025-09-02", "confidence": 0.9, "sources": [
+        { "url": "https://investor.fastenal.com/news-releases/news-details/2025/Fastenal-Debuts-High-Tech-Distribution-Center-in-Magna-Utah/default.aspx", "title": "Fastenal Debuts High-Tech Distribution Center in Magna, Utah", "publisher": "Fastenal Investor Relations", "publishedAt": "2025-09-02", "sourceType": "official" }
+      ] },
+      { "kind": "facility", "headline": "Fastenal 将在乔治亚州 Carrollton 新建东南部配送枢纽，替换亚特兰大中心", "summary": "2026 年 3 月 13 日宣布在乔治亚州 Carrollton 建设东南部区域配送物流中心，3 月 24 日动工、预计 2027 年春投运，替换现有 25.2 万平方英尺亚特兰大配送中心，新址可扩建至最高 90 万平方英尺。", "date": "2026-03-13", "confidence": 0.88, "sources": [
+        { "url": "https://www.inddist.com/earnings/news/22958837/fastenal-posts-higher-q4-annual-sales-plans-to-replace-atlanta-hub", "title": "Fastenal Posts Higher Q4, Annual Sales, Plans to Replace Atlanta Hub", "publisher": "Industrial Distribution", "publishedAt": "2026-03-13", "sourceType": "trade_media" }
+      ] },
+      { "kind": "policy", "headline": "Fastenal 因关税在 2025 年实施提价，Q3 提价贡献 240–270 个基点", "summary": "应对关税成本，Fastenal 在 2025 年第二、三季度实施紧固件等品类提价；2025 年第三季度产品提价为净销售额贡献 240 至 270 个基点，并在 Q1 提前增加库存以应对关税影响。", "date": "2025-10-13", "confidence": 0.82, "sources": [
+        { "url": "https://www.sec.gov/Archives/edgar/data/0000815556/000081555625000116/ex_99109302025earningsrele.htm", "title": "Fastenal Co - Form 8-K Q3 2025 Earnings Release", "publisher": "SEC EDGAR", "publishedAt": "2025-10-13", "sourceType": "regulator" }
+      ] }
+    ]
+  },
+  {
+    "key": "pennengineering",
+    "name": "PennEngineering",
+    "nameZh": "PennEngineering（PEM）",
+    "type": "company",
+    "aliases": ["PEM", "Penn Engineering"],
+    "countryOrRegion": "United States",
+    "officialUrl": "https://www.pemnet.com",
+    "primaryTrack": "自压铆紧固件与电子/电动车（EV）电气连接紧固技术全球扩张",
+    "whyTrack": "全球自压铆（self-clinching）紧固件领导者，在电子、汽车电子与 EV/电池电气连接领域持续并购与新品迭代，是观察电动化与电子制造紧固需求趋势的重要标的。",
+    "keywords": ["PennEngineering", "PEM", "self-clinching", "fasteners", "eConnect", "Sherex", "EV", "busbar"],
+    "languages": ["en", "zh"],
+    "regions": ["North America", "Europe", "Global"],
+    "priority": 2,
+    "signals": [
+      { "kind": "milestone", "headline": "PennEngineering 收购 Sherex Fastening Solutions，巩固全球盲铆螺母龙头地位", "summary": "2024 年 1 月宣布收购总部位于纽约 Buffalo 的盲铆螺母（blind rivet nut）专业制造商 Sherex；与其 ATLAS 铆螺母品牌整合后定位为全球铆螺母头部供应商，交易金额未披露，Adam Pratt 出任 Sherex 与 ATLAS 总裁。", "date": "2024-01-16", "confidence": 0.92, "sources": [
+        { "url": "https://www.businesswire.com/news/home/20240116410667/en/PennEngineering%C2%AE-Acquires-Sherex-Fastening-Solutions", "title": "PennEngineering Acquires Sherex Fastening Solutions", "publisher": "Business Wire", "publishedAt": "2024-01-16", "sourceType": "official" },
+        { "url": "https://www.pemnet.com/company/news/pennengineering-acquires-sherex-fastening-solutions/", "title": "PennEngineering Acquires Sherex Fastening Solutions", "publisher": "PennEngineering", "publishedAt": "2024-01-08", "sourceType": "official" }
+      ] },
+      { "kind": "facility", "headline": "PennEngineering 投资 1,400 万欧元扩建爱尔兰 Galway 工厂，新增 70 个岗位", "summary": "2024 年 7 月宣布投资 1,400 万欧元扩建爱尔兰 Galway 卓越中心，未来五年新增 70 个就业岗位，项目含先进技术与培训中心、测试实验室及客户体验中心；该站点自 2001 年进驻以来团队已从 80 人增至 200 人。", "date": "2024-07-01", "confidence": 0.88, "sources": [
+        { "url": "https://www.idaireland.com/latest-news/press-release/pennengineering-announces-multimillion-digital-transformation-at-galway-facility", "title": "PennEngineering announces multimillion digital transformation at Galway facility", "publisher": "IDA Ireland", "publishedAt": "2024-07-01", "sourceType": "official" },
+        { "url": "https://www.siliconrepublic.com/jobs-news/pennengineering-galway-ireland-jobs-engineering-manufacturing", "title": "PennEngineering invests €14m to expand Galway site, creating 70 jobs", "publisher": "Silicon Republic", "publishedAt": "2024-07-01", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "PEM 推出 eConnect 母线连接系统，主打 EV 电气连接一步安装", "summary": "2024 年 8 月推出 ECCB PEM eConnect 接触衬套，配合 ECKN 螺母与 ECKS 螺柱构成两件式母线（busbar）连接系统，单次压装一步安装；高表面积滚花设计可刺穿铝/铜氧化层形成低阻连接，免去母线镀层与复杂清洁工序。", "date": "2024-08-01", "confidence": 0.85, "sources": [
+        { "url": "https://www.pemnet.com/company/pem-blog/specialized-solutions-for-ev-busbars-introducing-the-eccb-pem-econnect-contact-bushing/", "title": "Specialized Solutions for EV Busbars: Introducing the ECCB PEM eConnect Contact Bushing", "publisher": "PennEngineering", "publishedAt": "2024-08-01", "sourceType": "official" },
+        { "url": "https://fastenerandfixing.com/application-technology/specialised-solution-for-ev-busbars/", "title": "Specialised solution for EV busbars", "publisher": "Fastener + Fixing Magazine", "publishedAt": "2024-08-01", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "PEM 发布汽车电子专用产品目录，聚焦 OEM 与车厂应用", "summary": "2024 年 9 月 PEM 推出面向汽车电子市场的专属数字目录，展示标准紧固解决方案组合，含图示、性能数据及在汽车电子应用中的典型使用场景，覆盖车厂与 OEM 客户。", "date": "2024-09-01", "confidence": 0.8, "sources": [
+        { "url": "https://www.pemnet.com/company/news/pem-introduces-automotive-electronics-catalog/", "title": "PEM Introduces Automotive Electronics Catalog", "publisher": "PennEngineering", "publishedAt": "2024-09-01", "sourceType": "official" },
+        { "url": "https://fastenerengineering.com/pennengineering-launches-new-pem-automotive-electronics-catalog/", "title": "PennEngineering launches new PEM automotive electronics catalog", "publisher": "Fastener Engineering", "publishedAt": "2024-09-01", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "PEM 推出首款防护等级 IFH 自压铆螺柱，达 IPX7/IPX9K 标准", "summary": "2025 年 4 月发布 PEM 首款防护（ingress protection）紧固件 IFH 平头自压铆螺柱，可形成水密封并满足 ISO 20653-2014 及 IPX7、IPX9K 标准；优化材料流入与公差控制，安装即密封，无需密封胶或 O 形圈。", "date": "2025-04-25", "confidence": 0.82, "sources": [
+        { "url": "https://www.pemnet.com/products/engineering-guides/pem-ifh-stud/", "title": "PEM IFH Stud", "publisher": "PennEngineering", "publishedAt": "2025-04-25", "sourceType": "official" }
+      ] },
+      { "kind": "facility", "headline": "PEM Galway 为 80,000 平方英尺欧洲卓越中心启动数字化转型", "summary": "PennEngineering 对其爱尔兰 Galway 的 80,000 平方英尺欧洲卓越中心实施数百万美元数字化转型，该站点是欧洲所有 PEM 压铆产品的主要制造基地，配有研发中心与应用工程中心。", "date": "2024-07-02", "confidence": 0.7, "sources": [
+        { "url": "https://www.pemnet.com/eu/company/pem-blog/pennengineering-undergoes-multimillion-digital-transformation-at-galway-facility-2/", "title": "PennEngineering Undergoes Multimillion Digital Transformation at Galway Facility", "publisher": "PennEngineering", "publishedAt": "2024-07-02", "sourceType": "official" }
+      ] },
+      { "kind": "milestone", "headline": "PEM 推出 eConnect 引脚紧固技术，拓展电气连接产品线", "summary": "PennEngineering 推出 PEM eConnect 引脚（Pin）紧固技术，进一步扩展面向电动车、汽车电子与工业应用的电气连接紧固解决方案组合，与 eConnect 母线连接系统形成系列化布局。", "date": "2024-08-02", "confidence": 0.65, "sources": [
+        { "url": "https://info.pemnet.com/econnect-pin-fastening-technology", "title": "PEM eConnect Pin Fastening Technology", "publisher": "PennEngineering", "publishedAt": "2024-08-02", "sourceType": "official" }
+      ] }
+    ]
+  },
+  {
+    "key": "lisi",
+    "name": "LISI Group",
+    "nameZh": "LISI 集团",
+    "type": "company",
+    "aliases": ["LISI Aerospace", "LISI Automotive", "LISI Medical", "LISI S.A.", "FII"],
+    "countryOrRegion": "France",
+    "officialUrl": "https://www.lisi-group.com",
+    "primaryTrack": "航空与汽车高端紧固件及结构件的订单、产能与业务组合调整",
+    "whyTrack": "LISI 是全球航空航天与汽车紧固件龙头之一，正受益于空客/波音增产周期，并在剥离医疗、收购汽车资产中重塑业务版图，订单与产能动向对供应链有指标意义。",
+    "keywords": ["LISI", "fasteners", "aerospace", "automotive", "structural components", "Airbus", "Boeing"],
+    "languages": ["en", "fr", "zh"],
+    "regions": ["Europe", "North America", "Global"],
+    "priority": 1,
+    "signals": [
+      { "kind": "milestone", "headline": "LISI 集团 2025 年实现超 10% 有机增长，EBITDA 利润率升至 15%", "summary": "2025 全年航空业务有机增长 18.3%，集团当期 EBITDA 利润率达营收的 15.0%，同比提升 3.6 个百分点，主要受航空工业生产率改善及提价推动；拟派每股 0.46 欧元股息。", "date": "2026-02-25", "confidence": 0.9, "sources": [
+        { "url": "https://www.lisi-group.com/telechargement/en/2026/communique-resultats-2025-en.pdf", "title": "In 2025, the LISI Group posted organic growth of over 10%", "publisher": "LISI Group", "publishedAt": "2026-02-25", "sourceType": "official" }
+      ] },
+      { "kind": "milestone", "headline": "LISI 2025 上半年营收创纪录近 9.8 亿欧元，EBIT 大涨 77%", "summary": "2025 上半年集团营收同比增长 8.3% 至约 9.8 亿欧元，EBIT 升 77.1% 至 9560 万欧元，当期经营利润率提升 3.8 个百分点至 9.8%；航空业务营收增长 19.0%。", "date": "2025-07-24", "confidence": 0.88, "sources": [
+        { "url": "https://www.finanzwire.com/article/lisi-epa-fii-lisi-reports-record-sales-and-financial-growth-in-h1-2025-4hqP5aF2seH", "title": "LISI Reports Record Sales and Financial Growth in H1 2025", "publisher": "Finanzwire", "publishedAt": "2025-07-24", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "LISI Aerospace 续签与空客的最大紧固件合同", "summary": "LISI 航空业务宣布续签与空客的紧固件大合同，这是该部门最大的单一合同，巩固了双方延续数十年的长期战略供应关系；2025 年欧洲紧固件业务受空客及 A350 项目带动增长约 17.7%。", "date": "2025-07-24", "confidence": 0.8, "sources": [
+        { "url": "https://fastenerandfixing.com/industry-news/aerospace-drives-lisi-growth/", "title": "Aerospace drives LISI growth", "publisher": "Fastener + Fixing Magazine", "publishedAt": "2025-07-24", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "LISI 出售 LISI Medical 医疗部门给 SK Capital，聚焦航空与汽车", "summary": "2025 年 10 月 31 日 LISI 确认将医疗部门出售给美国私募 SK Capital，交易后该业务更名 Precera Medical 并落户美国明尼阿波利斯；LISI 保留约 9.988% 少数股权，借此聚焦航空与汽车两大核心业务。", "date": "2025-11-03", "confidence": 0.88, "sources": [
+        { "url": "https://live.euronext.com/en/products/equities/company-news/2025-11-03-lisi-group-confirms-sale-its-lisi-medical-division-sk", "title": "LISI Group confirms the sale of its LISI MEDICAL division to SK CAPITAL", "publisher": "Euronext", "publishedAt": "2025-11-03", "sourceType": "official" },
+        { "url": "https://skcapitalpartners.com/sk-capital-completes-acquisition-of-lisi-groups-medical-division-and-launches-new-platform-as-precera-medical/", "title": "SK Capital Completes Acquisition of LISI Group's Medical Division as Precera Medical", "publisher": "SK Capital Partners", "publishedAt": "2025-11-03", "sourceType": "official" }
+      ] },
+      { "kind": "facility", "headline": "LISI Automotive 完成收购匈牙利 Polysemble Győr 工厂", "summary": "2025 年 9 月 30 日 LISI Automotive Hungary 完成对位于匈牙利 Győr（邻近奥迪园区）的 Polysemble Hungary 资产收购，该厂拥有近 90 名技术员工，强化集团在中欧的复杂总成与紧固件供应能力。", "date": "2025-10-08", "confidence": 0.85, "sources": [
+        { "url": "https://www.lisi-group.com/telechargement/en/2025/acquisition-lisi-automotive-gyor-08-10-2025-en.pdf", "title": "LISI AUTOMOTIVE HUNGARY completes the transfer of POLYSEMBLE HUNGARY business line in Győr", "publisher": "LISI Group", "publishedAt": "2025-10-08", "sourceType": "official" },
+        { "url": "https://fastenerandfixing.com/industry-news/polysemble-hungary-acquired-by-lisi-automotive/", "title": "POLYSEMBLE HUNGARY acquired by LISI AUTOMOTIVE", "publisher": "Fastener + Fixing Magazine", "publishedAt": "2025-10-08", "sourceType": "trade_media" }
+      ] },
+      { "kind": "facility", "headline": "LISI Aerospace 2025 年投入 6380 万欧元扩充产能", "summary": "2025 年 LISI 航空业务投资 6380 万欧元扩产并升级设备，重点扩大美国工厂液压螺钉与接头产能、法国 Villefranche-de-Rouergue 与 Vignoux-sur-Barangeon 紧固件产区，属集团约 9990 万欧元投资计划（占营收 5.7%）的一部分。", "date": "2026-02-26", "confidence": 0.82, "sources": [
+        { "url": "https://www.lisi-group.com/telechargement/en/2026/communique-resultats-2025-en.pdf", "title": "LISI Group 2025 results - capacity investment", "publisher": "LISI Group", "publishedAt": "2026-02-26", "sourceType": "official" }
+      ] },
+      { "kind": "facility", "headline": "LISI Aerospace 法国 Saint-Ouen-l'Aumône 工厂完成第三次扩建", "summary": "2024 年 LISI 航空在法国 Val-d'Oise 的 Saint-Ouen-l'Aumône 工厂完成第三次重大扩建，新增约 4000 平方米（含生产与办公空间）用于液压接头制造，并新招约 40 名员工，目标 2030 年月产 1400 万至 2000 万件。", "date": "2025-02-26", "confidence": 0.75, "sources": [
+        { "url": "https://www.lisi-group.com/rapports/2024/integrated-report/", "title": "LISI GROUP - Integrated report 2024", "publisher": "LISI Group", "publishedAt": "2025-02-26", "sourceType": "official" }
+      ] }
+    ]
+  },
+  {
+    "key": "kamax",
+    "name": "KAMAX Group",
+    "nameZh": "KAMAX 集团",
+    "type": "company",
+    "aliases": ["KAMAX", "KAMAX Automotive", "KAMAX Holding"],
+    "countryOrRegion": "Germany",
+    "officialUrl": "https://www.kamax.com",
+    "primaryTrack": "汽车高强度紧固件产能、电动化转型与企业重组",
+    "whyTrack": "KAMAX 是德国汽车高强度螺栓全球领军企业，正经历产能全球扩张（中国）、电动化产品转型与 2025 年深度重组并存的关键期，其动向反映汽车紧固件供应链与德系供应商承压状况。",
+    "keywords": ["KAMAX", "high-strength fasteners", "bolts", "automotive", "EV", "restructuring"],
+    "languages": ["en", "de", "zh"],
+    "regions": ["Europe", "Asia", "North America", "Global"],
+    "priority": 2,
+    "signals": [
+      { "kind": "facility", "headline": "KAMAX 在中国常州开设第二座生产工厂", "summary": "2024 年 1 月 24 日 KAMAX 在常州开设第二座工厂，4 万平方米厂房配备新研发中心，屋顶光伏可覆盖逾 50% 用能，年增产能约 2.4 万吨，主产汽车发动机、底盘及轮毂用紧固件与精密零件。", "date": "2024-01-24", "confidence": 0.85, "sources": [
+        { "url": "https://www.kamax.com/en/story/kamax-eroeffnet-zweites-produktionswerk-in-china/", "title": "KAMAX opens the second production in China", "publisher": "KAMAX", "publishedAt": "2024-01-24", "sourceType": "official" },
+        { "url": "https://fastenerandfixing.com/insight/kamax-opens-second-production-plant-in-china/", "title": "KAMAX opens second production plant in China", "publisher": "Fastener + Fixing Magazine", "publishedAt": "2024-01-24", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "KAMAX 任命 Marco Götz 为首席重组官，推进集团转型", "summary": "2025 年 3 月 Marco Götz 加入 KAMAX 出任首席重组官（CRO）负责集团转型，自 2025 年 9 月起兼任 CFO 并进入管理董事会；其曾在 AlixPartners 等领导多个行业重组项目，显示 KAMAX 正进行深度重组。", "date": "2025-09-01", "confidence": 0.78, "sources": [
+        { "url": "https://www.kamax.com/en/company/group-executive-board/", "title": "Group Executive Board", "publisher": "KAMAX", "publishedAt": "2025-09-01", "sourceType": "official" }
+      ] },
+      { "kind": "milestone", "headline": "Peter Büsing 出任 KAMAX 欧洲区 CEO", "summary": "2024 年 5 月 2 日 Peter-Thomas Büsing 出任 KAMAX 欧洲区 CEO，负责所有欧洲工厂、子公司 GALOL 及销售、供应链、技术与工具部门，管辖约 2500 名员工，接替升任集团 CEO 的 Reinhard Rupprecht。", "date": "2024-05-02", "confidence": 0.82, "sources": [
+        { "url": "https://www.torque-expo.com/article/peter-busing-becomes-ceo-europe-kamax", "title": "Peter Büsing becomes new CEO Europe at KAMAX", "publisher": "Torque Expo", "publishedAt": "2024-05-02", "sourceType": "trade_media" },
+        { "url": "https://fastenerandfixing.com/industry-news/a-new-ceo-europe-at-kamax/", "title": "A new CEO Europe at KAMAX", "publisher": "Fastener + Fixing Magazine", "publishedAt": "2024-05-02", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "KAMAX 启动 SAP 供应链数字化转型", "summary": "2025 年 12 月 2 日 KAMAX 宣布部署 SAP S/4HANA、SAP EWM 与 SAP TM 推进供应链数字化，以提升物流效率、透明度与可持续性；公司每日跨多厂处理约 400 车次运输，2024 年营收约 10 亿欧元、员工约 4000 人。", "date": "2025-12-02", "confidence": 0.85, "sources": [
+        { "url": "https://news.sap.com/2025/12/kamax-supply-chain-excellence-future-ready-automotive-industry/", "title": "KAMAX Drives Supply Chain Excellence with SAP", "publisher": "SAP", "publishedAt": "2025-12-02", "sourceType": "official" },
+        { "url": "https://erp.today/kamax-strengthening-supply-chain-operations-through-digitalization-logistics-management", "title": "KAMAX Strengthening Supply Chain Operations Through Digitalization", "publisher": "ERP Today", "publishedAt": "2025-12-02", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "KAMAX 重组集团执行董事会，Rupprecht 任集团 CEO", "summary": "2023 年 11 月 KAMAX 重组集团执行董事会，Reinhard Rupprecht 于 11 月 20 日出任集团 CEO（此前任欧洲区 CEO），Christoph Görtz 出任集团 CFO，开启领导层与战略转型。", "date": "2023-11-09", "confidence": 0.75, "sources": [
+        { "url": "https://www.torque-expo.com/article/kamax-appoints-new-group-executive-board", "title": "KAMAX appoints new Group Executive Board", "publisher": "Torque Expo", "publishedAt": "2023-11-09", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "KAMAX 推出 KXgreen 低碳高强度紧固件工艺", "summary": "KAMAX 推出 KXgreen 方案，通过优化材料与精确控制的冷成形路线，在不依赖传统热处理的情况下实现高强度紧固件生产，降低能耗与碳排；公司每年推出约 300 款新品，并为电动车开发兼顾导电性的专用紧固件。", "date": "2025-12-03", "confidence": 0.6, "sources": [
+        { "url": "https://www.kamax.com/en/solutions/innovations/", "title": "Innovations | KAMAX", "publisher": "KAMAX", "publishedAt": "2025-12-03", "sourceType": "official" }
+      ] }
+    ]
+  },
+  {
+    "key": "howmet",
+    "name": "Howmet Aerospace",
+    "nameZh": "豪梅特航空",
+    "type": "company",
+    "aliases": ["HWM", "Fairchild Fasteners", "Huck", "Consolidated Aerospace Manufacturing"],
+    "countryOrRegion": "United States",
+    "officialUrl": "https://www.howmet.com",
+    "primaryTrack": "航空航天紧固系统的需求与产能（随波音/空客产量）",
+    "whyTrack": "全球航空紧固件龙头之一，紧固系统板块营收与利润率直接反映商用航空（宽体机复苏）与国防的产量节奏，并通过并购持续扩张紧固件版图。",
+    "keywords": ["Howmet", "fasteners", "aerospace", "Huck", "Fastening Systems", "Fairchild"],
+    "languages": ["en", "zh"],
+    "regions": ["North America", "Global"],
+    "priority": 1,
+    "signals": [
+      { "kind": "milestone", "headline": "豪梅特拟以约 18 亿美元收购精密紧固件商 CAM", "summary": "2025 年 12 月 22 日，豪梅特宣布与史丹利百得达成最终协议，以约 18 亿美元全现金收购 Consolidated Aerospace Manufacturing（CAM，航空航天与国防用精密紧固件、流体接头制造商），预计 2026 年上半年完成；CAM 预计 2026 财年营收约 4.85-4.95 亿美元、调整后 EBITDA 利润率超 20%。", "date": "2025-12-22", "confidence": 0.95, "sources": [
+        { "url": "https://www.howmet.com/press-release/2025-12-22/howmet-aerospace-to-acquire-consolidated-aerospace-manufacturing-from-stanley-black-decker-for-approximately-1-8-billion/", "title": "Howmet Aerospace to Acquire Consolidated Aerospace Manufacturing for approximately $1.8 Billion", "publisher": "Howmet Aerospace", "publishedAt": "2025-12-22", "sourceType": "official" }
+      ] },
+      { "kind": "milestone", "headline": "豪梅特 2025 全年营收创纪录达 83 亿美元，紧固系统增 11% 至 17.45 亿美元", "summary": "2026 年 2 月 12 日发布的 2025 四季度及全年业绩显示，全年营收创纪录约 83 亿美元；紧固系统全年第三方销售 17.45 亿美元、同比增 11%，板块调整后 EBITDA 增 31% 至 5.30 亿美元、利润率升约 460 个基点至 30.4%。", "date": "2026-02-12", "confidence": 0.92, "sources": [
+        { "url": "https://www.howmet.com/press-release/2026-02-12/howmet-aerospace-reports-fourth-quarter-and-full-year-2025-results/", "title": "Howmet Aerospace Reports Fourth Quarter and Full Year 2025 Results", "publisher": "Howmet Aerospace", "publishedAt": "2026-02-12", "sourceType": "official" }
+      ] },
+      { "kind": "milestone", "headline": "豪梅特 2025 三季度紧固系统营收 4.48 亿美元、同比增 14%", "summary": "2025 年 10 月 30 日发布的三季度业绩显示，紧固系统营收 4.48 亿美元、同比增 14%，主要受商用航空增长驱动；板块调整后 EBITDA 同比增约 35%。", "date": "2025-10-30", "confidence": 0.9, "sources": [
+        { "url": "https://www.howmet.com/press-release/2025-10-30/howmet-aerospace-reports-third-quarter-2025-results/", "title": "Howmet Aerospace Reports Third Quarter 2025 Results", "publisher": "Howmet Aerospace", "publishedAt": "2025-10-30", "sourceType": "official" }
+      ] },
+      { "kind": "milestone", "headline": "豪梅特 2025 二季度紧固系统营收 4.31 亿美元、利润率升至 33%", "summary": "2025 年 7 月 31 日发布的二季度业绩显示，紧固系统营收 4.31 亿美元、同比增 9%，受商用与国防航空增长拉动、部分被商用运输下滑抵消；板块调整后 EBITDA 利润率同比升约 170 个基点至 33.0%。", "date": "2025-07-31", "confidence": 0.9, "sources": [
+        { "url": "https://www.howmet.com/press-release/2025-07-31/howmet-aerospace-reports-second-quarter-2025-results/", "title": "Howmet Aerospace Reports Second Quarter 2025 Results", "publisher": "Howmet Aerospace", "publishedAt": "2025-07-31", "sourceType": "official" }
+      ] },
+      { "kind": "milestone", "headline": "豪梅特两度上调季度股息，Q3 提至每股 0.12 美元", "summary": "2025 年股东回报加速：一季度季度股息上调 25% 至每股 0.10 美元，2025 年 9 月 30 日董事会再批准上调 20% 至每股 0.12 美元，较上年同期翻倍，反映航空业务现金生成能力增强。", "date": "2025-09-30", "confidence": 0.85, "sources": [
+        { "url": "https://www.howmet.com/press-release/2025-09-30/howmet-aerospace-board-approves-common-stock-dividend-2/", "title": "Howmet Aerospace Board Approves Common Stock Dividend", "publisher": "Howmet Aerospace", "publishedAt": "2025-09-30", "sourceType": "official" }
+      ] },
+      { "kind": "milestone", "headline": "豪梅特收购威斯康星紧固件商 Brunner，强化大尺寸紧固件能力", "summary": "2026 年 2 月，豪梅特全现金收购位于威斯康星州 Mauston 的私营高品质紧固件生产商 Brunner Manufacturing，借此增强其在大尺寸紧固件领域的产品供给与市场机会。", "date": "2026-02-06", "confidence": 0.85, "sources": [
+        { "url": "https://www.howmet.com/press-release/2026-02-12/howmet-aerospace-reports-fourth-quarter-and-full-year-2025-results/", "title": "Howmet Aerospace Reports Fourth Quarter and Full Year 2025 Results (Brunner acquisition)", "publisher": "Howmet Aerospace", "publishedAt": "2026-02-12", "sourceType": "official" }
+      ] },
+      { "kind": "facility", "headline": "豪梅特计划在密歇根州 Whitehall 投资 1.075 亿美元建新厂", "summary": "豪梅特宣布在密歇根州 Whitehall 扩产，约 1.075 亿美元项目将新建制造设施（用于陶瓷型芯生产），预计创造多达 300 个岗位，配合商用飞机产量回升的产能需求。", "date": "2024-12-19", "confidence": 0.8, "sources": [
+        { "url": "https://www.crainsgrandrapids.com/news/manufacturing/howmet-aerospace-plans-107-5m-plant-in-whitehall/", "title": "Howmet Aerospace plans $107.5M plant in Whitehall", "publisher": "Crain's Grand Rapids Business", "publishedAt": "2024-12-19", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "豪梅特 2025 一季度营收创纪录 19.4 亿美元，上调全年指引", "summary": "2025 年 5 月 1 日发布的一季度业绩显示营收约 19.4 亿美元、同比增 6%（商用航空增 9%），调整后 EBITDA 同比增 28% 至 5.60 亿美元；公司据强劲表现上调 2025 全年指引，营收增速指引约 8%。", "date": "2025-05-01", "confidence": 0.85, "sources": [
+        { "url": "https://www.howmet.com/financial-release/2025-05-01/howmet-aerospace-reports-first-quarter-2025-results/", "title": "Howmet Aerospace Reports First Quarter 2025 Results", "publisher": "Howmet Aerospace", "publishedAt": "2025-05-01", "sourceType": "official" }
+      ] }
+    ]
+  },
+  {
+    "key": "nucor",
+    "name": "Nucor",
+    "nameZh": "纽柯钢铁",
+    "type": "company",
+    "aliases": ["NUE", "Nucor Fastener", "Nucor Corporation"],
+    "countryOrRegion": "United States",
+    "officialUrl": "https://nucor.com",
+    "primaryTrack": "钢材产能与紧固件用钢供给（受关税与下游需求驱动）",
+    "whyTrack": "北美最大钢铁生产商，旗下 Nucor Fastener（印第安纳 St. Joe）生产合金钢螺栓螺母；其钢材产量、价格、产能扩张及 Section 232 关税立场直接影响紧固件用钢成本与供给。",
+    "keywords": ["Nucor", "steel", "fasteners", "Nucor Fastener", "Section 232", "rebar"],
+    "languages": ["en", "zh"],
+    "regions": ["North America", "Global"],
+    "priority": 2,
+    "signals": [
+      { "kind": "milestone", "headline": "纽柯 2025 三季度净利 6.07 亿美元，称数据中心需求带来盈利海啸", "summary": "2025 年三季度营收 85.2 亿美元、净利 6.07 亿美元（每股 2.63 美元），钢厂部门盈利 7.93 亿美元、同比增 157%，钢厂出货量同比增 12% 至 640 万吨；CEO 称数据中心需求白热化，纽柯供应数据中心 95% 以上钢制产品。", "date": "2025-10-27", "confidence": 0.9, "sources": [
+        { "url": "https://www.manufacturingdive.com/news/nucor-q3-2025-earnings-data-center-buildouts/804105/", "title": "Nucor rides 'tsunami of earnings power,' citing data center buildouts", "publisher": "Manufacturing Dive", "publishedAt": "2025-10-27", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "纽柯 2025 四季度净利 3.78 亿美元，全年回馈股东约 12 亿美元", "summary": "2026 年 1 月 26 日发布的四季度业绩显示净利 3.78 亿美元（每股 1.64 美元，调整后 1.73 美元），高于上年同期的 1.22 美元；全年通过回购与分红回馈股东约 12 亿美元，并预计 2026 一季度三大部门盈利均增长。", "date": "2026-01-26", "confidence": 0.9, "sources": [
+        { "url": "https://www.prnewswire.com/news-releases/nucor-reports-results-for-the-fourth-quarter-of-2025-302670322.html", "title": "Nucor Reports Results for the Fourth Quarter of 2025", "publisher": "PR Newswire", "publishedAt": "2026-01-26", "sourceType": "official" }
+      ] },
+      { "kind": "facility", "headline": "纽柯西弗吉尼亚 Apple Grove 板材厂进度过半，投资升至约 40 亿美元", "summary": "截至 2025 年 9 月，纽柯在西弗吉尼亚 Mason 县 Apple Grove 的板材厂建设达到过半节点，约 1800 名工人施工；该项目为公司史上最大投资，因成本上升后规模升至约 40 亿美元，年产能达 300 万吨板材，预计 2026 年底投产。", "date": "2025-09-19", "confidence": 0.85, "sources": [
+        { "url": "https://www.wvgazettemail.com/business/nucor-at-the-halfway-point-1-800-workers-on-hundreds-of-acres-with-50-cranes/article_08fa367d-e104-5f08-900d-86f7eb6566f0.html", "title": "Nucor at the halfway point: 1,800 workers on hundreds of acres with 50 cranes", "publisher": "Charleston Gazette-Mail", "publishedAt": "2025-09-19", "sourceType": "authoritative_media" }
+      ] },
+      { "kind": "policy", "headline": "美国将钢铝 Section 232 关税从 25% 上调至 50%，利好纽柯", "summary": "2025 年 6 月 3 日，特朗普签署公告将钢、铝及衍生品的 Section 232 进口关税从 25% 翻倍至 50%（英国进口暂豁免）；作为本土钢铁龙头，纽柯持续受益于关税对进口钢的保护。", "date": "2025-06-03", "confidence": 0.9, "sources": [
+        { "url": "https://www.whitecase.com/insight-alert/trump-administration-increases-steel-and-aluminum-section-232-tariffs-50-and-narrows", "title": "Trump administration increases steel and aluminum Section 232 tariffs to 50%", "publisher": "White & Case LLP", "publishedAt": "2025-06-03", "sourceType": "authoritative_media" }
+      ] },
+      { "kind": "policy", "headline": "纽柯呼吁 USMCA 重谈应对经墨加转运及加拿大钢铁补贴", "summary": "在 2025 年四季度财报电话会上，纽柯对 2026 年表态谨慎乐观，认为定于 2026 年 7 月启动的 USMCA 重新谈判需解决经由墨西哥、加拿大转运海外钢材及加拿大政府钢铁补贴的威胁，显示其主张维持强力贸易保护。", "date": "2026-01-27", "confidence": 0.78, "sources": [
+        { "url": "https://www.argusmedia.com/en/news-and-insights/latest-market-news/2781160-tariffs-demand-boost-us-steel-outlook-nucor", "title": "Tariffs, demand boost US steel outlook: Nucor", "publisher": "Argus Media", "publishedAt": "2026-01-27", "sourceType": "trade_media" }
+      ] },
+      { "kind": "facility", "headline": "纽柯多个增长项目 2025 年投产：北卡微型钢筋厂、亚利桑那熔炼车间等", "summary": "2025 年纽柯多个重大项目相继投产，包括北卡 Lexington 的钢筋微型厂、亚利桑那 Kingman 熔炼车间、阿拉巴马塔架与结构件设施，以及印第安纳 Crawfordsville 的镀层综合体；棒材/结构件产能扩张利好其下游紧固件等用钢供给。", "date": "2026-01-26", "confidence": 0.82, "sources": [
+        { "url": "https://nucor.com/news-release/nucor-reports-results-for-the-fourth-quarter-of-2025-122985", "title": "Nucor Reports Results for the Fourth Quarter of 2025 (growth projects)", "publisher": "Nucor", "publishedAt": "2026-01-26", "sourceType": "official" }
+      ] },
+      { "kind": "milestone", "headline": "纽柯连续多周上调钢价，50% 关税重塑市场", "summary": "在 Section 232 关税升至 50% 后，纽柯多次上调消费者现货价格（CSP），连续数周提价，反映关税与需求改善共同重塑市场定价动态，间接抬升紧固件等下游用钢成本。", "date": "2025-06-17", "confidence": 0.7, "sources": [
+        { "url": "https://steelindustry.news/nucor-raises-prices-as-50-tariffs-reshape-market-dynamics/", "title": "Nucor Raises Prices as 50% Tariffs Reshape Market Dynamics", "publisher": "Steel Industry News", "publishedAt": "2025-06-17", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "纽柯 2025 二季度钢厂盈利改善，全年资本开支约 30 亿美元", "summary": "2025 年二季度钢厂部门盈利改善，主要受薄板与中厚板提价驱动，钢制品部门也因价格稳定、出货量增加及单吨成本下降而盈利上升；当季资本开支 9.54 亿美元，全年资本开支维持约 30 亿美元指引。", "date": "2025-07-21", "confidence": 0.8, "sources": [
+        { "url": "https://www.sec.gov/Archives/edgar/data/0000073309/000119312525100774/d809255dex991.htm", "title": "Nucor Corp Form 8-K Q2 2025 Results", "publisher": "U.S. SEC / Nucor", "publishedAt": "2025-07-21", "sourceType": "regulator" }
+      ] }
+    ]
+  },
+  {
+    "key": "sundram",
+    "name": "Sundram Fasteners",
+    "nameZh": "Sundram Fasteners（桑德拉姆紧固件）",
+    "type": "company",
+    "aliases": ["SUNDRMFAST", "TVS", "SFL"],
+    "countryOrRegion": "India",
+    "officialUrl": "https://www.sundram.com",
+    "primaryTrack": "印度汽车与新能源紧固件出口与产能",
+    "whyTrack": "印度领先的汽车紧固件与精密锻件制造商，正从传统燃油车向电动车、风电、航空航天等非汽车领域快速多元化，出口与 EV 订单是其增长核心。",
+    "keywords": ["Sundram", "fasteners", "India", "EV", "TVS", "powertrain"],
+    "languages": ["en", "zh"],
+    "regions": ["India", "Global"],
+    "priority": 2,
+    "signals": [
+      { "kind": "milestone", "headline": "Sundram Fasteners FY25 营收创历史新高达 598.4 亿卢比，净利创纪录", "summary": "2025 财年（截至 2025 年 3 月 31 日）合并总收入达约 598.4 亿卢比，高于上年的 572.0 亿卢比；Q4 单季营收创历史新高，单季净利创纪录约 13.4 亿卢比。出口同比增长 12.39%，从 140.94 亿卢比增至 158.41 亿卢比。", "date": "2025-05-22", "confidence": 0.85, "sources": [
+        { "url": "https://www.autocarpro.in/news/sundram-fasteners-reports-highest-ever-revenue-and-profit-126183", "title": "Sundram Fasteners Reports Highest-Ever Revenue and Profit", "publisher": "Autocar Professional", "publishedAt": "2025-05-22", "sourceType": "trade_media" },
+        { "url": "https://indiacsr.in/sundram-fasteners-q4-fy25-results-rs-539-cr-net-profit-rs-5983-cr-revenue/", "title": "Sundram Fasteners Q4 FY25 Results: Rs 539 Cr Net Profit, Rs 5,983 Cr Revenue", "publisher": "India CSR", "publishedAt": "2025-05-22", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "Sundram Fasteners 斩获约 400 亿卢比电动车订单并扩产", "summary": "公司获得约 400 亿卢比（Rs 4,000 crore）的电动车（EV）订单，将在未来 5-6 年内交付，并因此扩充产能。产品涵盖电池冷却液盖、轴类等 EV 零部件，公司预期 EV 收入占比从约 6% 提升至 10-15%。", "date": "2025-02-18", "confidence": 0.8, "sources": [
+        { "url": "https://www.projectstoday.com/News/Sundram-Fasteners-to-fulfil-Rs-4000-cr-EV-orders-with-expanded-capacity", "title": "Sundram Fasteners to fulfil Rs 4,000-cr EV orders with expanded capacity", "publisher": "Projects Today", "publishedAt": "2025-02-18", "sourceType": "trade_media" },
+        { "url": "https://themachinemaker.com/news/sundram-fasteners-expands-capacity-on-receipt-of-new-ev-orders/", "title": "Sundram Fasteners expands capacity on receipt of new EV Orders", "publisher": "The Machine Maker", "publishedAt": "2025-02-18", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "Sundram Fasteners Q1 FY26 营收、净利双创历史新高", "summary": "截至 2025 年 6 月 30 日的 Q1，合并营收达 153.34 亿卢比（上年 149.77 亿），税前利润创纪录 19.91 亿卢比，净利 14.79 亿卢比，EBITDA 达 23.88 亿卢比（利润率 17.5%）。国内销售增长 8.78% 至 93.09 亿卢比。", "date": "2025-07-31", "confidence": 0.85, "sources": [
+        { "url": "https://www.autocarpro.in/news/sundram-fasteners-reports-highest-ever-revenue-and-pat-in-q1-127826", "title": "Sundram Fasteners Reports Highest-Ever Revenue and PAT in Q1", "publisher": "Autocar Professional", "publishedAt": "2025-07-31", "sourceType": "trade_media" }
+      ] },
+      { "kind": "facility", "headline": "Sundram Fasteners FY26 投入约 40 亿卢比资本开支扩产，押注 EV 与非汽车业务", "summary": "公司 FY26 资本开支约 40.4 亿卢比（Rs 404.27 crore），用于产能扩张与新项目，重点投向出口紧固件、动力总成零部件（位于经济特区，服务混动与纯电车型）。计划未来 2-3 年将风电收入翻倍至约 50 亿卢比。", "date": "2024-05-23", "confidence": 0.75, "sources": [
+        { "url": "https://www.autocarpro.in/news/sundram-fasteners-invests-rs-400-crore-eyes-ev-and-non-auto-growth-121857", "title": "Sundram Fasteners Invests Rs 400 Crore, Eyes EV and Non-Auto Growth", "publisher": "Autocar Professional", "publishedAt": "2024-05-23", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "Sundram Fasteners 推进非汽车多元化，目标非汽车收入占比由 35% 提升至 50%", "summary": "公司计划中期内将非汽车收入占比从约 35% 提升至 50%，重点布局航空航天、风电、铁路和国防。风电与航空航天、铁路月度收入目标均大幅上调。", "date": "2025-05-23", "confidence": 0.7, "sources": [
+        { "url": "https://motoring-trends.com/auto-components/sundram-fasteners-reports-record-q4-and-fy25-results-driven-by-export-growth-and-domestic-demand", "title": "Sundram Fasteners Reports Record Q4 And FY25 Results", "publisher": "Motoring Trends", "publishedAt": "2025-05-23", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "Sundram Fasteners FY26 全年营收创纪录 636.8 亿卢比，净利增 9.4%", "summary": "截至 2026 年 3 月 31 日的 FY26，合并总收入增长 6.4% 至 636.825 亿卢比（Rs 6,368.25 crore），合并净利增长 9.4% 至 59.285 亿卢比；EBITDA 107.533 亿卢比。全年派息每股 8.00 卢比。", "date": "2026-05-21", "confidence": 0.85, "sources": [
+        { "url": "https://www.autocarpro.in/news/sundram-fasteners-posts-record-consolidated-income-of-rs-6368-crores-for-fy-2026-132349", "title": "Sundram Fasteners Posts Record Consolidated Income of Rs 6,368 Crores for FY 2026", "publisher": "Autocar Professional", "publishedAt": "2026-05-21", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "Sundram Fasteners 电动车子总成订单簿由 2.5 亿美元增至 4.25 亿美元", "summary": "公司电动车子总成（EV sub-assemblies）订单簿从 2.5 亿美元增长至 4.25 亿美元，资本开支重点投向 EV 零部件、风电零件及出口工装，支撑其长期摆脱传统汽车依赖的多元化战略。", "date": "2024-05-24", "confidence": 0.7, "sources": [
+        { "url": "https://www.autocarpro.in/news/sundram-fasteners-invests-rs-400-crore-eyes-ev-and-non-auto-growth-121857", "title": "Sundram Fasteners Invests Rs 400 Crore, Eyes EV and Non-Auto Growth (order book)", "publisher": "Autocar Professional", "publishedAt": "2024-05-24", "sourceType": "trade_media" }
+      ] }
+    ]
+  },
+  {
+    "key": "jinyi",
+    "name": "Jinyi Industrial",
+    "nameZh": "晋亿实业股份有限公司",
+    "type": "company",
+    "aliases": ["晋亿实业", "601002", "Jinyi", "SZSE:601002"],
+    "countryOrRegion": "China",
+    "officialUrl": "http://www.jinei.com",
+    "primaryTrack": "中国高铁扣件与紧固件供货合同",
+    "whyTrack": "中国高铁扣件系统龙头，是国内少数能独立生产 250/350 公里时速高铁全套扣件配件与成品的企业，业绩与中国高铁建设投资周期高度绑定，扣件大单是其核心跟踪指标。",
+    "keywords": ["晋亿实业", "高铁扣件", "紧固件", "Jinyi", "fasteners", "high-speed rail"],
+    "languages": ["zh", "en"],
+    "regions": ["China"],
+    "priority": 1,
+    "signals": [
+      { "kind": "milestone", "headline": "晋亿实业 2025 年中报净利润 1.17 亿元，同比扭亏为盈", "summary": "2025 年半年报营业总收入 11.84 亿元，同比增长 30.88%；归母净利润 1.17 亿元，去年同期亏损 2,707.90 万元，实现扭亏为盈。增长主要受高铁线路集中供货、铁道扣件销售增加及存货成本下降驱动。", "date": "2025-08-29", "confidence": 0.85, "sources": [
+        { "url": "https://finance.sina.com.cn/jjxw/2025-08-29/doc-infnrhcm7466604.shtml", "title": "晋亿实业(601002.SH)：2025年中报净利润为1.17亿元", "publisher": "新浪财经", "publishedAt": "2025-08-29", "sourceType": "authoritative_media" }
+      ] },
+      { "kind": "milestone", "headline": "晋亿实业 2025 年全年净利润 2.42 亿元，同比增长 86.12%", "summary": "2025 年年度报告显示营业收入 23.36 亿元，同比微降 1.40%；归母净利润 2.42 亿元，同比增长 86.12%。紧固件业务全年营收 19.84 亿元仍为核心；直销营收 13.64 亿元、毛利率达 41.39%。", "date": "2026-03-19", "confidence": 0.85, "sources": [
+        { "url": "https://finance.sina.com.cn/stock/aigc/stockfs/2026-03-19/doc-inhrpnfx7452535.shtml", "title": "晋亿实业2025年报解读：净利润增86.12%", "publisher": "新浪财经", "publishedAt": "2026-03-19", "sourceType": "authoritative_media" }
+      ] },
+      { "kind": "milestone", "headline": "晋亿实业中标西渝高铁安康至重庆段扣件项目，合同金额 3.52 亿元", "summary": "2025 年公司中标西安至重庆高速铁路安康至重庆段高铁扣件供货项目，合同金额 3.52 亿元，为公司年内重大高铁扣件订单之一，进一步巩固其在铁路紧固件市场的龙头地位。", "date": "2026-03-20", "confidence": 0.7, "sources": [
+        { "url": "https://finance.sina.com.cn/roll/2026-03-20/doc-inhrqimp7120480.shtml", "title": "晋亿实业股份有限公司2025年年度报告摘要", "publisher": "新浪财经", "publishedAt": "2026-03-20", "sourceType": "authoritative_media" }
+      ] },
+      { "kind": "milestone", "headline": "晋亿实业中标渝昆高铁云贵段扣件项目，合同金额 3.01 亿元", "summary": "2025 年公司中标重庆至昆明高速铁路云贵段高铁扣件供货项目，合同金额 3.01 亿元，与西渝高铁安康至重庆段订单一同成为年内铁道扣件销售增长的主要来源。", "date": "2026-03-21", "confidence": 0.7, "sources": [
+        { "url": "https://finance.sina.com.cn/roll/2026-03-20/doc-inhrqimp7120480.shtml", "title": "晋亿实业股份有限公司2025年年度报告摘要（渝昆高铁）", "publisher": "新浪财经", "publishedAt": "2026-03-20", "sourceType": "authoritative_media" }
+      ] },
+      { "kind": "milestone", "headline": "晋亿实业获约 3.35 亿元高铁扣件订单，股价涨停", "summary": "2025 年 8 月 13 日，晋亿实业（SH601002）涨停，收盘 6.08 元、涨 9.95%。作为高铁扣件龙头，公司近期连续中标高铁项目并获得约 3.35 亿元订单，叠加业绩扭亏与现金分红，推动股价大涨。", "date": "2025-08-13", "confidence": 0.7, "sources": [
+        { "url": "https://finance.sina.com.cn/stock/aiassist/ydfx/2025-08-13/doc-infkuyfk3462067.shtml", "title": "晋亿实业2025年8月13日涨停分析：高铁订单+业绩扭亏+现金分红", "publisher": "新浪财经", "publishedAt": "2025-08-13", "sourceType": "authoritative_media" }
+      ] },
+      { "kind": "milestone", "headline": "晋亿实业中标新建兰州至合作铁路高铁扣件采购项目，金额 4,994.56 万元", "summary": "2026 年 1 月 12 日，公司成功中标新建兰州至合作铁路工程高速铁路扣件采购项目，中标金额 4,994.56 万元，招标方为兰新铁路甘青有限公司，是公司在高铁扣件领域获得的又一重要订单。", "date": "2026-01-12", "confidence": 0.8, "sources": [
+        { "url": "https://www.chinafastenerinfo.com/news/30733/", "title": "晋亿实业再获大单，中标近5000万元高铁扣件项目", "publisher": "金蜘蛛紧固件网", "publishedAt": "2026-01-13", "sourceType": "trade_media" }
+      ] },
+      { "kind": "milestone", "headline": "晋亿实业发布 2025 年业绩预增公告，预计净利同比增 61%-100%", "summary": "2026 年 1 月 27 日公司发布预增公告，预计 2025 年归母净利润 2.1 亿元至 2.6 亿元，同比增长 61.00%-100.00%，主要受高铁线路集中供货、铁道扣件销售增加及存货成本下降推动。", "date": "2026-01-27", "confidence": 0.85, "sources": [
+        { "url": "https://www.nbd.com.cn/articles/2026-01-27/4236853.html", "title": "晋亿实业：预计2025年归母净利润2.1亿元~2.6亿元，同比增长61%~100%", "publisher": "每日经济新闻", "publishedAt": "2026-01-27", "sourceType": "authoritative_media" }
+      ] }
+    ]
+  }
+]
