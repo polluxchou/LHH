@@ -62,7 +62,7 @@ function defaultDeps(): SearchDeps {
   return {
     generate: async (prompt) => {
       const res = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3.5-flash",
         contents: prompt,
         config: { tools: [{ googleSearch: {} }] },
       });
