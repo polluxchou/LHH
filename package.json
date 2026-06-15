@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "seed:account": "node --env-file=.env.local scripts/seed-account.ts"
+    "seed:account": "node --env-file=.env.local scripts/seed-account.ts",
+    "migrate:fixtures": "node --env-file=.env.local scripts/migrate-fixtures-to-db.ts"
   },
   "dependencies": {
     "@google/genai": "^2.8.0",
