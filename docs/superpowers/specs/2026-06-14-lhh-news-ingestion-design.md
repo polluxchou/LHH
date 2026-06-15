@@ -73,6 +73,12 @@ Gemini grounding 无硬日期参数，故用"引导 + 验证"两手：
 - **X 接入**：官方 API（合规稳定付费）或 Apify 爬取（便宜但灰色脆弱）二选一。
 - **源清单维护**：偶尔（月/季）用 Claude Code 搜+验证刷新源，非日常。
 
+### 代码审查留待后续（首版已修高优项；以下为已知改进，不阻塞）
+- **稳定事件去重键**：当前 `dedupe_key = canonicalize(首条URL)`，跨运行去重靠"已见URL"集合，因此"同一事件、新增来源"会生成新信号而非更新旧信号。后续可改为基于事件的稳定键，让 `candidate_signals` 的 upsert 真正承担幂等更新。
+- **失败品牌也记 search_run**：当前某品牌抓取异常时不写 `search_runs` 行，运行日志看不到；后续在 catch 里补一条 `status: 'failed'` 记录。
+- **querySet 真正喂给搜索**：`buildTrackingObjectQueries` 生成了含关键词/排除词/语言地区的查询集并存进 `search_runs.query_set`，但实际搜索只传了 `brand.name`；后续把查询集并入 Gemini prompt。
+- **收窄 `buildTrackingObjectQueries` 入参类型**，去掉 pipeline 里 `brand as TrackingObject` 的强转。
+
 ## 8. 运营成本预估（50-100 品牌 / 每日一次 / 不含 X）
 
 驱动 = 每天走完流水线的相关新闻条数（估 30-100）。当前实价（2026-06）：

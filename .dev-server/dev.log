@@ -131,3 +131,7 @@
  ✓ Compiled /zh in 467ms (739 modules)
  GET /zh 200 in 717ms
  GET /zh 200 in 83ms
+ ✓ Compiled in 108ms (300 modules)
+ GET /zh 200 in 40ms
+ ✓ Compiled in 151ms (739 modules)
+ GET /zh 200 in 77ms
