@@ -13,10 +13,14 @@ function exemplarBlock(): string {
   return JSON.stringify({ sections: ex.script.sections, storyboard: ex.storyboard }, null, 2);
 }
 
-export function buildScriptPrompt(brief: EditorialBrief, topicCard?: TopicCard | null): string {
+export function buildScriptPrompt(
+  brief: EditorialBrief,
+  topicCard?: TopicCard | null,
+  targetDurationOverride?: string,
+): string {
   const facts = brief.factBullets ?? [brief.factSummary];
   const formatLabel = topicCard?.formatLabel ?? "深度短视频（5-8 min）";
-  const targetDuration = deriveTargetDuration(formatLabel);
+  const targetDuration = targetDurationOverride?.trim() || deriveTargetDuration(formatLabel);
   const coreQuestion = topicCard?.coreQuestion ?? "这件事对读者意味着什么？";
   const workingTitle = topicCard?.workingTitle ?? brief.briefTitle;
 
@@ -54,13 +58,18 @@ export function buildScriptPrompt(brief: EditorialBrief, topicCard?: TopicCard |
   ].join("\n");
 }
 
-/** 给模型一个分镜条数的量级提示(纯展示,不强校验)。 */
+/** 给模型一个分镜条数的量级提示(纯展示,不强校验)。支持区间"5-8 min"与单值"3 min"。 */
 function storyboardHint(targetDuration: string): string {
-  const m = targetDuration.match(/(\d+)\s*-\s*(\d+)/);
-  if (!m) return "6-8";
-  const mid = (Number(m[1]) + Number(m[2])) / 2;
-  const shots = Math.max(6, Math.round((mid * 60) / 75));
-  return `${shots - 1}-${shots + 1}`;
+  const range = targetDuration.match(/(\d+)\s*[-–~]\s*(\d+)/);
+  let minutes: number;
+  if (range) {
+    minutes = (Number(range[1]) + Number(range[2])) / 2;
+  } else {
+    const single = targetDuration.match(/(\d+)/);
+    minutes = single ? Number(single[1]) : 6;
+  }
+  const shots = Math.max(6, Math.round((minutes * 60) / 50));
+  return `${Math.max(6, shots - 1)}-${shots + 1}`;
 }
 
 function nonEmpty(v: unknown): string {
@@ -133,19 +142,21 @@ function defaultDeps(): GenerateDeps {
 }
 
 export async function generateProduction(
-  opts: { brief: EditorialBrief; topicCard?: TopicCard | null },
+  opts: { brief: EditorialBrief; topicCard?: TopicCard | null; targetDuration?: string },
   deps: GenerateDeps = defaultDeps(),
 ): Promise<ProductionPackage> {
   const topicCard = opts.topicCard ?? null;
   const formatLabel = topicCard?.formatLabel ?? "深度短视频（5-8 min）";
-  const prompt = buildScriptPrompt(opts.brief, topicCard);
+  // 用户在工作室选定的时长优先;否则回退到选题卡 formatLabel 推导。
+  const targetDuration = opts.targetDuration?.trim() || deriveTargetDuration(formatLabel);
+  const prompt = buildScriptPrompt(opts.brief, topicCard, targetDuration);
   // 真实模型偶发输出不达标(已实测);重试一次(temperature>0,重试通常不同)再放弃。
   let parsed = parseProduction(await deps.complete(prompt));
   if (!parsed) parsed = parseProduction(await deps.complete(prompt));
   if (!parsed) throw new Error("DeepSeek 生产包解析失败");
   const wordCount = parsed.sections.reduce((sum, s) => sum + s.body.length, 0);
   return {
-    script: { targetDuration: deriveTargetDuration(formatLabel), wordCount, sections: parsed.sections },
+    script: { targetDuration, wordCount, sections: parsed.sections },
     storyboard: parsed.storyboard,
     task: buildTaskScaffold(opts.brief, topicCard),
   };

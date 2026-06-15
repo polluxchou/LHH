@@ -11,9 +11,15 @@ export type GenerateProductionResult =
 export async function generateProductionAction(input: {
   brief: EditorialBrief;
   topicCard: TopicCard | null;
+  /** 用户在工作室选定的目标时长(如 "3 min");缺省回退到选题卡 formatLabel。 */
+  targetDuration?: string;
 }): Promise<GenerateProductionResult> {
   try {
-    const pkg = await generateProduction({ brief: input.brief, topicCard: input.topicCard });
+    const pkg = await generateProduction({
+      brief: input.brief,
+      topicCard: input.topicCard,
+      targetDuration: input.targetDuration,
+    });
     return { ok: true, pkg };
   } catch (err) {
     // 脱敏:只回传简短原因,不泄露 key/堆栈

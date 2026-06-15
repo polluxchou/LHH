@@ -122,3 +122,29 @@ describe("generateProduction 重试", () => {
     expect(calls).toBe(1);
   });
 });
+
+describe("目标时长覆盖", () => {
+  const okJson3 = JSON.stringify({ sections: goodSections, storyboard: goodShots });
+
+  it("buildScriptPrompt 用传入的 targetDuration 覆盖 formatLabel 推导", () => {
+    // card.formatLabel = 深度长视频（12-15 min）;覆盖成 9 min
+    const p = buildScriptPrompt(brief, card, "9 min");
+    expect(p).toContain("【目标时长】9 min");
+  });
+
+  it("generateProduction 把 targetDuration 写进 script、覆盖 formatLabel", async () => {
+    const pkg = await generateProduction(
+      { brief, topicCard: card, targetDuration: "9 min" },
+      { complete: async () => okJson3 },
+    );
+    expect(pkg.script.targetDuration).toBe("9 min");
+  });
+
+  it("未传 targetDuration 时回退到 formatLabel 推导", async () => {
+    const pkg = await generateProduction(
+      { brief, topicCard: card },
+      { complete: async () => okJson3 },
+    );
+    expect(pkg.script.targetDuration).toBe("12-15 min");
+  });
+});

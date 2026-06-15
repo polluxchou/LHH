@@ -23,7 +23,7 @@ interface ProductionStudioProps {
   onToggleCheck: (itemId: string) => void;
   onReset: () => void;
   /** 触发 DeepSeek 重新生成脚本+分镜;返回 Promise 以驱动 loading 态。无则不显示该按钮。 */
-  onGenerate?: () => Promise<void>;
+  onGenerate?: (targetDuration: string) => Promise<void>;
 }
 
 const TABS: Array<{ id: StudioTab; label: string; en: string }> = [
@@ -72,12 +72,15 @@ export function ProductionStudio({
   const title = topicCard.workingTitle || brief.briefTitle;
 
   const [generating, setGenerating] = useState(false);
+  // 目标时长(分钟):默认 3,提供 1/3/9 快捷选项,可自定义。
+  const [durationMin, setDurationMin] = useState("3");
+  const targetDuration = `${(durationMin || "3").trim()} min`;
   const runGenerate = async () => {
     if (!onGenerate || generating) return;
     setGenerating(true);
-    onLog("info", `AI 生成中 · ${title}`);
+    onLog("info", `AI 生成中（目标 ${targetDuration}） · ${title}`);
     try {
-      await onGenerate();
+      await onGenerate(targetDuration);
     } finally {
       setGenerating(false);
     }
@@ -164,14 +167,41 @@ export function ProductionStudio({
             导出 .md
           </button>
           {onGenerate ? (
-            <button
-              type="button"
-              className="studio-foot-btn primary"
-              disabled={generating}
-              onClick={runGenerate}
-            >
-              {generating ? "AI 生成中…" : "✨ AI 生成脚本/分镜"}
-            </button>
+            <>
+              <span className="studio-foot-dur" title="目标视频时长">
+                <span className="dur-label">时长</span>
+                {["1", "3", "9"].map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    className={`studio-foot-btn ghost dur-chip ${durationMin.trim() === m ? "active" : ""}`}
+                    disabled={generating}
+                    onClick={() => setDurationMin(m)}
+                  >
+                    {m} min
+                  </button>
+                ))}
+                <input
+                  type="number"
+                  min="1"
+                  className="dur-input"
+                  style={{ width: "3.4em" }}
+                  value={durationMin}
+                  disabled={generating}
+                  onChange={(event) => setDurationMin(event.target.value)}
+                  aria-label="自定义时长（分钟）"
+                />
+                <span className="dur-unit">min</span>
+              </span>
+              <button
+                type="button"
+                className="studio-foot-btn primary"
+                disabled={generating}
+                onClick={runGenerate}
+              >
+                {generating ? "AI 生成中…" : `✨ AI 生成（${targetDuration}）`}
+              </button>
+            </>
           ) : null}
           <button
             type="button"

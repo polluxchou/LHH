@@ -80,7 +80,7 @@ export interface WorkbenchStore {
   editStoryboardShot: (briefId: string, shotNumber: number, patch: Partial<Omit<StoryboardShot, "n">>) => void;
   toggleCheck: (briefId: string, itemId: string) => void;
   resetProduction: (briefId: string) => void;
-  generateProduction: (briefId: string) => Promise<void>;
+  generateProduction: (briefId: string, targetDuration?: string) => Promise<void>;
 }
 
 const WorkflowContext = createContext<WorkbenchStore | null>(null);
@@ -419,14 +419,14 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
       setState((current) => resetProductionDraft(current, briefId));
     },
 
-    generateProduction: async (briefId) => {
+    generateProduction: async (briefId, targetDuration) => {
       const brief = state.editorialBriefs.find((b) => b.id === briefId);
       if (!brief) {
         store.logDemo("warning", `生成失败 · 找不到简报 ${briefId}`, briefId);
         return;
       }
       const topicCard = state.topicCards.find((t) => t.sourceEditorialBriefId === briefId) ?? null;
-      const result = await generateProductionAction({ brief, topicCard });
+      const result = await generateProductionAction({ brief, topicCard, targetDuration });
       if (result.ok) {
         setState((current) => setProductionDraft(current, briefId, result.pkg));
         store.logDemo("success", `AI 生成完成 · ${brief.briefTitle}`, briefId);
