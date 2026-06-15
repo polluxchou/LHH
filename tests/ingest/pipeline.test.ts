@@ -10,7 +10,7 @@ const analyzed: AnalyzedBrief = {
   score: { freshnessScore: 5, importanceScore: 4, rarityScore: 3, audienceInterestScore: 4, visualPotentialScore: 5, riskScore: 2, overallRecommendation: "strong", scoringNotes: "n" },
 };
 
-const brand = { id: "uuid-1", name: "SpaceX", aliases: [], keywords: [], excludedTerms: [], languages: [], regions: [] };
+const brand = { id: "uuid-1", spaceId: "space-1", name: "SpaceX", aliases: [], keywords: [], excludedTerms: [], languages: [], regions: [] };
 
 it("filters stale, dedupes, then analyzes", async () => {
   const items: GeminiNewsItem[] = [

@@ -16,7 +16,7 @@ export interface PipelineDeps {
 type BrandInput = Pick<
   TrackingObject,
   "id" | "name" | "aliases" | "keywords" | "excludedTerms" | "languages" | "regions"
->;
+> & { spaceId: string };
 
 function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -37,5 +37,5 @@ export async function runIngestForBrand(
   const fresh = withinRun.filter((it) => !seen.has(canonicalizeUrl(it.url)));
   const analyzed = fresh.length > 0 ? await deps.analyze(brand.name, fresh) : null;
 
-  return { trackingObjectId: brand.id, querySet, freshItems: fresh, analyzed };
+  return { trackingObjectId: brand.id, spaceId: brand.spaceId, querySet, freshItems: fresh, analyzed };
 }

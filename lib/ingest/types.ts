@@ -32,6 +32,8 @@ export interface AnalyzedBrief {
 /** 写库前的一次品牌产出 */
 export interface IngestResult {
   trackingObjectId: string;
+  /** 该监控对象所属空间（多空间内容隔离；search_runs/signals/briefs/scores 都按此 stamp） */
+  spaceId: string;
   querySet: string[];
   freshItems: GeminiNewsItem[];
   analyzed: AnalyzedBrief | null; // 无新鲜条目时为 null

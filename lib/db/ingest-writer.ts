@@ -1,23 +1,38 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { IngestResult } from "@/lib/ingest/types";
 import { canonicalizeUrl } from "@/lib/search/dedupe";
+import { createHash } from "node:crypto";
+
+/**
+ * 稳定、与顺序无关的事件去重键：eventDate + 排序后的 canonical source URLs 的哈希。
+ * 取代之前"LLM 排序的首条 URL"（顺序易变）。同一事件、同一组来源 → 同一 key，
+ * 不受搜索结果排序影响。
+ */
+export function computeDedupeKey(eventDate: string | null, urls: readonly string[]): string {
+  const sorted = urls.map((u) => canonicalizeUrl(u)).sort();
+  return createHash("sha256")
+    .update(`${eventDate ?? ""}|${sorted.join("|")}`)
+    .digest("hex")
+    .slice(0, 40);
+}
 
 /**
  * 幂等写入一次品牌的产出：
  * search_run → sources(upsert on url) → candidate_signal(upsert on (tracking_object_id,dedupe_key))
  * → editorial_brief → content_value_score。
- * dedupeKey = 该信号首条 source 的 canonical url（足以保证同一品牌同事件不重复）。
+ * dedupeKey = computeDedupeKey(eventDate, 全部 source url)（与顺序无关的稳定事件键）。
  */
 export async function writeIngestResult(
   db: SupabaseClient,
   result: IngestResult,
 ): Promise<{ wrote: boolean; reason?: string }> {
-  const { trackingObjectId, querySet, freshItems, analyzed } = result;
+  const { trackingObjectId, spaceId, querySet, freshItems, analyzed } = result;
 
   const { data: run, error: runErr } = await db
     .from("search_runs")
     .insert({
       tracking_object_id: trackingObjectId,
+      space_id: spaceId,
       query_set: querySet,
       status: "completed",
       result_count: freshItems.length,
@@ -43,12 +58,13 @@ export async function writeIngestResult(
   const sourceIds = (sources ?? []).map((s) => s.id as string);
   if (sourceIds.length !== sourceRows.length) return { wrote: false, reason: `sources: expected ${sourceRows.length}, got ${sourceIds.length}` };
 
-  const dedupeKey = canonicalizeUrl(freshItems[0].url);
+  const dedupeKey = computeDedupeKey(analyzed.eventDate, freshItems.map((it) => it.url));
   const { data: signal, error: sigErr } = await db
     .from("candidate_signals")
     .upsert(
       {
         tracking_object_id: trackingObjectId,
+        space_id: spaceId,
         search_run_id: run.id,
         signal_type: analyzed.signalType,
         headline: analyzed.headline,
@@ -71,6 +87,7 @@ export async function writeIngestResult(
       {
         candidate_signal_id: signal.id,
         tracking_object_id: trackingObjectId,
+        space_id: spaceId,
         brief_title: analyzed.briefTitle,
         fact_summary: analyzed.factSummary,
         source_summary: freshItems.map((i) => i.title).join("; "),
@@ -89,6 +106,7 @@ export async function writeIngestResult(
   const sc = analyzed.score;
   const { error: scErr } = await db.from("content_value_scores").upsert({
     editorial_brief_id: brief.id,
+    space_id: spaceId,
     freshness_score: sc.freshnessScore,
     importance_score: sc.importanceScore,
     rarity_score: sc.rarityScore,
