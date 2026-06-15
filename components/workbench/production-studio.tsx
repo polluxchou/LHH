@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { ProductionPackage, ProductionScript, ScriptSection, StoryboardShot } from "@/lib/domain/production";
+import type { ProductionPackage, ScriptSection, StoryboardShot } from "@/lib/domain/production";
 import type { EditorialBrief, TopicCard } from "@/lib/domain/types";
 import { topicFormatLabel } from "@/components/workbench/helpers";
 
@@ -143,7 +143,7 @@ export function ProductionStudio({
           {tab === "script" ? (
             <ScriptPanel
               sections={production.script.sections}
-              meta={production.script}
+              targetDuration={targetDuration}
               onEditSection={onEditSection}
               onLog={onLog}
             />
@@ -178,6 +178,7 @@ export function ProductionStudio({
                   aria-label="目标时长（分钟）"
                 >
                   <option value="1">1 min</option>
+                  <option value="2">2 min</option>
                   <option value="3">3 min</option>
                   <option value="9">9 min</option>
                 </select>
@@ -220,12 +221,13 @@ export function ProductionStudio({
 
 function ScriptPanel({
   sections,
-  meta,
+  targetDuration,
   onEditSection,
   onLog,
 }: {
   sections: ScriptSection[];
-  meta: ProductionScript;
+  /** 当前选中的目标时长（跟随底栏下拉） */
+  targetDuration: string;
   onEditSection: (sectionId: string, body: string) => void;
   onLog: (level: StudioLogLevel, message: string) => void;
 }) {
@@ -247,7 +249,7 @@ function ScriptPanel({
         <div className="script-rail-meta">
           <div className="kv">
             <span>目标时长</span>
-            <b>{meta.targetDuration}</b>
+            <b>{targetDuration}</b>
           </div>
           <div className="kv">
             <span>语速参考</span>
