@@ -25,7 +25,7 @@ describe("local workflow hardening", () => {
       event: "search_completed",
       trackingObjectId: "stoke",
     });
-    expect(state.runLog.at(-1)?.data).toMatchObject({ signals: 4, dedup: 1 });
+    expect(state.runLog.at(-1)?.data).toMatchObject({ signals: 5, dedup: 1 });
   });
 
   it("supports deterministic failed-search simulation without removing existing signals", () => {

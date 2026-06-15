@@ -107,6 +107,6 @@ describe("screening transition", () => {
         sourceIds: [],
         decidedBy: "unit-test-editor",
       }),
-    ).toThrow("At least one source id is required to approve a brief into the topic pool");
+    ).toThrow("At least one source id is required to move a brief into the topic pool");
   });
 });

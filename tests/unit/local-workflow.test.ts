@@ -36,7 +36,7 @@ describe("local workflow integration", () => {
     expect(nextState.searchRuns.at(-1)).toMatchObject({
       trackingObjectId: "stoke",
       status: "completed",
-      newSignalCount: 3,
+      newSignalCount: 4,
     });
     expect(nextState.lastFeedback?.message).toContain("Daily search completed");
   });
@@ -70,7 +70,7 @@ describe("local workflow integration", () => {
     expect(screenedBrief?.status).toBe("screened");
     expect(topicCard?.workingTitle).toBe("Starship V3 首次完成上面级轨道再入回收");
     expect(topicCard?.ownerId).toBe("u-lin");
-    expect(nextState.lastFeedback?.message).toContain("Brief approved");
+    expect(nextState.lastFeedback?.message).toContain("Brief added to the local topic pool.");
   });
 
   it("keeps watched and rejected briefs out of the topic pool", () => {
