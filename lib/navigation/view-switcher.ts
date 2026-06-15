@@ -1,5 +1,6 @@
 import type { Locale } from "@/lib/i18n/copy";
 import type { WorkbenchChrome } from "@/lib/i18n/workbench-copy";
+import { usesExpoSchedule } from "@/lib/data/fastener-expos";
 
 export type ViewSwitcherId = "home" | "tracked" | "brief" | "pool" | "map" | "schedule";
 
@@ -37,6 +38,13 @@ const LABELS: Record<Locale, Partial<Record<ViewSwitcherId, string>>> = {
   en: { schedule: "Launch Schedule" },
 };
 
+/** "schedule" 这一项在"紧固件展会"类空间下的标签/描述/图标覆盖。 */
+const EXPO_SCHEDULE_NAV: Record<Locale, { label: string; description: string }> = {
+  zh: { label: "行业展会", description: "全球紧固件展会 · 未来 30 天" },
+  en: { label: "Industry Expos", description: "Global fastener trade shows, next 30 days" },
+};
+const EXPO_SCHEDULE_ICON = "🔩";
+
 const ICONS: Record<ViewSwitcherId, string> = {
   home: "▦",
   tracked: "◎",
@@ -51,13 +59,17 @@ export function buildViewSwitcherItems({
   prefix,
   badges,
   locale,
+  spaceName,
 }: {
   chrome: WorkbenchChrome;
   prefix: string;
   badges?: { brief?: number; pool?: number; launch?: number };
   locale: Locale;
+  /** current space name — relabels the "schedule" view per space (e.g. 行业展会 for fastener spaces) */
+  spaceName?: string | null;
 }): ViewSwitcherItem[] {
   const homeHref = prefix || "/";
+  const expoSchedule = usesExpoSchedule(spaceName);
 
   return [
     {
@@ -99,11 +111,11 @@ export function buildViewSwitcherItems({
     },
     {
       id: "schedule",
-      label: LABELS[locale].schedule ?? "Schedule",
-      description: DESCRIPTIONS[locale].schedule,
-      icon: ICONS.schedule,
+      label: expoSchedule ? EXPO_SCHEDULE_NAV[locale].label : (LABELS[locale].schedule ?? "Schedule"),
+      description: expoSchedule ? EXPO_SCHEDULE_NAV[locale].description : DESCRIPTIONS[locale].schedule,
+      icon: expoSchedule ? EXPO_SCHEDULE_ICON : ICONS.schedule,
       href: `${prefix}/launches`,
-      badge: badges?.launch,
+      badge: expoSchedule ? undefined : badges?.launch,
     },
   ];
 }

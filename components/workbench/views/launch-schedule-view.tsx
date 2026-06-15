@@ -3,9 +3,11 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/copy";
-import type { LaunchStatus } from "@/lib/domain/types";
-import { launchDayDiff, launchOrgs, launches } from "@/lib/data/launches";
+import type { Launch, LaunchOrg, LaunchStatus } from "@/lib/domain/types";
+import { LAUNCH_SIM_TODAY, launchOrgs, launches } from "@/lib/data/launches";
+import { EXPO_SIM_TODAY, expoOrgs, fastenerExpos, usesExpoSchedule } from "@/lib/data/fastener-expos";
 import { useWorkflow } from "@/components/workbench/workflow-provider";
+import { useSpaceSession } from "@/components/account/space-provider";
 
 type RangeKey = "today" | "week" | "month" | "all";
 
@@ -16,88 +18,125 @@ const RANGE_OPTIONS: Array<[RangeKey, string]> = [
   ["all", "全部"],
 ];
 
-const STATUS_OPTIONS: Array<[LaunchStatus | "all", string]> = [
-  ["all", "全部"],
-  ["confirmed", "确认"],
-  ["window", "窗口"],
-  ["tentative", "待定"],
-];
+/** 一个"日程模块"的数据与文案；按空间切换（航天发射 / 紧固件展会）。 */
+interface ScheduleConfig {
+  simToday: string;
+  items: Launch[];
+  orgs: Record<string, LaunchOrg>;
+  statusLabels: Record<LaunchStatus, string>;
+  kicker: string;
+  title: string;
+  emptyGlyph: string;
+  emptyTitle: string;
+  emptySub: string;
+  orgGroupLabel: string;
+  countSuffix: string;
+  windowLabel: string;
+  watchIcon: string;
+}
 
-const STATUS_LABELS: Record<LaunchStatus, string> = {
-  confirmed: "确认",
-  window: "窗口",
-  tentative: "待定",
-  standby: "待命",
+const LAUNCH_SCHEDULE: ScheduleConfig = {
+  simToday: LAUNCH_SIM_TODAY,
+  items: launches,
+  orgs: launchOrgs,
+  statusLabels: { confirmed: "确认", window: "窗口", tentative: "待定", standby: "待命" },
+  kicker: "发射窗口期 · LAUNCH SCHEDULE",
+  title: "全球火箭发射日程 · 未来 30 天",
+  emptyGlyph: "🚀",
+  emptyTitle: "所选范围内没有发射任务",
+  emptySub: "尝试放宽时间范围或调整机构筛选。",
+  orgGroupLabel: "发射机构",
+  countSuffix: "次发射",
+  windowLabel: "窗口",
+  watchIcon: "▶",
+};
+
+const EXPO_SCHEDULE: ScheduleConfig = {
+  simToday: EXPO_SIM_TODAY,
+  items: fastenerExpos,
+  orgs: expoOrgs,
+  statusLabels: { confirmed: "确认", window: "报名中", tentative: "筹备中", standby: "待定" },
+  kicker: "行业展会 · FASTENER EXPOS",
+  title: "全球紧固件展会日程 · 未来 30 天",
+  emptyGlyph: "🔩",
+  emptyTitle: "所选范围内没有展会",
+  emptySub: "尝试放宽时间范围或调整地区筛选。",
+  orgGroupLabel: "地区 / 主办",
+  countSuffix: "场展会",
+  windowLabel: "展期",
+  watchIcon: "🔗",
 };
 
 const WEEKDAYS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
 
-function dayLabel(date: string): string {
-  const diff = launchDayDiff(date);
-
-  if (diff === 0) return "今天";
-  if (diff === 1) return "明天";
-  if (diff === 2) return "后天";
-  if (diff < 0) return `${-diff} 天前`;
-  return `+${diff} 天`;
-}
-
 export function LaunchScheduleView({ locale }: { locale: Locale }) {
   const store = useWorkflow();
+  const { mySpaces, currentSpaceId } = useSpaceSession();
   const router = useRouter();
   const home = locale === "zh" ? "/zh" : "/";
+
+  const spaceName = mySpaces.find((s) => s.space.id === currentSpaceId)?.space.name;
+  const config = usesExpoSchedule(spaceName) ? EXPO_SCHEDULE : LAUNCH_SCHEDULE;
+
   const [range, setRange] = useState<RangeKey>("week");
   const [orgFilter, setOrgFilter] = useState<ReadonlySet<string>>(() => new Set());
   const [statusFilter, setStatusFilter] = useState<LaunchStatus | "all">("all");
 
+  const dayDiff = (date: string) =>
+    Math.round((new Date(date).getTime() - new Date(config.simToday).getTime()) / 86_400_000);
+
+  const dayLabel = (date: string): string => {
+    const diff = dayDiff(date);
+    if (diff === 0) return "今天";
+    if (diff === 1) return "明天";
+    if (diff === 2) return "后天";
+    if (diff < 0) return `${-diff} 天前`;
+    return `+${diff} 天`;
+  };
+
+  const statusOptions: Array<[LaunchStatus | "all", string]> = [
+    ["all", "全部"],
+    ["confirmed", config.statusLabels.confirmed],
+    ["window", config.statusLabels.window],
+    ["tentative", config.statusLabels.tentative],
+  ];
+
   const orgCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-
-    for (const launch of launches) {
-      counts[launch.orgId] = (counts[launch.orgId] ?? 0) + 1;
-    }
-
+    for (const item of config.items) counts[item.orgId] = (counts[item.orgId] ?? 0) + 1;
     return counts;
-  }, []);
+  }, [config]);
 
   const filtered = useMemo(() => {
-    return launches
-      .filter((launch) => {
-        const diff = launchDayDiff(launch.date);
-
+    return config.items
+      .filter((item) => {
+        const diff = dayDiff(item.date);
         if (range === "today" && diff !== 0) return false;
         if (range === "week" && (diff < 0 || diff > 7)) return false;
         if (range === "month" && (diff < 0 || diff > 30)) return false;
-        if (orgFilter.size > 0 && !orgFilter.has(launch.orgId)) return false;
-        if (statusFilter !== "all" && launch.status !== statusFilter) return false;
+        if (orgFilter.size > 0 && !orgFilter.has(item.orgId)) return false;
+        if (statusFilter !== "all" && item.status !== statusFilter) return false;
         return true;
       })
       .sort((a, b) => (a.date + a.timeUTC).localeCompare(b.date + b.timeUTC));
-  }, [range, orgFilter, statusFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config, range, orgFilter, statusFilter]);
 
   const byDate = useMemo(() => {
     const groups = new Map<string, typeof filtered>();
-
-    for (const launch of filtered) {
-      const list = groups.get(launch.date) ?? [];
-
-      list.push(launch);
-      groups.set(launch.date, list);
+    for (const item of filtered) {
+      const list = groups.get(item.date) ?? [];
+      list.push(item);
+      groups.set(item.date, list);
     }
-
     return [...groups.entries()];
   }, [filtered]);
 
   const toggleOrg = (orgId: string) => {
     setOrgFilter((previous) => {
       const next = new Set(previous);
-
-      if (next.has(orgId)) {
-        next.delete(orgId);
-      } else {
-        next.add(orgId);
-      }
-
+      if (next.has(orgId)) next.delete(orgId);
+      else next.add(orgId);
       return next;
     });
   };
@@ -111,8 +150,8 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
     <div className="vv lv">
       <header className="vv-head">
         <div className="vv-head-left">
-          <div className="vv-kicker">发射窗口期 · LAUNCH SCHEDULE</div>
-          <h2 className="vv-title">全球火箭发射日程 · 未来 30 天</h2>
+          <div className="vv-kicker">{config.kicker}</div>
+          <h2 className="vv-title">{config.title}</h2>
         </div>
         <div className="vv-head-right">
           <button type="button" className="vv-action ghost" onClick={() => router.push(home)}>
@@ -140,7 +179,7 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
         <div className="vv-tool">
           <span className="vv-tool-l">状态</span>
           <div className="vv-pills">
-            {STATUS_OPTIONS.map(([key, label]) => (
+            {statusOptions.map(([key, label]) => (
               <button
                 key={key}
                 type="button"
@@ -153,9 +192,9 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
           </div>
         </div>
         <div className="vv-tool flex-1">
-          <span className="vv-tool-l">发射机构</span>
+          <span className="vv-tool-l">{config.orgGroupLabel}</span>
           <div className="lv-org-chips">
-            {Object.entries(launchOrgs).map(([orgId, org]) => {
+            {Object.entries(config.orgs).map(([orgId, org]) => {
               const on = orgFilter.size === 0 || orgFilter.has(orgId);
 
               return (
@@ -185,14 +224,14 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
       <div className="vv-body lv-body">
         {byDate.length === 0 ? (
           <div className="vv-empty">
-            <div className="vv-empty-glyph">🚀</div>
-            <div className="vv-empty-title">所选范围内没有发射任务</div>
-            <div className="vv-empty-sub">尝试放宽时间范围或调整机构筛选。</div>
+            <div className="vv-empty-glyph">{config.emptyGlyph}</div>
+            <div className="vv-empty-title">{config.emptyTitle}</div>
+            <div className="vv-empty-sub">{config.emptySub}</div>
           </div>
         ) : (
           <div className="lv-timeline">
             {byDate.map(([date, items]) => {
-              const isToday = launchDayDiff(date) === 0;
+              const isToday = dayDiff(date) === 0;
 
               return (
                 <section key={date} className={`lv-day ${isToday ? "is-today" : ""}`}>
@@ -207,11 +246,13 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
                         · {WEEKDAYS[new Date(date).getDay()]} · {date}
                       </span>
                     </div>
-                    <span className="lv-day-n">{items.length} 次发射</span>
+                    <span className="lv-day-n">
+                      {items.length} {config.countSuffix}
+                    </span>
                   </header>
                   <div className="lv-launches">
                     {items.map((launch) => {
-                      const org = launchOrgs[launch.orgId];
+                      const org = config.orgs[launch.orgId];
                       const tracked = launch.trackingObjectId
                         ? store.state.trackingObjects.find((object) => object.id === launch.trackingObjectId)
                         : undefined;
@@ -234,7 +275,9 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
                           <div className="lv-main">
                             <div className="lv-mission-row">
                               <span className="lv-mission">{launch.mission}</span>
-                              <span className={`lv-status s-${launch.status}`}>{STATUS_LABELS[launch.status]}</span>
+                              <span className={`lv-status s-${launch.status}`}>
+                                {config.statusLabels[launch.status]}
+                              </span>
                               {isMine && tracked && launch.trackingObjectId ? (
                                 <button
                                   type="button"
@@ -262,12 +305,14 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
                               <span className="lv-sep">·</span>
                               <span className="lv-payload">{launch.payload}</span>
                               <span className="lv-sep">·</span>
-                              <span className="lv-window">窗口 {launch.window}</span>
+                              <span className="lv-window">
+                                {config.windowLabel} {launch.window}
+                              </span>
                             </div>
                           </div>
                           <div className="lv-side">
                             <button type="button" className="lv-watch">
-                              ▶ {launch.watch}
+                              {config.watchIcon} {launch.watch}
                             </button>
                           </div>
                         </article>

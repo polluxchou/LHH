@@ -8,6 +8,7 @@ import { getWorkbenchChrome } from "@/lib/i18n/workbench-copy";
 import { buildViewSwitcherItems, type ViewSwitcherId } from "@/lib/navigation/view-switcher";
 import { SpaceSwitcher } from "@/components/account/space-switcher";
 import { AccountMenu } from "@/components/account/account-menu";
+import { useSpaceSession } from "@/components/account/space-provider";
 
 export type NavTabId = ViewSwitcherId;
 
@@ -31,6 +32,8 @@ function deriveTabFromPathname(pathname: string | null): NavTabId {
 export function TopNav({ locale, active, badges }: TopNavProps) {
   const chrome = getWorkbenchChrome(locale);
   const prefix = locale === "zh" ? "/zh" : "";
+  const { mySpaces, currentSpaceId } = useSpaceSession();
+  const spaceName = mySpaces.find((s) => s.space.id === currentSpaceId)?.space.name;
   const pathname = usePathname();
   const activeTab = active ?? deriveTabFromPathname(pathname);
   const [viewOpen, setViewOpen] = useState(false);
@@ -80,7 +83,7 @@ export function TopNav({ locale, active, badges }: TopNavProps) {
     };
   }, [viewOpen]);
 
-  const viewItems = buildViewSwitcherItems({ chrome, prefix, badges, locale });
+  const viewItems = buildViewSwitcherItems({ chrome, prefix, badges, locale, spaceName });
   const activeView = viewItems.find((item) => item.id === activeTab) ?? viewItems[0];
   const viewCopy =
     locale === "zh"
