@@ -56,7 +56,9 @@
 - 工作台 `addTracked` 改为调该 action + `router.refresh()`。
 
 ### 5.4 按需真实搜索
-- `runSearchForObject(trackingObjectId)` server action：读该对象（含 `space_id`）→ 调 `runIngestForBrand(brand, { now })` + `writeIngestResult(result, { spaceId })`（复用情报接入纯函数，接口 (A)，待对方最终确认签名）→ 写 signals/sources/briefs/scores → 返回计数。
+- **前置（必须先做）**：把 `feature/news-ingestion`（tip `0c34db1`，含 C1/M3 + supabase URL 改读 NEXT_PUBLIC_ + **space_id stamping writer** + 便捷封装）**merge 进本 Phase 2 分支**。当前分支的 `ingest-writer.ts` 是旧版、不 stamp space_id，直接用会撞 NOT NULL。
+- `runSearchForObject(trackingObjectId)` server action：成员校验 → 读该对象行（含 `space_id`）→ 调情报接入提供的便捷封装 **`ingestTrackingObject(db, brandRow)`**（`db` = `createSupabaseAdminClient()` service-role；`brandRow` = {id, spaceId, name, aliases, keywords, excludedTerms, languages, regions}）→ 内部 `windowDays=7`、`seenCanonicalUrls` 空集（允许手动重搜）、真实 search/analyze、`result.spaceId` 透传 writer → 返回 `{ wrote, reason }` → 写 signals/sources/briefs/scores → 返回计数。
+- 用封装而非裸 `runIngestForBrand`+`PipelineDeps`，以**解耦其内部 deps 形状**（对方承诺封装签名稳定）。
 - 工作台「运行搜索」按钮改为调该 action（同步 + spinner）→ 完成后 `router.refresh()`。
 - **本机限制**：Gemini 本机不可达 → 本机用注入式 stub（`searchRecentNews` 替身返回固定 1-2 条）验通"对象→搜索→写库→读出显示"链路；真实 Gemini 结果在 Vercel 验。
 - **风险**：单对象 ~57s 逼近 Vercel Hobby 60s 函数上限。MVP 同步可接受；超时则后续转异步（job + 轮询）或上 Pro。设计中标注，不在本轮解决。
@@ -74,7 +76,7 @@
 - `buildSpaceState`：DB 内容为底 + 内存编辑层 id 对齐（topic_card.sourceEditorialBriefId 命中 DB brief 的 `fid`）。
 - 迁移脚本幂等（重跑不增行）—— 对云库实跑验证。
 - 新对象落库 server action 的成员校验（非成员/非所属空间被拒）。
-- 按需搜索 action：注入 stub search，断言写库 + 计数；权限校验。
+- 按需搜索 action：mock `ingestTrackingObject`（或其内部真实 search）返回固定结果，断言写库 + 计数 + runLog；成员/空间权限校验（非成员被拒）。
 
 ## 9. 不在本轮范围
 - 编辑动作（screening/topic_cards/production）持久化到 DB（= 完整工作流迁库，后续）。
