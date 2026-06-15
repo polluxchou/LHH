@@ -49,7 +49,8 @@ export function buildScriptPrompt(brief: EditorialBrief, topicCard?: TopicCard |
     `要求：`,
     `1. sections 必须恰好 4 段，id 依次为 hook/context/core/close，body 为中文、有信息量、可直接配音。`,
     `2. storyboard 条数随目标时长伸缩(约每 60-90 秒一镜；${targetDuration} 大致 ${storyboardHint(targetDuration)} 镜)，n 从 1 连续递增，time 覆盖整段时长，每条字段都要填。`,
-    `3. 全程中文。只输出 json。`,
+    `3. 【关键】每个分镜的 voiceOver 必须是该镜头时间段【实际要念的完整旁白原文】——按时间顺序把上面 sections 的正文切分到各镜头里，所有分镜的 voiceOver 连起来应基本覆盖整篇脚本正文。严禁用省略号"……"略写、严禁只写开头几个字当占位（上面范本里 voiceOver 用省略号只是为了示意，你的输出必须把每句旁白写完整）。仅纯标题卡/字幕卡这类无人声镜头可填"（无）"。`,
+    `4. 全程中文。只输出 json。`,
   ].join("\n");
 }
 

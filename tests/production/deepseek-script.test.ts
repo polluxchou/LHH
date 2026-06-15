@@ -29,6 +29,10 @@ describe("buildScriptPrompt", () => {
   it("要求分镜随时长伸缩(出现 targetDuration 提示)", () => {
     expect(p).toContain("12-15 min");
   });
+  it("要求分镜旁白写完整、禁止省略号略写", () => {
+    expect(p).toContain("完整旁白原文");
+    expect(p).toContain("省略号");
+  });
 });
 
 import { parseProduction } from "@/lib/production/deepseek-script";
