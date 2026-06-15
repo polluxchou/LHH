@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createSupabaseMiddlewareClient } from "@/lib/supabase/middleware";
 
-const PUBLIC_PREFIXES = ["/login", "/zh/login", "/invite", "/auth"];
+const PUBLIC_PREFIXES = ["/login", "/zh/login", "/invite", "/auth", "/api/ingest"];
 
 export async function middleware(request: NextRequest) {
   const { supabase, response } = createSupabaseMiddlewareClient(request);
