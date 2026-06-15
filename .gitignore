@@ -21,3 +21,7 @@ next-env.d.ts
 .DS_Store
 *.pem
 npm-debug.log*
+.vercel
+
+# local dev-server supervisor runtime
+/.dev-server
