@@ -1,6 +1,7 @@
 "use server";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getMySpaces } from "@/lib/account/queries";
 import { ingestTrackingObject } from "@/lib/ingest/run";
 import type { AddTrackingObjectInput } from "@/lib/workflow/local-workflow";
@@ -11,6 +12,25 @@ import type { AddTrackingObjectInput } from "@/lib/workflow/local-workflow";
  * pipeline (Gemini → DeepSeek → write) via the service-role client. Returns the
  * writer's { wrote, reason } so the workbench can log "produced / not produced".
  */
+/** Persist a "我关注的" toggle: subscribe=true upserts the row, false deletes it. */
+export async function setSubscription(spaceId: string, trackingObjectId: string, subscribe: boolean): Promise<void> {
+  const mine = await getMySpaces();
+  if (!mine.some((m) => m.space.id === spaceId)) throw new Error("forbidden");
+  const supabase = await createSupabaseServerClient();
+  const { data: user } = await supabase.auth.getUser();
+  const userId = user.user!.id;
+  const admin = createSupabaseAdminClient();
+  if (subscribe) {
+    await admin.from("space_subscriptions").upsert(
+      { space_id: spaceId, user_id: userId, tracking_object_id: trackingObjectId },
+      { onConflict: "space_id,user_id,tracking_object_id" },
+    );
+  } else {
+    await admin.from("space_subscriptions").delete()
+      .eq("space_id", spaceId).eq("user_id", userId).eq("tracking_object_id", trackingObjectId);
+  }
+}
+
 export async function runSearchForObject(trackingObjectId: string): Promise<{ wrote: boolean; reason?: string }> {
   const admin = createSupabaseAdminClient();
   const { data: obj, error } = await admin

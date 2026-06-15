@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import { useRouter } from "next/navigation";
 import type { TeamMember } from "@/lib/domain/types";
 import { useSpaceSession } from "@/components/account/space-provider";
-import { addTrackingObjectToSpace, runSearchForObject } from "@/lib/account/content-mutations";
+import { addTrackingObjectToSpace, runSearchForObject, setSubscription } from "@/lib/account/content-mutations";
 import {
   appendWorkflowLog,
   claimTopicCard,
@@ -350,7 +350,14 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     },
 
     subToggle: (trackingObjectId) => {
-      setState((current) => toggleSubscription(current, current.currentMemberId, trackingObjectId, { now: nowIso() }));
+      const spaceId = session.currentSpaceId;
+      const wasSubscribed = currentMember.trackingObjectIds.includes(trackingObjectId);
+      const flip = () =>
+        setState((current) => toggleSubscription(current, current.currentMemberId, trackingObjectId, { now: nowIso() }));
+      flip(); // optimistic
+      if (spaceId) {
+        setSubscription(spaceId, trackingObjectId, !wasSubscribed).catch(() => flip()); // persist; revert on failure
+      }
     },
 
     addTracked: (input) => {

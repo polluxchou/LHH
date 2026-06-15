@@ -91,3 +91,13 @@ export async function getSpaceContent(spaceId: string): Promise<SpaceContent> {
 
   return { trackingObjects, searchRuns, sources, candidateSignals, editorialBriefs, contentValueScores };
 }
+
+/** Per-user tracking-object subscriptions ("我关注的") for a space → { userId: objectId[] }. */
+export async function getSpaceSubscriptions(spaceId: string): Promise<Record<string, string[]>> {
+  if (!spaceId) return {};
+  const db = await createSupabaseServerClient();
+  const { data } = await db.from("space_subscriptions").select("user_id, tracking_object_id").eq("space_id", spaceId);
+  const byUser: Record<string, string[]> = {};
+  for (const r of rows(data)) (byUser[r.user_id] ??= []).push(r.tracking_object_id);
+  return byUser;
+}

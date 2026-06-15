@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { getMySpaces, getSessionUser, getSpaceMembers } from "@/lib/account/queries";
-import { getSpaceContent } from "@/lib/account/content-queries";
+import { getSpaceContent, getSpaceSubscriptions } from "@/lib/account/content-queries";
 import { buildSpaceState } from "@/lib/workflow/build-space-state";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SpaceProvider } from "@/components/account/space-provider";
@@ -36,8 +36,9 @@ export async function AccountShell({
     const members = await getSpaceMembers(s.space.id);
     membersBySpace[s.space.id] = members;
     const dbContent = await getSpaceContent(s.space.id);
+    const subscriptionsByUser = await getSpaceSubscriptions(s.space.id);
     contentBySpace[s.space.id] = buildSpaceState({
-      dbContent, members, currentUserId: user.id, isDemoSpace: s.space.name === DEMO_SPACE_NAME,
+      dbContent, members, currentUserId: user.id, isDemoSpace: s.space.name === DEMO_SPACE_NAME, subscriptionsByUser,
     });
   }
 

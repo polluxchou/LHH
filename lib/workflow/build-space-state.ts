@@ -4,7 +4,6 @@ import type { SpaceContent } from "@/lib/account/content-queries";
 import type { SpaceMember } from "@/lib/domain/account";
 import type { TeamMember } from "@/lib/domain/types";
 import {
-  teamMembers as fxMembers,
   screeningDecisions as fxDecisions,
   topicCards as fxTopicCards,
   locationAnchors as fxAnchors,
@@ -20,6 +19,8 @@ interface BuildArgs {
   currentUserId: string;
   /** true only for the seeded 林哈哈聊太空 space — adds the curated editorial overlay. */
   isDemoSpace: boolean;
+  /** per-user subscriptions ("我关注的") from DB → { userId: trackingObjectId[] } */
+  subscriptionsByUser?: Record<string, string[]>;
 }
 
 /**
@@ -29,7 +30,7 @@ interface BuildArgs {
  * productions/anchors) seeded from fixtures with every id remapped through fid() so
  * it aligns with the migrated DB rows.
  */
-export function buildSpaceState({ dbContent, members, currentUserId, isDemoSpace }: BuildArgs): LocalWorkflowState {
+export function buildSpaceState({ dbContent, members, currentUserId, isDemoSpace, subscriptionsByUser }: BuildArgs): LocalWorkflowState {
   const realIds = new Set(members.map((m) => m.userId));
   const currentMemberId = realIds.has(currentUserId) ? currentUserId : (members[0]?.userId ?? currentUserId);
   const byName: Record<string, string> = {};
@@ -39,15 +40,11 @@ export function buildSpaceState({ dbContent, members, currentUserId, isDemoSpace
     return (name && byName[name]) || members[0]?.userId || fixtureMemberId;
   };
 
-  // Demo members inherit fixture subscriptions (fixture object ids → fid); others start empty.
-  const fxByName: Record<string, string[]> = {};
-  for (const fm of fxMembers) {
-    const name = FIXTURE_MEMBER_NAMES[fm.id];
-    if (name) fxByName[name] = fm.trackingObjectIds.map(fid);
-  }
+  // "我关注的" subscriptions come from DB (persisted per user); fall back to empty.
+  const subs = subscriptionsByUser ?? {};
   const teamMembers: TeamMember[] = members.map((m) => ({
     id: m.userId, name: m.profile.displayName, role: m.title, avatarChar: m.profile.avatarChar,
-    color: m.profile.color, trackingObjectIds: isDemoSpace ? (fxByName[m.profile.displayName] ?? []) : [],
+    color: m.profile.color, trackingObjectIds: subs[m.userId] ?? [],
   }));
 
   const base: LocalWorkflowState = {
