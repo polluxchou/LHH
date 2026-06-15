@@ -24,7 +24,8 @@ export async function getMySpaces(): Promise<MySpace[]> {
   if (!user.user) return [];
   const { data, error } = await supabase
     .from("space_members")
-    .select("role, spaces!inner(id, application_id, name, theme, applications!inner(owner_id))");
+    .select("role, spaces!inner(id, application_id, name, theme, applications!inner(owner_id))")
+    .eq("user_id", user.user.id);
   if (error || !data) return [];
   const rows = data as unknown as MySpaceRow[];
   return rows.map((row) => ({

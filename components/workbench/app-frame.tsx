@@ -27,9 +27,6 @@ export function AppFrame({ locale, children }: { locale: Locale; children: React
       <TopNav
         locale={locale}
         badges={{ brief: totalPending, pool: store.state.topicCards.length, launch: countUpcomingLaunches(7) }}
-        members={store.state.teamMembers}
-        currentMember={store.currentMember}
-        onSwitchMember={store.switchMember}
       />
 
       {children}

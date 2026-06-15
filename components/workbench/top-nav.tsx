@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import type { TeamMember } from "@/lib/domain/types";
 import type { Locale } from "@/lib/i18n/copy";
 import { getWorkbenchChrome } from "@/lib/i18n/workbench-copy";
 import { buildViewSwitcherItems, type ViewSwitcherId } from "@/lib/navigation/view-switcher";
+import { SpaceSwitcher } from "@/components/account/space-switcher";
+import { AccountMenu } from "@/components/account/account-menu";
 
 export type NavTabId = ViewSwitcherId;
 
@@ -15,10 +16,6 @@ interface TopNavProps {
   /** highlighted tab; derived from the pathname when omitted */
   active?: NavTabId;
   badges?: { brief?: number; pool?: number; launch?: number };
-  /** user switcher; omitted on sub-pages that have no workflow state */
-  members?: TeamMember[];
-  currentMember?: TeamMember;
-  onSwitchMember?: (memberId: string) => void;
 }
 
 function deriveTabFromPathname(pathname: string | null): NavTabId {
@@ -31,13 +28,12 @@ function deriveTabFromPathname(pathname: string | null): NavTabId {
   return "home";
 }
 
-export function TopNav({ locale, active, badges, members, currentMember, onSwitchMember }: TopNavProps) {
+export function TopNav({ locale, active, badges }: TopNavProps) {
   const chrome = getWorkbenchChrome(locale);
   const prefix = locale === "zh" ? "/zh" : "";
   const pathname = usePathname();
   const activeTab = active ?? deriveTabFromPathname(pathname);
   const [viewOpen, setViewOpen] = useState(false);
-  const [identityOpen, setIdentityOpen] = useState(false);
   // 顶部日期角标跟随真实本地日期（上海时区）；首屏先用文案默认值以避免 hydration 不一致。
   const [today, setToday] = useState<{ day: string; month: string } | null>(null);
 
@@ -61,29 +57,18 @@ export function TopNav({ locale, active, badges, members, currentMember, onSwitc
   }, [locale]);
 
   useEffect(() => {
-    if (!viewOpen && !identityOpen) {
+    if (!viewOpen) {
       return;
     }
 
     const onDocumentClick = (event: MouseEvent) => {
-      if (!(event.target instanceof Element)) {
+      if (!(event.target instanceof Element) || !event.target.closest(".view-launcher")) {
         setViewOpen(false);
-        setIdentityOpen(false);
-        return;
-      }
-
-      if (!event.target.closest(".view-launcher")) {
-        setViewOpen(false);
-      }
-
-      if (!event.target.closest(".user-switcher")) {
-        setIdentityOpen(false);
       }
     };
     const onDocumentKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setViewOpen(false);
-        setIdentityOpen(false);
       }
     };
 
@@ -93,7 +78,7 @@ export function TopNav({ locale, active, badges, members, currentMember, onSwitc
       document.removeEventListener("click", onDocumentClick);
       document.removeEventListener("keydown", onDocumentKeyDown);
     };
-  }, [viewOpen, identityOpen]);
+  }, [viewOpen]);
 
   const viewItems = buildViewSwitcherItems({ chrome, prefix, badges, locale });
   const activeView = viewItems.find((item) => item.id === activeTab) ?? viewItems[0];
@@ -121,6 +106,8 @@ export function TopNav({ locale, active, badges, members, currentMember, onSwitc
         <span className="brand-sub">{chrome.brandSub}</span>
       </div>
       <div className="brand-divider"></div>
+      <SpaceSwitcher locale={locale} />
+      <div className="brand-divider"></div>
       <div className="view-launcher">
         <button
           type="button"
@@ -130,7 +117,6 @@ export function TopNav({ locale, active, badges, members, currentMember, onSwitc
           onClick={(event) => {
             event.stopPropagation();
             setViewOpen((value) => !value);
-            setIdentityOpen(false);
           }}
         >
           <span className="vl-trigger-icon">⊞</span>
@@ -193,56 +179,7 @@ export function TopNav({ locale, active, badges, members, currentMember, onSwitc
           EN
         </Link>
       </div>
-      {members && currentMember && onSwitchMember ? (
-        <div className="user-switcher">
-          <button
-            type="button"
-            className="user-switcher-trigger"
-            onClick={(event) => {
-              event.stopPropagation();
-              setIdentityOpen((value) => !value);
-              setViewOpen(false);
-            }}
-          >
-            <span className="uavatar" style={{ background: currentMember.color }}>
-              {currentMember.avatarChar}
-            </span>
-            <span className="utext">
-              <span className="uname">{currentMember.name}</span>
-              <span className="urole">{currentMember.role}</span>
-            </span>
-            <span className="ucaret">▾</span>
-          </button>
-          {identityOpen ? (
-            <div className="user-popover">
-              <div className="user-popover-head">{chrome.switchIdentity}</div>
-              {members.map((member) => (
-                <button
-                  key={member.id}
-                  type="button"
-                  className={`user-row ${member.id === currentMember.id ? "active" : ""}`}
-                  onClick={() => {
-                    onSwitchMember(member.id);
-                    setIdentityOpen(false);
-                  }}
-                >
-                  <span className="uavatar" style={{ background: member.color }}>
-                    {member.avatarChar}
-                  </span>
-                  <span className="urowtxt">
-                    <span className="urowname">{member.name}</span>
-                    <span className="urowrole">
-                      {member.role} · {chrome.trackingCountSuffix(member.trackingObjectIds.length)}
-                    </span>
-                  </span>
-                  {member.id === currentMember.id ? <span className="urowmark">●</span> : null}
-                </button>
-              ))}
-              <div className="user-popover-foot">{chrome.switcherFoot}</div>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+      <AccountMenu locale={locale} />
     </header>
   );
 }
