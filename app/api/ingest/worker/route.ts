@@ -2,30 +2,12 @@ import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/db/supabase";
 import { createSupabaseJobStore, claimNextJob, completeJob, failJob, utcRunDate } from "@/lib/ingest/jobs";
 import { ingestTrackingObject, type IngestBrandInput } from "@/lib/ingest/run";
+import { authorizeIngest, kickWorkers } from "@/lib/ingest/worker-trigger";
 
 export const maxDuration = 60;
 
-function authorized(req: Request): boolean {
-  const auth = req.headers.get("authorization");
-  const ingest = process.env.INGEST_SECRET;
-  const cron = process.env.CRON_SECRET;
-  return (
-    (!!ingest && auth === `Bearer ${ingest}`) ||
-    (!!cron && auth === `Bearer ${cron}`)
-  );
-}
-
-function selfInvoke(): void {
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "";
-  const secret = process.env.INGEST_SECRET ?? "";
-  void fetch(`${base}/api/ingest/worker`, {
-    method: "POST",
-    headers: { authorization: `Bearer ${secret}` },
-  }).catch(() => {});
-}
-
 async function handle(req: Request): Promise<Response> {
-  if (!authorized(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!authorizeIngest(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const db = getServiceClient();
   const store = createSupabaseJobStore(db);
@@ -61,7 +43,7 @@ async function handle(req: Request): Promise<Response> {
   }
 
   const remaining = await store.countPending(runDate, maxAttempts);
-  if (remaining > 0) selfInvoke();
+  if (remaining > 0) kickWorkers(1);
 
   return NextResponse.json({ processed: true, jobId: job.id, remaining });
 }
