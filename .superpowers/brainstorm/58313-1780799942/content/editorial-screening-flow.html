@@ -1,0 +1,55 @@
+<h2>编辑简报之后，先筛选，再形成选题</h2>
+<p class="subtitle">已确定：日更信号不会直接变成选题。系统先生成编辑简报，编辑筛选后，只有通过的信号才进入选题池。</p>
+
+<div class="mockup">
+  <div class="mockup-header">筛选闭环</div>
+  <div class="mockup-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px">
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">1. 日更信号</div>
+        <h3 style="margin:6px 0 8px">B/C/D 变化</h3>
+        <p>技术里程碑、设施变化、政策监管变化。</p>
+      </div>
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">2. 编辑简报</div>
+        <h3 style="margin:6px 0 8px">事实 + 来源 + 地图</h3>
+        <p>摘要、来源列表、关联地点、为什么重要、潜在角度。</p>
+      </div>
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">3. 筛选判断</div>
+        <h3 style="margin:6px 0 8px">通过 / 观察 / 拒绝</h3>
+        <p>编辑判断是否值得进入选题池，并记录理由。</p>
+      </div>
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">4. 选题池</div>
+        <h3 style="margin:6px 0 8px">待设计内容</h3>
+        <p>通过后生成选题卡，再展开脚本、分镜、配音和视频任务。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>筛选时，编辑最需要看到哪种判断框架？</h3>
+<div class="options">
+  <div class="option" data-choice="content_value" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>内容价值评分</h3>
+      <p>按新鲜度、重要性、稀缺性、观众兴趣、可视化潜力、风险等级打分。适合快速决定做不做。推荐。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="editorial_questions" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>编辑问题清单</h3>
+      <p>用几个固定问题筛选：这是真的吗？为什么现在重要？和谁有关？有没有画面？能不能讲清楚？</p>
+    </div>
+  </div>
+  <div class="option" data-choice="audience_angle" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>受众角度优先</h3>
+      <p>先判断这条信号适合哪类内容：新闻快评、技术解释、产业地图、公司追踪、政策解读。</p>
+    </div>
+  </div>
+</div>

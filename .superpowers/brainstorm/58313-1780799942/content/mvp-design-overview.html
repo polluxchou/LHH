@@ -1,0 +1,63 @@
+<h2>MVP 产品设计草图：航天项目情报筛选台</h2>
+<p class="subtitle">第一版目标：帮助团队每天追踪航空航天创业/创新项目，把新信号筛成可信编辑简报，再进入选题池。</p>
+
+<div class="mockup">
+  <div class="mockup-header">核心闭环</div>
+  <div class="mockup-body">
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px">
+      <div class="placeholder">1. 提交追踪对象<br>公司 / 项目</div>
+      <div class="placeholder">2. 每日 Web Search<br>B/C/D 信号</div>
+      <div class="placeholder">3. 生成编辑简报<br>事实 / 来源 / 地图</div>
+      <div class="placeholder">4. 内容价值评分<br>通过 / 观察 / 拒绝</div>
+      <div class="placeholder">5. 进入选题池<br>等待内容设计</div>
+    </div>
+  </div>
+</div>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">MVP 必做</div>
+    <div class="mockup-body">
+      <ul>
+        <li>公司/项目追踪对象库</li>
+        <li>关键词、别名、地区、语言、来源偏好配置</li>
+        <li>每日 Web Search 任务和结果去重</li>
+        <li>编辑简报：摘要、来源、地图关联、重要性说明</li>
+        <li>内容价值评分：新鲜度、重要性、稀缺性、观众兴趣、可视化潜力、风险等级</li>
+        <li>筛选状态：通过、观察、拒绝</li>
+        <li>选题池：只接收通过筛选的简报</li>
+      </ul>
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-header">MVP 不做 / 延后</div>
+    <div class="mockup-body">
+      <ul>
+        <li>融资与上市数据看板</li>
+        <li>高校/研究机构地点类型</li>
+        <li>全自动生成脚本/分镜/成片</li>
+        <li>大规模 OSINT 实时监控</li>
+        <li>复杂知识图谱编辑器</li>
+        <li>外部用户权限和商业化协作空间</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h3>请确认这个设计方向</h3>
+<div class="options">
+  <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>方向正确，可以写正式规格文档</h3>
+      <p>我会把需求、数据模型、用户流、页面、AI 任务、后续路线写成 spec。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="revise" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>方向需要调整</h3>
+      <p>请在对话里说明要改哪里：对象、日更信号、地图比重、筛选方式或选题池边界。</p>
+    </div>
+  </div>
+</div>

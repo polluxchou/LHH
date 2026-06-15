@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>LHH 航天情报源（已逐个抓取验证 · 2026-06-13）</title>
+  </head>
+  <body>
+    <outline text="国际机构 / 官方" title="国际机构 / 官方">
+      <outline type="rss" text="NASA Breaking News" title="NASA Breaking News" xmlUrl="https://www.nasa.gov/rss/dyn/breaking_news.rss"/>
+      <outline type="rss" text="NASA 主站" title="NASA 主站" xmlUrl="https://www.nasa.gov/feed/"/>
+      <outline type="rss" text="NASA News Releases" title="NASA News Releases" xmlUrl="https://www.nasa.gov/news-release/feed/"/>
+      <outline type="rss" text="ESA Space News" title="ESA Space News" xmlUrl="https://www.esa.int/rssfeed/Our_Activities/Space_News"/>
+      <outline type="rss" text="ESA Top News" title="ESA Top News" xmlUrl="https://www.esa.int/rssfeed/TopNews"/>
+    </outline>
+    <outline text="行业媒体" title="行业媒体">
+      <outline type="rss" text="SpaceNews" title="SpaceNews" xmlUrl="https://spacenews.com/feed/"/>
+      <outline type="rss" text="Ars Technica · Space" title="Ars Technica · Space" xmlUrl="https://arstechnica.com/space/feed/"/>
+      <outline type="rss" text="Spaceflight Now" title="Spaceflight Now" xmlUrl="https://spaceflightnow.com/feed/"/>
+      <outline type="rss" text="Payload" title="Payload" xmlUrl="https://payloadspace.com/feed/"/>
+      <outline type="rss" text="NASASpaceflight" title="NASASpaceflight" xmlUrl="https://www.nasaspaceflight.com/feed/"/>
+      <outline type="rss" text="Space.com" title="Space.com" xmlUrl="https://www.space.com/feeds/all"/>
+      <outline type="rss" text="Teslarati (SpaceX 向)" title="Teslarati" xmlUrl="https://www.teslarati.com/feed/"/>
+      <outline type="rss" text="SpacePolicyOnline" title="SpacePolicyOnline" xmlUrl="https://spacepolicyonline.com/feed/"/>
+    </outline>
+    <outline text="科普 / 深度" title="科普 / 深度">
+      <outline type="rss" text="Universe Today" title="Universe Today" xmlUrl="https://www.universetoday.com/feed/"/>
+      <outline type="rss" text="Everyday Astronaut" title="Everyday Astronaut" xmlUrl="https://everydayastronaut.com/feed/"/>
+      <outline type="rss" text="Phys.org · Space" title="Phys.org · Space" xmlUrl="https://phys.org/rss-feed/space-news/"/>
+      <outline type="rss" text="Sky &amp; Telescope" title="Sky &amp; Telescope" xmlUrl="https://skyandtelescope.org/feed/"/>
+    </outline>
+    <outline text="社区" title="社区">
+      <outline type="rss" text="Reddit r/space" title="Reddit r/space" xmlUrl="https://www.reddit.com/r/space/.rss"/>
+      <outline type="rss" text="Reddit r/spacex" title="Reddit r/spacex" xmlUrl="https://www.reddit.com/r/spacex/.rss"/>
+    </outline>
+  </body>
+</opml>

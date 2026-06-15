@@ -1,0 +1,72 @@
+<h2>公司/项目追踪对象需要哪些字段？</h2>
+<p class="subtitle">第一版不要做成复杂 CRM。目标是让每天 web search 有足够上下文，能判断哪些变化值得进入地图和内容池。</p>
+
+<div class="mockup">
+  <div class="mockup-header">一个追踪对象的最小档案</div>
+  <div class="mockup-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">基础身份</div>
+        <p><strong>名称、别名、国家/地区、官网、公司/项目类型、主赛道</strong></p>
+      </div>
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">地图关系</div>
+        <p><strong>总部、发射场、制造设施、测试基地、产业园/政策节点</strong></p>
+      </div>
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">搜索配置</div>
+        <p><strong>关键词、排除词、语言、地区、优先来源、搜索频率</strong></p>
+      </div>
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">内容意图</div>
+        <p><strong>为什么追踪、关注问题、适合短内容/长内容、重要性等级</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>每天更新时，系统应该优先抓哪类变化？</h3>
+<div class="options" data-multiselect>
+  <div class="option" data-choice="business_events" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>商业与融资变化</h3>
+      <p>融资、上市、订单、客户、并购、破产、裁员、重大合作。适合解释公司走势。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="technical_milestones" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>技术与项目里程碑</h3>
+      <p>试车、首飞、发射、入轨、回收、载荷交付、产品发布。最适合航天内容。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="facility_changes" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>地点与设施变化</h3>
+      <p>新工厂、扩产、试验基地、航天港许可、产业园入驻、土地/环保/监管文件。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="policy_regulatory" onclick="toggleSelect(this)">
+    <div class="letter">D</div>
+    <div class="content">
+      <h3>政策与监管变化</h3>
+      <p>发射许可、出口管制、政府采购、补贴、制裁、频谱/遥感/通信许可。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="people_signals" onclick="toggleSelect(this)">
+    <div class="letter">E</div>
+    <div class="content">
+      <h3>人物与团队变化</h3>
+      <p>创始人动态、高管离职、招聘变化、核心科学家/工程团队流动。</p>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" style="margin-top:18px">
+  <div class="mockup-header">建议</div>
+  <div class="mockup-body">
+    <p>第一版建议全选，但在内容池里给 <strong>B 技术/项目里程碑</strong> 和 <strong>C 地点/设施变化</strong> 更高权重，因为它们最容易和地图、分镜、视频叙事结合。</p>
+  </div>
+</div>

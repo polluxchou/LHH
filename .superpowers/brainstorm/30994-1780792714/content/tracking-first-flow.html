@@ -1,0 +1,55 @@
+<h2>调整为“追踪任务优先”</h2>
+<p class="subtitle">你刚才的判断会成为第一阶段核心流程：先提交要追踪的内容，再由系统每天 web search 更新。</p>
+
+<div class="mockup">
+  <div class="mockup-header">第一版闭环</div>
+  <div class="mockup-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;align-items:stretch">
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">1. 提交追踪对象</div>
+        <h3 style="margin:6px 0 8px">公司 / 项目 / 地点 / 主题</h3>
+        <p>编辑定义要追踪什么、为什么追踪、关键词、地区、语言和来源偏好。</p>
+      </div>
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">2. 每日 Web Search</div>
+        <h3 style="margin:6px 0 8px">新信号候选</h3>
+        <p>系统每天检索新闻、公告、公司官网、监管/政府页面、投资信息和社媒公开信息。</p>
+      </div>
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">3. 编辑确认</div>
+        <h3 style="margin:6px 0 8px">事实卡 / 地图点</h3>
+        <p>AI 提取地点、公司、事件、时间、来源可信度；编辑确认后进入情报地图。</p>
+      </div>
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">4. 内容触发</div>
+        <h3 style="margin:6px 0 8px">选题 / 脚本 / 分镜</h3>
+        <p>重要变化进入选题池，生成事实包、角度建议、短视频脚本和分镜草稿。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>“追踪内容”的第一版最小单位是什么？</h3>
+<div class="options">
+  <div class="option" data-choice="company_project" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>公司/项目优先</h3>
+      <p>例如 Relativity Space、Stoke Space、星河动力、某个可重复使用火箭项目。最贴近创业创新项目追踪。推荐。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="location_facility" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>地点/设施优先</h3>
+      <p>例如 Starbase、某航天港、某发动机试车台、某产业园。最贴近地图网络，但内容触发需要再关联公司/项目。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="topic_theme" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>主题/赛道优先</h3>
+      <p>例如可回收火箭、SAR 卫星、月球通信、太空采矿。最适合深度内容，但地图颗粒度会更抽象。</p>
+    </div>
+  </div>
+</div>

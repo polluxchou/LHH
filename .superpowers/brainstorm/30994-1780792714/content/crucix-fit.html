@@ -1,0 +1,55 @@
+<h2>Crucix 对我们项目的参考价值</h2>
+<p class="subtitle">结论：适合参考“多源情报聚合 + 地图态势 + 变化告警”，但不适合作为内容生产管线的直接底座。</p>
+
+<div class="mockup">
+  <div class="mockup-header">Crucix → 航空航天内容工作流的可迁移部分</div>
+  <div class="mockup-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">可借鉴</div>
+        <h3 style="margin:6px 0 8px">情报网络底层</h3>
+        <p>多数据源并行 sweep、source health、delta change、SSE 实时推送、地图标记、Telegram/Discord 告警、LLM brief。</p>
+      </div>
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">需要重做</div>
+        <h3 style="margin:6px 0 8px">内容生产层</h3>
+        <p>选题卡、事实链、编辑审核、脚本版本、分镜、配音稿、素材任务、成片状态，这些 Crucix 基本没有。</p>
+      </div>
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">适合航空航天化</div>
+        <h3 style="margin:6px 0 8px">空间/地理信号</h3>
+        <p>CelesTrak、GDELT、ADS-B、OpenSky、专利、制裁、市场数据等可转成航天公司/设施/事件的情报源。</p>
+      </div>
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">主要风险</div>
+        <h3 style="margin:6px 0 8px">工程和授权</h3>
+        <p>AGPL-3.0、无正式 release、单服务轻架构、数据准确性与来源治理不足；更适合研究原型，不宜直接 fork 成产品。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>建议采用方式</h3>
+<div class="options">
+  <div class="option" data-choice="reference_not_fork" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>参考架构，不直接 fork</h3>
+      <p>借鉴 source adapter、delta engine、map HUD、alert/brief 思路，重建自己的数据模型和内容工作流。推荐。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="prototype_fork" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>短期 fork 做内部 demo</h3>
+      <p>快速验证地图情报体验，但要接受 AGPL、代码耦合和后续重构成本。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="ignore" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>只作为竞品观察</h3>
+      <p>如果第一阶段重点是编辑协作和内容生产，而不是实时 OSINT 监控，可以暂时不接入。</p>
+    </div>
+  </div>
+</div>

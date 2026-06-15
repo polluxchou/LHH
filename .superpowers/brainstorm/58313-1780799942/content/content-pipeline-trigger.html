@@ -1,0 +1,37 @@
+<h2>日更信号进入内容管线后，第一版生成什么？</h2>
+<p class="subtitle">已确定日更重点：技术/项目里程碑、地点/设施变化、政策/监管变化。现在要选从信号到内容的最小闭环。</p>
+
+<div class="mockup">
+  <div class="mockup-header">已确定的第一阶段输入</div>
+  <div class="mockup-body">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+      <div class="placeholder">技术/项目里程碑：试车、首飞、发射、入轨、回收</div>
+      <div class="placeholder">地点/设施变化：新工厂、测试基地、发射场许可</div>
+      <div class="placeholder">政策/监管变化：发射许可、政府采购、出口管制</div>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="editorial_brief" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>先生成“编辑简报”</h3>
+      <p>每条重要变化生成事实摘要、来源列表、地图关联、为什么重要、可做选题角度。最稳，适合先建立可信工作流。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="short_video_package" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>直接生成“短视频包”</h3>
+      <p>生成标题、开场钩子、60-180 秒脚本、分镜、配音稿、素材清单。反馈快，但更依赖事实质量和编辑审核。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="brief_then_package" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>编辑简报通过后，再生成短视频包</h3>
+      <p>先让编辑确认事实和角度，再一键展开成脚本/分镜。推荐：兼顾可信度和内容产出效率。</p>
+    </div>
+  </div>
+</div>

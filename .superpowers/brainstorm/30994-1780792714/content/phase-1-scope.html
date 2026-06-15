@@ -1,0 +1,53 @@
+<h2>第一阶段怎么切：地图情报网络 + 内容生成管线</h2>
+<p class="subtitle">你已经判断 1 和 3 先做。这里先确认“地图情报”如何进入内容管线，避免一开始做成孤立地图或孤立写作工具。</p>
+
+<div class="mockup">
+  <div class="mockup-header">模块关系草图</div>
+  <div class="mockup-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;align-items:stretch">
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">1. 全球地图情报网络</div>
+        <h3 style="margin:6px 0 8px">地点 / 公司 / 事件 / 来源</h3>
+        <p>标记航天港、研发中心、制造基地、测试场、投资机构、创业公司、发射/政策/事故等情报点。</p>
+      </div>
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">2. 数据看板</div>
+        <h3 style="margin:6px 0 8px">融资 / 股价 / 里程碑</h3>
+        <p>第二阶段补上结构化金融和上市公司数据，用来解释公司变化与行业趋势。</p>
+      </div>
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">3. 内容生成管线</div>
+        <h3 style="margin:6px 0 8px">选题 / 调研 / 文案 / 分镜</h3>
+        <p>从情报点触发选题，生成事实卡、角度卡、脚本、分镜、配音稿和视频任务。</p>
+      </div>
+    </div>
+    <div style="margin-top:16px;padding:12px;border-left:4px solid #3b82f6;background:#f6f9ff">
+      <strong>建议的 MVP 闭环：</strong>地图情报点 → 选题候选 → 事实包/来源包 → 脚本大纲 → 短内容分镜。
+    </div>
+  </div>
+</div>
+
+<h3>第一阶段的地图情报，应该先偏哪种工作方式？</h3>
+<div class="options">
+  <div class="option" data-choice="hybrid" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>混合：编辑标注为主，AI 自动补全</h3>
+      <p>团队手动确认关键点位和情报，AI 帮忙提取来源、生成摘要、建议选题和分镜。适合先做内部可用产品。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="manual" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>人工情报地图优先</h3>
+      <p>先做高质量编辑数据库和地图视图，把每个地点、公司、事件的关系沉淀清楚，内容管线晚一点自动化。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="automated" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>自动信号采集优先</h3>
+      <p>先接新闻、RSS、公告、投融资数据库等信号源，自动在地图上生成候选情报点，再让编辑筛选。</p>
+    </div>
+  </div>
+</div>

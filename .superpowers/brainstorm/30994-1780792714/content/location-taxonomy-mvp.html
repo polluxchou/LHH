@@ -1,0 +1,54 @@
+<h2>第一版地图先支持哪些地点类型？</h2>
+<p class="subtitle">采用地点锚点模型后，MVP 不应覆盖所有航天相关地点。请最多选 4 类，作为第一版重点。</p>
+
+<div class="options" data-multiselect>
+  <div class="option" data-choice="launch_sites" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>发射场 / 航天港</h3>
+      <p>最直观、新闻触发强：发射任务、失败事故、扩建、监管许可、商业航天港建设。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="company_hq" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>公司总部 / 办公地</h3>
+      <p>适合构建创业创新地图：公司位置、创始团队、融资、招聘、合作关系。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="manufacturing" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>制造 / 总装 / 供应链设施</h3>
+      <p>适合解释产业能力：火箭工厂、卫星产线、发动机试制、核心供应商。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="test_sites" onclick="toggleSelect(this)">
+    <div class="letter">D</div>
+    <div class="content">
+      <h3>测试场 / 试车台 / 试验基地</h3>
+      <p>技术含量高，适合做深度内容：发动机试车、回收试验、飞行测试、事故分析。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="research_institutes" onclick="toggleSelect(this)">
+    <div class="letter">E</div>
+    <div class="content">
+      <h3>高校 / 研究机构 / 实验室</h3>
+      <p>适合创新项目来源追踪：论文、专利、团队孵化、政府项目、技术路线。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="investors_policy" onclick="toggleSelect(this)">
+    <div class="letter">F</div>
+    <div class="content">
+      <h3>投资机构 / 政策节点 / 产业园</h3>
+      <p>适合解释资本和政策网络：基金、政府园区、补贴、招商、军民融合生态。</p>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" style="margin-top:18px">
+  <div class="mockup-header">我建议的默认组合</div>
+  <div class="mockup-body">
+    <p><strong>A + B + C + D</strong>：发射场提供公共新闻信号，公司总部承载创业项目，制造设施和测试基地承载专业壁垒。高校/投资/政策可以作为第二批补充。</p>
+  </div>
+</div>

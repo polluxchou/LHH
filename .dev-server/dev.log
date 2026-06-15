@@ -1,0 +1,133 @@
+[2026-06-13 06:32:40] >>> starting: npm run dev
+
+> aerospace-intelligence-screening@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.19
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.31.200:3000
+
+ ✓ Starting...
+ ✓ Ready in 3.4s
+ ✓ Compiled / in 356ms (733 modules)
+ GET / 200 in 596ms
+[?25h
+[2026-06-13 06:41:21] <<< next dev exited (0); restarting in 2s
+[2026-06-13 06:41:23] >>> starting: npm run dev
+
+> aerospace-intelligence-screening@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.19
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.31.200:3000
+
+ ✓ Starting...
+ ✓ Ready in 2.5s
+ ✓ Compiled / in 371ms (733 modules)
+ GET / 200 in 624ms
+ ✓ Compiled /zh/map in 347ms (719 modules)
+ GET /zh/map 200 in 460ms
+ ✓ Compiled /zh in 131ms (743 modules)
+ GET /zh 200 in 218ms
+ ✓ Compiled in 84ms (743 modules)
+ ✓ Compiled in 82ms (743 modules)
+ ✓ Compiled in 189ms (743 modules)
+ ✓ Compiled /zh/launches in 169ms (751 modules)
+ GET /zh/launches 200 in 225ms
+ ✓ Compiled in 121ms (751 modules)
+ ✓ Compiled in 100ms (744 modules)
+ ✓ Compiled in 72ms (688 modules)
+ ✓ Compiled in 87ms (688 modules)
+ ✓ Compiled in 64ms (688 modules)
+ ✓ Compiled in 111ms (302 modules)
+ ✓ Compiled in 35ms (302 modules)
+ ✓ Compiled in 45ms (302 modules)
+ ✓ Compiled in 42ms (302 modules)
+ ✓ Compiled in 45ms (302 modules)
+ ✓ Compiled in 45ms (302 modules)
+ ✓ Compiled in 56ms (302 modules)
+ ✓ Compiled in 44ms (302 modules)
+ ✓ Compiled in 41ms (302 modules)
+ ✓ Compiled in 46ms (302 modules)
+ ✓ Compiled in 77ms (302 modules)
+ ✓ Compiled in 42ms (302 modules)
+ ✓ Compiled in 38ms (302 modules)
+ ✓ Compiled in 48ms (303 modules)
+ ✓ Compiled in 50ms (302 modules)
+ ✓ Compiled in 39ms (302 modules)
+ ✓ Compiled in 65ms (304 modules)
+ ✓ Compiled in 40ms (304 modules)
+ ✓ Compiled in 257ms (318 modules)
+ ✓ Compiled in 36ms (304 modules)
+ ✓ Compiled in 97ms (304 modules)
+ ✓ Compiled in 34ms (304 modules)
+ ✓ Compiled in 45ms (304 modules)
+ ✓ Compiled in 45ms (304 modules)
+ ✓ Compiled in 119ms (318 modules)
+ ✓ Compiled in 270ms (318 modules)
+ ✓ Compiled /zh/topic-pool in 296ms (692 modules)
+ GET /zh/topic-pool 200 in 413ms
+ ✓ Compiled /zh/map in 137ms (426 modules)
+ GET /zh/map 200 in 202ms
+ ✓ Compiled /zh in 121ms (451 modules)
+ GET /zh 200 in 213ms
+ ✓ Compiled /_not-found in 264ms (750 modules)
+ GET /zh 404 in 410ms
+ ✓ Compiled / in 150ms (442 modules)
+ GET / 200 in 335ms
+ GET /zh 200 in 183ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 538ms (745 modules)
+ GET / 200 in 424ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 174ms (745 modules)
+ GET / 200 in 261ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 109ms (745 modules)
+ GET / 200 in 237ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 121ms (745 modules)
+ GET / 200 in 240ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 110ms (745 modules)
+ GET / 200 in 234ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 125ms (745 modules)
+ GET / 200 in 213ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 84ms (745 modules)
+ GET / 200 in 206ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/fengzhou/Code/LHH/.next/cache/webpack/server-development/6.pack.gz_' -> '/Users/fengzhou/Code/LHH/.next/cache/webpack/server-development/6.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/fengzhou/Code/LHH/.next/cache/webpack/client-development/3.pack.gz_' -> '/Users/fengzhou/Code/LHH/.next/cache/webpack/client-development/3.pack.gz'
+[?25h
+[2026-06-13 07:16:16] <<< next dev exited (0); restarting in 2s
+[2026-06-13 07:16:18] >>> starting: npm run dev
+
+> aerospace-intelligence-screening@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.19
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.31.200:3000
+
+ ✓ Starting...
+ ✓ Ready in 2.7s
+ ○ Compiling / ...
+ ✓ Compiled / in 1023ms (739 modules)
+ GET / 200 in 1265ms
+[?25h
+[2026-06-14 22:46:35] >>> starting: npm run dev
+
+> aerospace-intelligence-screening@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.19
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.31.42:3000
+
+ ✓ Starting...
+ ✓ Ready in 2.4s
+ ✓ Compiled /zh in 467ms (739 modules)
+ GET /zh 200 in 717ms
+ GET /zh 200 in 83ms

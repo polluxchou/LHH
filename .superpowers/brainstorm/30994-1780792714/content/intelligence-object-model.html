@@ -1,0 +1,46 @@
+<h2>地图上的最小对象应该是什么？</h2>
+<p class="subtitle">这会决定第一版怎么录入情报、怎么聚合来源、怎么触发选题。我的建议是以“地点”为地图锚点，但以“事件”为内容触发器。</p>
+
+<div class="cards">
+  <div class="card" data-choice="location_anchor" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="padding:16px;display:grid;gap:10px">
+        <div class="placeholder">地点：Starbase / 发射场 / 工厂 / 测试场</div>
+        <div class="placeholder">关联：公司、项目、事件、来源</div>
+        <div class="placeholder">触发：地点发生新变化才进入内容池</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. 地点锚点模型</h3>
+      <p>地图体验最自然，适合做“全球航天创新网络”。但需要额外处理没有明确地理位置的融资、政策、公司动态。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="event_trigger" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="padding:16px;display:grid;gap:10px">
+        <div class="placeholder">事件：融资 / 发射 / 事故 / 政策 / 人事 / 订单</div>
+        <div class="placeholder">关联：地点、公司、来源、影响范围</div>
+        <div class="placeholder">触发：事件直接生成选题候选</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. 事件触发模型</h3>
+      <p>最贴近新闻短内容，容易进入脚本管线。但地图会变成事件分布图，较难沉淀长期产业网络。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="hybrid_graph" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="padding:16px;display:grid;gap:10px">
+        <div class="placeholder">节点：地点、公司、项目、事件、人物、来源</div>
+        <div class="placeholder">边：位于、投资、合作、供应、竞争、引用</div>
+        <div class="placeholder">视图：地图 / 时间线 / 选题池共用一套图谱</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. 混合图谱模型</h3>
+      <p>底层最完整：地图锚点负责空间感，事件负责内容触发，公司/项目负责长期跟踪。推荐，但第一版要控制字段数量。</p>
+    </div>
+  </div>
+</div>

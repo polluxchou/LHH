@@ -1,0 +1,82 @@
+<h2>开发阶段与 3 个 Agent 分工</h2>
+<p class="subtitle">推荐先做 4 个开发阶段。Phase 0 由主线统一完成数据模型和脚手架，之后 3 个 agent 可以并行。</p>
+
+<div class="mockup">
+  <div class="mockup-header">阶段安排</div>
+  <div class="mockup-body">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">Phase 0</div>
+        <h3 style="margin:6px 0 8px">基础骨架</h3>
+        <p>项目脚手架、数据库 schema、共享类型、权限占位、测试框架。</p>
+      </div>
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">Phase 1</div>
+        <h3 style="margin:6px 0 8px">情报追踪闭环</h3>
+        <p>追踪对象库、每日 web search、信号抽取、来源去重。</p>
+      </div>
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">Phase 2</div>
+        <h3 style="margin:6px 0 8px">编辑筛选闭环</h3>
+        <p>编辑简报 Inbox、内容价值评分、通过/观察/拒绝、选题池。</p>
+      </div>
+      <div style="border:1px solid #d6dde8;border-radius:8px;padding:14px;background:#fff">
+        <div class="label">Phase 3</div>
+        <h3 style="margin:6px 0 8px">地图与验收</h3>
+        <p>地点锚点、地图上下文、端到端验收、种子数据、部署。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="cards">
+  <div class="card">
+    <div class="card-image">
+      <div style="padding:16px;display:grid;gap:10px">
+        <div class="placeholder">Tracking Object</div>
+        <div class="placeholder">Search Run</div>
+        <div class="placeholder">Candidate Signal</div>
+        <div class="placeholder">Source</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Agent 1：追踪与搜索</h3>
+      <p>负责公司/项目追踪对象、搜索配置、每日 web search、结果聚类去重、B/C/D 信号分类。</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-image">
+      <div style="padding:16px;display:grid;gap:10px">
+        <div class="placeholder">Editorial Brief</div>
+        <div class="placeholder">Content Value Score</div>
+        <div class="placeholder">Screening Decision</div>
+        <div class="placeholder">Topic Card</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Agent 2：简报与筛选</h3>
+      <p>负责 AI 编辑简报、内容价值评分、筛选动作、状态流转和选题池生成。</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-image">
+      <div style="padding:16px;display:grid;gap:10px">
+        <div class="placeholder">Location Anchor</div>
+        <div class="placeholder">Map Context</div>
+        <div class="placeholder">UI Feedback</div>
+        <div class="placeholder">E2E Flow</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Agent 3：地图与体验</h3>
+      <p>负责地点锚点、地图上下文、工作台 UI、点击确认反馈、端到端可用性。</p>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" style="margin-top:18px">
+  <div class="mockup-header">关键约束</div>
+  <div class="mockup-body">
+    <p>三个 agent 不能各自发明数据结构。Phase 0 必须先冻结共享 schema、状态枚举、API 合约和测试种子数据，然后再并行。</p>
+  </div>
+</div>
