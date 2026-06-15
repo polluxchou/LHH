@@ -61,3 +61,49 @@ function storyboardHint(targetDuration: string): string {
   const shots = Math.max(6, Math.round((mid * 60) / 75));
   return `${shots - 1}-${shots + 1}`;
 }
+
+function nonEmpty(v: unknown): string {
+  return typeof v === "string" ? v.trim() : "";
+}
+
+export function parseProduction(
+  raw: string,
+): { sections: ScriptSection[]; storyboard: StoryboardShot[] } | null {
+  let o: Record<string, unknown>;
+  try {
+    o = JSON.parse(raw) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+  if (!o || typeof o !== "object") return null;
+
+  const rawSections = Array.isArray(o.sections) ? o.sections : [];
+  if (rawSections.length !== 4) return null;
+  const sections: ScriptSection[] = [];
+  for (let i = 0; i < 4; i++) {
+    const s = rawSections[i] as Record<string, unknown>;
+    if (!s || s.id !== REQUIRED_SECTION_IDS[i]) return null;
+    const body = nonEmpty(s.body);
+    const label = nonEmpty(s.label);
+    const duration = nonEmpty(s.duration);
+    if (!body || !label || !duration) return null;
+    sections.push({ id: REQUIRED_SECTION_IDS[i] as string, label, duration, body });
+  }
+
+  const rawShots = Array.isArray(o.storyboard) ? o.storyboard : [];
+  if (rawShots.length < 6) return null;
+  const storyboard: StoryboardShot[] = [];
+  for (let i = 0; i < rawShots.length; i++) {
+    const sh = rawShots[i] as Record<string, unknown>;
+    if (!sh) return null;
+    const time = nonEmpty(sh.time);
+    const shot = nonEmpty(sh.shot);
+    const voiceOver = nonEmpty(sh.voiceOver);
+    const visual = nonEmpty(sh.visual);
+    const notes = typeof sh.notes === "string" ? sh.notes : "";
+    if (!time || !shot || !voiceOver || !visual) return null;
+    storyboard.push({ n: i + 1, time, shot, voiceOver, visual, notes });
+  }
+
+  return { sections, storyboard };
+}
