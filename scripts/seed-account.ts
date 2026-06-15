@@ -5,7 +5,7 @@ const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const admin = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
 
 // Self-contained seed data (mirrors lib/data/phase1-fixtures teamMembers).
-// seedSpaceContent resolves 聊太空 content ownership by display name, so ids are not needed here.
+// seedSpaceContent resolves 林哈哈聊太空 content ownership by display name, so ids are not needed here.
 const SEED_MEMBERS = [
   { email: "lin@linhaha.local", displayName: "林哈哈", avatarChar: "林", color: "#8b5e3c", title: "主编 · 主笔", role: "admin" as const },
   { email: "zhou@linhaha.local", displayName: "周野", avatarChar: "周", color: "#2d2d5e", title: "制片 · 视频策划", role: "member" as const },
@@ -49,13 +49,13 @@ async function main() {
     appId = data.id;
   }
 
-  // space 聊太空 (idempotent by name within the app)
+  // space 林哈哈聊太空 (idempotent by name within the app)
   let spaceId: string;
-  const { data: existingSpace } = await admin.from("spaces").select("id").eq("application_id", appId).eq("name", "聊太空").maybeSingle();
+  const { data: existingSpace } = await admin.from("spaces").select("id").eq("application_id", appId).eq("name", "林哈哈聊太空").maybeSingle();
   if (existingSpace) {
     spaceId = existingSpace.id;
   } else {
-    const { data, error } = await admin.from("spaces").insert({ application_id: appId, name: "聊太空", theme: "商业航天 · 太空" }).select("id").single();
+    const { data, error } = await admin.from("spaces").insert({ application_id: appId, name: "林哈哈聊太空", theme: "商业航天 · 太空" }).select("id").single();
     if (error) throw new Error(`space insert: ${error.message}`);
     spaceId = data.id;
   }
@@ -71,7 +71,7 @@ async function main() {
 
   console.log("✅ Seeded:");
   console.log("   application 林哈哈:", appId);
-  console.log("   space 聊太空:", spaceId);
+  console.log("   space 林哈哈聊太空:", spaceId);
   console.log("   owner/admin 林哈哈:", owner);
   console.log("   members:", SEED_MEMBERS.map((m) => `${m.displayName}<${m.email}>`).join(", "));
 }

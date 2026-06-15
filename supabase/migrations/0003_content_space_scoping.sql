@@ -1,7 +1,7 @@
 -- supabase/migrations/0003_content_space_scoping.sql
 -- Phase 2 (step 1): scope the 0001 content tables by space.
 -- `sources` stays GLOBAL (shared article/source library, deduped by URL).
--- All other content tables get space_id + RLS. Existing rows backfill to 聊太空.
+-- All other content tables get space_id + RLS. Existing rows backfill to 林哈哈聊太空.
 --
 -- NOTE on writes: RLS is enabled below with member/owner READ policies only.
 -- The ingest writer must use the SERVICE-ROLE key (which bypasses RLS) and stamp
@@ -16,11 +16,11 @@ alter table content_value_scores  add column if not exists space_id uuid referen
 alter table topic_cards           add column if not exists space_id uuid references spaces(id) on delete cascade;
 alter table location_anchors      add column if not exists space_id uuid references spaces(id) on delete cascade;
 
--- ── 2. backfill existing rows to the seeded 聊太空 space ──────
+-- ── 2. backfill existing rows to the seeded 林哈哈聊太空 space ──────
 do $$
 declare default_space uuid;
 begin
-  select id into default_space from spaces where name = '聊太空' order by created_at limit 1;
+  select id into default_space from spaces where name = '林哈哈聊太空' order by created_at limit 1;
   if default_space is not null then
     update tracking_objects    set space_id = default_space where space_id is null;
     update search_runs          set space_id = default_space where space_id is null;
