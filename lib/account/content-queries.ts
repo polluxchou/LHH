@@ -83,7 +83,14 @@ export async function getSpaceContent(spaceId: string): Promise<SpaceContent> {
   for (const s of candidateSignals) for (const id of s.sourceIds) referenced.add(id);
   let sources: Source[] = [];
   if (referenced.size > 0) {
-    const { data } = await db.from("sources").select("*").in("id", [...referenced]);
+    const { data, error } = await db.from("sources").select("*").in("id", [...referenced]);
+    if (error) {
+      // Don't fail silently: an RLS/permission error here yields 0 sources, which breaks
+      // the candidate-signal source link AND brief generation. Surface it in the logs.
+      console.error(
+        `[getSpaceContent] failed to read ${referenced.size} referenced source(s) for space ${spaceId}: ${error.message}`,
+      );
+    }
     sources = rows(data).map((r) => ({
       id: r.id, url: r.url, title: r.title, publisher: r.publisher ?? null, publishedAt: r.published_at ?? null,
       retrievedAt: r.retrieved_at, sourceType: r.source_type, confidence: r.confidence, notes: r.notes ?? null,
