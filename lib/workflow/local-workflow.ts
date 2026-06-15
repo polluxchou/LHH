@@ -679,6 +679,15 @@ function withProductionDraft(
   };
 }
 
+/** 用外部(LLM)生成的生产包覆盖草稿;现有编辑/重置照常工作。 */
+export function setProductionDraft(
+  state: LocalWorkflowState,
+  briefId: string,
+  draft: ProductionPackage,
+): LocalWorkflowState {
+  return withProductionDraft(state, briefId, draft);
+}
+
 function assertProductionDraftExists(state: LocalWorkflowState, briefId: string): ProductionPackage {
   const draft = state.productionDrafts[briefId];
 

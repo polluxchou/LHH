@@ -12,6 +12,7 @@ import {
   ensureProductionDraft,
   generateBriefForSignal,
   resetProductionDraft,
+  setProductionDraft,
   runFailedMockSearchForTrackingObject,
   screenBrief,
   selectTrackingObject,
@@ -24,6 +25,7 @@ import {
   type LocalWorkflowState,
   type WorkflowRunLogEntry,
 } from "@/lib/workflow/local-workflow";
+import { generateProductionAction } from "@/app/actions/generate-production";
 import type { StoryboardShot } from "@/lib/domain/production";
 import type { TrackedScope } from "@/components/workbench/tracked-list";
 import type { BriefUiStatus } from "@/components/workbench/helpers";
@@ -78,6 +80,7 @@ export interface WorkbenchStore {
   editStoryboardShot: (briefId: string, shotNumber: number, patch: Partial<Omit<StoryboardShot, "n">>) => void;
   toggleCheck: (briefId: string, itemId: string) => void;
   resetProduction: (briefId: string) => void;
+  generateProduction: (briefId: string) => Promise<void>;
 }
 
 const WorkflowContext = createContext<WorkbenchStore | null>(null);
@@ -402,6 +405,22 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
 
     resetProduction: (briefId) => {
       setState((current) => resetProductionDraft(current, briefId));
+    },
+
+    generateProduction: async (briefId) => {
+      const brief = state.editorialBriefs.find((b) => b.id === briefId);
+      if (!brief) {
+        store.logDemo("warning", `生成失败 · 找不到简报 ${briefId}`, briefId);
+        return;
+      }
+      const topicCard = state.topicCards.find((t) => t.sourceEditorialBriefId === briefId) ?? null;
+      const result = await generateProductionAction({ brief, topicCard });
+      if (result.ok) {
+        setState((current) => setProductionDraft(current, briefId, result.pkg));
+        store.logDemo("success", `AI 生成完成 · ${brief.briefTitle}`, briefId);
+      } else {
+        store.logDemo("warning", `AI 生成失败,已保留模板草稿 · ${result.reason}`, briefId);
+      }
     },
   };
 

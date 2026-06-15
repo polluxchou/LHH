@@ -303,6 +303,7 @@ export function Workbench() {
           onEditShot={(shotNumber, patch) => store.editStoryboardShot(studioContext.brief.id, shotNumber, patch)}
           onToggleCheck={(itemId) => store.toggleCheck(studioContext.brief.id, itemId)}
           onReset={() => store.resetProduction(studioContext.brief.id)}
+          onGenerate={() => store.generateProduction(studioContext.brief.id)}
         />
       ) : null}
 

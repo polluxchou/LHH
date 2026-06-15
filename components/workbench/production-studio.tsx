@@ -22,6 +22,8 @@ interface ProductionStudioProps {
   onEditShot: (shotNumber: number, patch: Partial<Omit<StoryboardShot, "n">>) => void;
   onToggleCheck: (itemId: string) => void;
   onReset: () => void;
+  /** 触发 DeepSeek 重新生成脚本+分镜;返回 Promise 以驱动 loading 态。无则不显示该按钮。 */
+  onGenerate?: () => Promise<void>;
 }
 
 const TABS: Array<{ id: StudioTab; label: string; en: string }> = [
@@ -42,6 +44,7 @@ export function ProductionStudio({
   onEditShot,
   onToggleCheck,
   onReset,
+  onGenerate,
 }: ProductionStudioProps) {
   const [tab, setTab] = useState<StudioTab>(initialTab);
 
@@ -67,6 +70,18 @@ export function ProductionStudio({
   const doneCount = production.task.checklist.filter((item) => item.done).length;
   const lastShotEnd = production.storyboard.at(-1)?.time.split("-")[1] ?? "";
   const title = topicCard.workingTitle || brief.briefTitle;
+
+  const [generating, setGenerating] = useState(false);
+  const runGenerate = async () => {
+    if (!onGenerate || generating) return;
+    setGenerating(true);
+    onLog("info", `AI 生成中 · ${title}`);
+    try {
+      await onGenerate();
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   return (
     <div className="studio-backdrop" onClick={onClose}>
@@ -148,6 +163,16 @@ export function ProductionStudio({
           >
             导出 .md
           </button>
+          {onGenerate ? (
+            <button
+              type="button"
+              className="studio-foot-btn primary"
+              disabled={generating}
+              onClick={runGenerate}
+            >
+              {generating ? "AI 生成中…" : "✨ AI 生成脚本/分镜"}
+            </button>
+          ) : null}
           <button
             type="button"
             className="studio-foot-btn ghost"
