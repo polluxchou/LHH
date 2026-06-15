@@ -25,9 +25,8 @@ create index if not exists ingest_jobs_status_rundate_idx
 
 alter table public.ingest_jobs enable row level security;
 
--- 仅 SELECT 策略(与内容表一致);写入由 worker/enqueue 用 service-role 绕过 RLS。
--- 注:space_members 的表名/成员列以账号层 0002/0003 实际为准,apply 前核对。
-create policy "ingest_jobs select for space members" on public.ingest_jobs
-  for select using (
-    space_id in (select space_id from public.space_members where user_id = auth.uid())
-  );
+-- 仅 SELECT 策略,与 0003 content 表一致:复用 0002 的 security-definer helper
+-- is_space_member / is_space_owner(避免在 space_members 上递归 RLS)。写入由
+-- worker/enqueue 用 service-role 绕过 RLS。
+create policy ingest_jobs_space_read on public.ingest_jobs
+  for select using (is_space_member(space_id) or is_space_owner(space_id));
