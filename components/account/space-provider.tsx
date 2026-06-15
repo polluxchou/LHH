@@ -16,7 +16,9 @@ export interface SpaceSession {
   members: SpaceMember[];
   /** space-scoped workbench state for the current space (DB content + editorial overlay) */
   contentState: LocalWorkflowState | null;
-  setContentState: (next: LocalWorkflowState) => void;
+  setContentState: (
+    next: LocalWorkflowState | ((prev: LocalWorkflowState | null) => LocalWorkflowState),
+  ) => void;
 }
 
 const Ctx = createContext<SpaceSession | null>(null);
@@ -58,7 +60,13 @@ export function SpaceProvider({
     members,
     contentState,
     setContentState: (next) => {
-      if (currentSpaceId) setStore((prev) => ({ ...prev, [currentSpaceId]: next }));
+      if (!currentSpaceId) return;
+      // Use the functional setStore form so sequential updates within one event
+      // compose off the latest state (avoids last-write-wins clobbering).
+      setStore((prev) => ({
+        ...prev,
+        [currentSpaceId]: typeof next === "function" ? next(prev[currentSpaceId] ?? null) : next,
+      }));
     },
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

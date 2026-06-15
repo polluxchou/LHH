@@ -102,10 +102,15 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
   // existing setState(updater) contract so every action below stays unchanged.
   const state = session.contentState ?? createInitialWorkflowState();
   const setState = (updater: LocalWorkflowState | ((current: LocalWorkflowState) => LocalWorkflowState)) => {
-    const next = typeof updater === "function"
-      ? (updater as (current: LocalWorkflowState) => LocalWorkflowState)(state)
-      : updater;
-    session.setContentState(next);
+    // Thread the functional updater through setContentState so multiple setState
+    // calls in one handler compose off the latest state instead of the stale
+    // render snapshot (otherwise the last call clobbers the others).
+    session.setContentState((prev) => {
+      const base = prev ?? createInitialWorkflowState();
+      return typeof updater === "function"
+        ? (updater as (current: LocalWorkflowState) => LocalWorkflowState)(base)
+        : updater;
+    });
   };
   const [scope, setScope] = useState<TrackedScope>("mine");
   const [rightTab, setRightTab] = useState<RightTab>("sources");
