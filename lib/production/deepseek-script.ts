@@ -137,8 +137,10 @@ export async function generateProduction(
 ): Promise<ProductionPackage> {
   const topicCard = opts.topicCard ?? null;
   const formatLabel = topicCard?.formatLabel ?? "深度短视频（5-8 min）";
-  const raw = await deps.complete(buildScriptPrompt(opts.brief, topicCard));
-  const parsed = parseProduction(raw);
+  const prompt = buildScriptPrompt(opts.brief, topicCard);
+  // 真实模型偶发输出不达标(已实测);重试一次(temperature>0,重试通常不同)再放弃。
+  let parsed = parseProduction(await deps.complete(prompt));
+  if (!parsed) parsed = parseProduction(await deps.complete(prompt));
   if (!parsed) throw new Error("DeepSeek 生产包解析失败");
   const wordCount = parsed.sections.reduce((sum, s) => sum + s.body.length, 0);
   return {

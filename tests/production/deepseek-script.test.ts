@@ -92,3 +92,29 @@ describe("generateProduction", () => {
     await expect(generateProduction({ brief, topicCard: card }, { complete: async () => "garbage" })).rejects.toThrow();
   });
 });
+
+describe("generateProduction 重试", () => {
+  const okJson2 = JSON.stringify({ sections: goodSections, storyboard: goodShots });
+
+  it("首次坏 JSON、重试good → 成功(调用 2 次)", async () => {
+    let calls = 0;
+    const complete = async () => { calls += 1; return calls === 1 ? "garbage" : okJson2; };
+    const pkg = await generateProduction({ brief, topicCard: card }, { complete });
+    expect(pkg.script.sections).toHaveLength(4);
+    expect(calls).toBe(2);
+  });
+
+  it("两次都坏 → 抛错(调用 2 次,不再无限重试)", async () => {
+    let calls = 0;
+    const complete = async () => { calls += 1; return "garbage"; };
+    await expect(generateProduction({ brief, topicCard: card }, { complete })).rejects.toThrow();
+    expect(calls).toBe(2);
+  });
+
+  it("首次就 good → 不重试(只调用 1 次)", async () => {
+    let calls = 0;
+    const complete = async () => { calls += 1; return okJson2; };
+    await generateProduction({ brief, topicCard: card }, { complete });
+    expect(calls).toBe(1);
+  });
+});
