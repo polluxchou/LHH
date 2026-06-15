@@ -1,10 +1,15 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { getMySpaces, getSessionUser, getSpaceMembers } from "@/lib/account/queries";
+import { getSpaceContent } from "@/lib/account/content-queries";
+import { buildSpaceState } from "@/lib/workflow/build-space-state";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SpaceProvider } from "@/components/account/space-provider";
 import { WorkflowProvider } from "@/components/workbench/workflow-provider";
+import type { LocalWorkflowState } from "@/lib/workflow/local-workflow";
 import type { Profile, SpaceMember } from "@/lib/domain/account";
+
+const DEMO_SPACE_NAME = "林哈哈聊太空";
 
 export async function AccountShell({
   locale, initialSpaceId, children,
@@ -26,7 +31,15 @@ export async function AccountShell({
     : null;
 
   const membersBySpace: Record<string, SpaceMember[]> = {};
-  for (const s of mySpaces) membersBySpace[s.space.id] = await getSpaceMembers(s.space.id);
+  const contentBySpace: Record<string, LocalWorkflowState> = {};
+  for (const s of mySpaces) {
+    const members = await getSpaceMembers(s.space.id);
+    membersBySpace[s.space.id] = members;
+    const dbContent = await getSpaceContent(s.space.id);
+    contentBySpace[s.space.id] = buildSpaceState({
+      dbContent, members, currentUserId: user.id, isDemoSpace: s.space.name === DEMO_SPACE_NAME,
+    });
+  }
 
   return (
     <SpaceProvider
@@ -35,6 +48,7 @@ export async function AccountShell({
       profile={profile}
       mySpaces={mySpaces}
       membersBySpace={membersBySpace}
+      contentBySpace={contentBySpace}
       initialSpaceId={initialSpaceId}
     >
       <WorkflowProvider>{children}</WorkflowProvider>
