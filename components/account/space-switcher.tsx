@@ -9,9 +9,10 @@ export function SpaceSwitcher({ locale }: { locale: "en" | "zh" }) {
   const [open, setOpen] = useState(false);
   const current = s.mySpaces.find((m) => m.space.id === s.currentSpaceId);
   const ownsApp = s.mySpaces.some((m) => m.isOwner);
+  const canManage = s.isOwnerOfCurrent || s.currentRole === "admin";
   const t = locale === "zh"
-    ? { label: "当前空间", head: "切换空间", neww: "＋ 新建空间", all: "全部空间" }
-    : { label: "Current space", head: "Switch space", neww: "+ New space", all: "All spaces" };
+    ? { label: "当前空间", head: "切换空间", neww: "＋ 新建空间", all: "全部空间", members: "成员管理" }
+    : { label: "Current space", head: "Switch space", neww: "+ New space", all: "All spaces", members: "Members" };
 
   useEffect(() => {
     if (!open) return;
@@ -52,6 +53,15 @@ export function SpaceSwitcher({ locale }: { locale: "en" | "zh" }) {
               {m.space.id === s.currentSpaceId ? <span className="urowmark">●</span> : null}
             </button>
           ))}
+          {canManage && s.currentSpaceId ? (
+            <button
+              type="button"
+              className="user-row"
+              onClick={() => { router.push(`${locale === "zh" ? "/zh" : ""}/space/members?space=${s.currentSpaceId}`); setOpen(false); }}
+            >
+              <span className="urowtxt"><span className="urowname">{t.members}</span></span>
+            </button>
+          ) : null}
           {ownsApp ? (
             <>
               <button
