@@ -48,3 +48,11 @@ npm test            # vitest
 npx tsc --noEmit    # 类型检查
 npm run lint        # eslint
 ```
+
+## 发布 / 部署
+
+生产 = Vercel 项目 `lhh-news-ingestion`，**生产分支 `main`**。**只通过 git 发布**：
+`tsc/test 通过 → 提交到 main → git push`（Vercel 自动部署）。**不要**用 `vercel --prod` 本地直推。
+数据库迁移与代码部署分开，需单独 `supabase db push` / SQL Editor 应用。
+
+完整规范见 [docs/deployment.md](docs/deployment.md)。
