@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { ProductionPackage, ScriptSection, StoryboardShot } from "@/lib/domain/production";
 import type { EditorialBrief, TopicCard } from "@/lib/domain/types";
 import { topicFormatLabel } from "@/components/workbench/helpers";
+import { useCopy } from "@/lib/i18n/locale-context";
 
 export type StudioTab = "script" | "storyboard" | "task";
 
@@ -26,12 +27,6 @@ interface ProductionStudioProps {
   onGenerate?: (targetDuration: string) => Promise<void>;
 }
 
-const TABS: Array<{ id: StudioTab; label: string; en: string }> = [
-  { id: "script", label: "脚本", en: "SCRIPT" },
-  { id: "storyboard", label: "分镜", en: "STORYBOARD" },
-  { id: "task", label: "视频任务", en: "PRODUCTION TASK" },
-];
-
 export function ProductionStudio({
   brief,
   topicCard,
@@ -46,6 +41,13 @@ export function ProductionStudio({
   onReset,
   onGenerate,
 }: ProductionStudioProps) {
+  const t = useCopy();
+  const s = t.studio;
+  const TABS: Array<{ id: StudioTab; label: string; en: string }> = [
+    { id: "script", label: s.tabScript, en: "SCRIPT" },
+    { id: "storyboard", label: s.tabStoryboard, en: "STORYBOARD" },
+    { id: "task", label: s.tabTask, en: "PRODUCTION TASK" },
+  ];
   const [tab, setTab] = useState<StudioTab>(initialTab);
 
   useEffect(() => {
@@ -78,7 +80,7 @@ export function ProductionStudio({
   const runGenerate = async () => {
     if (!onGenerate || generating) return;
     setGenerating(true);
-    onLog("info", `AI 生成中（目标 ${targetDuration}） · ${title}`);
+    onLog("info", s.generateLog(targetDuration, title));
     try {
       await onGenerate(targetDuration);
     } finally {
@@ -91,16 +93,16 @@ export function ProductionStudio({
       <div className="studio" onClick={(event) => event.stopPropagation()}>
         <header className="studio-head">
           <div className="studio-head-left">
-            <div className="studio-kicker">PRODUCTION · 选题工作台</div>
+            <div className="studio-kicker">{s.kicker}</div>
             <h2 className="studio-title">{title}</h2>
-            <div className="studio-q">核心问题 · {topicCard.coreQuestion}</div>
+            <div className="studio-q">{s.coreQuestion(topicCard.coreQuestion)}</div>
           </div>
           <div className="studio-head-right">
             <div className="studio-meta-row">
-              <span className="studio-meta-chip">{topicFormatLabel(topicCard)}</span>
-              <span className="studio-meta-chip">价值 {score}</span>
+              <span className="studio-meta-chip">{topicFormatLabel(topicCard, t.labels.format)}</span>
+              <span className="studio-meta-chip">{s.value(score)}</span>
             </div>
-            <button type="button" className="studio-close" onClick={onClose} aria-label="关闭">
+            <button type="button" className="studio-close" onClick={onClose} aria-label={s.close}>
               ×
             </button>
           </div>
@@ -122,18 +124,18 @@ export function ProductionStudio({
           <div className="studio-stats">
             {tab === "script" ? (
               <>
-                <b>{production.script.sections.length}</b> 段 · <b>{totalWords}</b> 字 · 估时{" "}
-                <b>{production.script.targetDuration}</b>
+                <b>{production.script.sections.length}</b> {s.statSegments} · <b>{totalWords}</b> {s.statWords} ·{" "}
+                {s.statEst} <b>{production.script.targetDuration}</b>
               </>
             ) : null}
             {tab === "storyboard" ? (
               <>
-                <b>{production.storyboard.length}</b> 镜 · 估时 <b>{lastShotEnd}</b>
+                <b>{production.storyboard.length}</b> {s.statShots} · {s.statEst} <b>{lastShotEnd}</b>
               </>
             ) : null}
             {tab === "task" ? (
               <>
-                <b>{doneCount}</b>/<b>{production.task.checklist.length}</b> 已完成
+                <b>{doneCount}</b>/<b>{production.task.checklist.length}</b> {s.statDone}
               </>
             ) : null}
           </div>
@@ -157,25 +159,25 @@ export function ProductionStudio({
         </main>
 
         <footer className="studio-foot">
-          <span className="studio-foot-info">草稿状态</span>
+          <span className="studio-foot-info">{s.draftStatus}</span>
           <span className="studio-foot-spacer" />
           <button
             type="button"
             className="studio-foot-btn ghost"
-            onClick={() => onLog("info", `导出 ${TABS.find((item) => item.id === tab)?.label} · ${title}（演示）`)}
+            onClick={() => onLog("info", s.exportLog(TABS.find((item) => item.id === tab)?.label ?? "", title))}
           >
-            导出 .md
+            {s.exportMd}
           </button>
           {onGenerate ? (
             <>
-              <span className="studio-foot-dur" title="目标视频时长">
-                <span className="dur-label">时长</span>
+              <span className="studio-foot-dur" title={s.durTitle}>
+                <span className="dur-label">{s.durLabel}</span>
                 <select
                   className="dur-select"
                   value={durationMin}
                   disabled={generating}
                   onChange={(event) => setDurationMin(event.target.value)}
-                  aria-label="目标时长（分钟）"
+                  aria-label={s.durAria}
                 >
                   <option value="1">1 min</option>
                   <option value="2">2 min</option>
@@ -189,7 +191,7 @@ export function ProductionStudio({
                 disabled={generating}
                 onClick={runGenerate}
               >
-                {generating ? "AI 生成中…" : `✨ AI 生成（${targetDuration}）`}
+                {generating ? s.generating : s.generate(targetDuration)}
               </button>
             </>
           ) : null}
@@ -198,20 +200,20 @@ export function ProductionStudio({
             className="studio-foot-btn ghost"
             onClick={() => {
               onReset();
-              onLog("warning", `重新生成 · ${title} 的草稿已重置为初始版本`);
+              onLog("warning", s.regenerateLog(title));
             }}
           >
-            ↻ 重新生成
+            {s.regenerate}
           </button>
           <button
             type="button"
             className="studio-foot-btn primary"
             onClick={() => {
-              onLog("success", `已发给负责人 · ${title}（演示）`);
+              onLog("success", s.sendLog(title));
               onClose();
             }}
           >
-            发给负责人
+            {s.sendToOwner}
           </button>
         </footer>
       </div>
@@ -231,10 +233,11 @@ function ScriptPanel({
   onEditSection: (sectionId: string, body: string) => void;
   onLog: (level: StudioLogLevel, message: string) => void;
 }) {
+  const s = useCopy().studio;
   return (
     <div className="script-panel">
       <div className="script-rail">
-        <div className="script-rail-title">脚本结构</div>
+        <div className="script-rail-title">{s.scriptOutline}</div>
         <ol className="script-toc">
           {sections.map((section, index) => (
             <li key={section.id}>
@@ -248,16 +251,16 @@ function ScriptPanel({
         </ol>
         <div className="script-rail-meta">
           <div className="kv">
-            <span>目标时长</span>
+            <span>{s.targetDuration}</span>
             <b>{targetDuration}</b>
           </div>
           <div className="kv">
-            <span>语速参考</span>
-            <b>≈ 280 字 / 分</b>
+            <span>{s.paceRef}</span>
+            <b>{s.paceValue}</b>
           </div>
           <div className="kv">
-            <span>风格</span>
-            <b>克制 · 文学化 · 不抒情</b>
+            <span>{s.style}</span>
+            <b>{s.styleValue}</b>
           </div>
         </div>
       </div>
@@ -269,14 +272,14 @@ function ScriptPanel({
               <div>
                 <div className="sec-l">{section.label}</div>
                 <div className="sec-d">
-                  {section.duration} · {section.body.length} 字
+                  {section.duration} · {s.sectionChars(section.body.length)}
                 </div>
               </div>
               <button
                 type="button"
                 className="sec-regen"
-                title="只重生成这一段"
-                onClick={() => onLog("info", `重新生成段落：${section.label}`)}
+                title={s.regenSectionTitle}
+                onClick={() => onLog("info", s.regenSectionLog(section.label))}
               >
                 ↻
               </button>
@@ -311,6 +314,7 @@ function StoryboardPanel({
   onEditShot: (shotNumber: number, patch: Partial<Omit<StoryboardShot, "n">>) => void;
   onLog: (level: StudioLogLevel, message: string) => void;
 }) {
+  const s = useCopy().studio;
   const [editingShot, setEditingShot] = useState<number | null>(null);
   const [draft, setDraft] = useState<ShotDraft | null>(null);
 
@@ -330,7 +334,7 @@ function StoryboardPanel({
     }
 
     onEditShot(editingShot, { ...draft });
-    onLog("success", `分镜已更新 · 第 ${String(editingShot).padStart(2, "0")} 镜`);
+    onLog("success", s.shotUpdatedLog(String(editingShot).padStart(2, "0")));
     cancelEdit();
   };
 
@@ -341,17 +345,17 @@ function StoryboardPanel({
   return (
     <div className="sb-panel">
       <div className="sb-help">
-        <span>📝 这是 AI 据脚本自动拆分的分镜建议 · 时长加总不必等于脚本总长 · 双击行（或点 ✎）可编辑，修改会保留</span>
+        <span>{s.sbHelp}</span>
       </div>
       <div className="sb-table">
         <div className="sb-row sb-head">
           <span className="c-n">#</span>
-          <span className="c-thumb">画面</span>
-          <span className="c-time">时长</span>
-          <span className="c-shot">镜头描述</span>
-          <span className="c-vo">旁白</span>
-          <span className="c-visual">B-roll / 资料</span>
-          <span className="c-notes">备注</span>
+          <span className="c-thumb">{s.sbColThumb}</span>
+          <span className="c-time">{s.sbColTime}</span>
+          <span className="c-shot">{s.sbColShot}</span>
+          <span className="c-vo">{s.sbColVo}</span>
+          <span className="c-visual">{s.sbColVisual}</span>
+          <span className="c-notes">{s.sbColNotes}</span>
         </div>
         {shots.map((shot) => {
           const isEditing = editingShot === shot.n && draft !== null;
@@ -401,10 +405,10 @@ function StoryboardPanel({
                   />
                   <span className="sb-edit-actions">
                     <button type="button" className="sb-edit-btn primary" onClick={commitEdit}>
-                      保存
+                      {s.save}
                     </button>
                     <button type="button" className="sb-edit-btn" onClick={cancelEdit}>
-                      取消
+                      {s.cancel}
                     </button>
                   </span>
                 </span>
@@ -426,7 +430,7 @@ function StoryboardPanel({
               <span className="c-visual">{shot.visual}</span>
               <span className="c-notes">
                 {shot.notes || "—"}
-                <button type="button" className="c-edit" title="编辑这一镜" onClick={() => beginEdit(shot)}>
+                <button type="button" className="c-edit" title={s.editShotTitle} onClick={() => beginEdit(shot)}>
                   ✎
                 </button>
               </span>
@@ -447,6 +451,7 @@ function TaskPanel({
   onToggleCheck: (itemId: string) => void;
   onLog: (level: StudioLogLevel, message: string) => void;
 }) {
+  const s = useCopy().studio;
   const task = production.task;
   const checks = task.checklist;
   const toggle = (id: string) => {
@@ -455,7 +460,7 @@ function TaskPanel({
     onToggleCheck(id);
 
     if (item) {
-      onLog("info", `任务项 · ${item.done ? "取消完成" : "标记完成"}：${item.label}`);
+      onLog("info", s.taskToggleLog(item.done ? s.taskUnmark : s.taskMarkDone, item.label));
     }
   };
   const done = checks.filter((check) => check.done).length;

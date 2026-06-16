@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import type { Locale } from "@/lib/i18n/copy";
+import { LocaleProvider } from "@/lib/i18n/locale-context";
 import { countUpcomingLaunches } from "@/lib/data/launches";
 import { useWorkflow } from "@/components/workbench/workflow-provider";
 import { getTotalPending } from "@/components/workbench/selectors";
@@ -23,8 +24,9 @@ export function AppFrame({ locale, children }: { locale: Locale; children: React
   );
 
   return (
-    <div className="app-shell">
-      <TopNav
+    <LocaleProvider locale={locale}>
+      <div className="app-shell">
+        <TopNav
         locale={locale}
         badges={{ brief: totalPending, pool: store.state.topicCards.length, launch: countUpcomingLaunches(7) }}
       />
@@ -46,6 +48,7 @@ export function AppFrame({ locale, children }: { locale: Locale; children: React
       />
 
       <TweaksPanel tweaks={store.tweaks} onChange={store.setTweak} />
-    </div>
+      </div>
+    </LocaleProvider>
   );
 }

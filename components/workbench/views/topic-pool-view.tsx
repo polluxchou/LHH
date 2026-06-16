@@ -5,22 +5,23 @@ import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/copy";
 import { useWorkflow } from "@/components/workbench/workflow-provider";
 import { buildBriefViewModel, buildPoolItems } from "@/components/workbench/selectors";
-import { KIND_LABELS, formatDateShort, topicFormatLabel } from "@/components/workbench/helpers";
+import { formatDateShort, topicFormatLabel } from "@/components/workbench/helpers";
+import { useCopy } from "@/lib/i18n/locale-context";
 
 type PoolFilter = "all" | "mine" | "unowned";
-
-const FILTERS: Array<[PoolFilter, string]> = [
-  ["all", "全部"],
-  ["mine", "我负责的"],
-  ["unowned", "未认领"],
-];
 
 export function TopicPoolView({ locale }: { locale: Locale }) {
   const store = useWorkflow();
   const { state } = store;
   const router = useRouter();
+  const t = useCopy();
   const home = locale === "zh" ? "/zh" : "/";
   const [filter, setFilter] = useState<PoolFilter>("all");
+  const FILTERS: Array<[PoolFilter, string]> = [
+    ["all", t.views.pool.filter.all],
+    ["mine", t.views.pool.filter.mine],
+    ["unowned", t.views.pool.filter.unowned],
+  ];
 
   const pool = useMemo(() => buildPoolItems(state), [state]);
 
@@ -54,21 +55,21 @@ export function TopicPoolView({ locale }: { locale: Locale }) {
     <div className="vv">
       <header className="vv-head">
         <div className="vv-head-left">
-          <div className="vv-kicker">选题库 · TOPIC POOL</div>
-          <h2 className="vv-title">已通过筛选的选题 · 团队共享</h2>
+          <div className="vv-kicker">{t.views.pool.kicker}</div>
+          <h2 className="vv-title">{t.views.pool.title}</h2>
         </div>
         <div className="vv-head-right">
           <button type="button" className="vv-action ghost" onClick={() => router.push(home)}>
-            返回工作台
+            {t.views.backToWorkbench}
           </button>
         </div>
       </header>
 
       <div className="vv-toolbar">
         <div className="vv-tool">
-          <span className="vv-tool-l">视图</span>
+          <span className="vv-tool-l">{t.views.toolView}</span>
           <div className="vv-pills">
-            {FILTERS.map(([key, label]) => (
+            {FILTERS.map(([key, label]: [PoolFilter, string]) => (
               <button
                 key={key}
                 type="button"
@@ -86,8 +87,8 @@ export function TopicPoolView({ locale }: { locale: Locale }) {
         {filtered.length === 0 ? (
           <div className="vv-empty">
             <div className="vv-empty-glyph">📦</div>
-            <div className="vv-empty-title">这里还没有选题</div>
-            <div className="vv-empty-sub">回工作台筛选简报，通过的会自动进入选题库。</div>
+            <div className="vv-empty-title">{t.views.pool.emptyTitle}</div>
+            <div className="vv-empty-sub">{t.views.pool.emptySub}</div>
           </div>
         ) : (
           <div className="pool-grid">
@@ -105,19 +106,19 @@ export function TopicPoolView({ locale }: { locale: Locale }) {
               return (
                 <article key={item.topicCard.id} className={`poolcard ${isMine ? "mine" : ""}`}>
                   <div className="poolcard-head">
-                    <span className="pc-kind">{KIND_LABELS[kind]}</span>
-                    <span className="pc-score">价值 {item.score}</span>
+                    <span className="pc-kind">{t.labels.signalKind[kind]}</span>
+                    <span className="pc-score">{t.views.pool.value(item.score)}</span>
                     <span className="pc-tracked">· {object ? (object.nameZh ?? object.name) : "—"}</span>
                     {item.createdAt ? <span>· {formatDateShort(item.createdAt)}</span> : null}
                   </div>
                   <h3 className="poolcard-title">{item.topicCard.workingTitle}</h3>
-                  <div className="poolcard-q">核心问题 · {item.topicCard.coreQuestion}</div>
-                  <div className="poolcard-format">{topicFormatLabel(item.topicCard)}</div>
+                  <div className="poolcard-q">{t.views.pool.coreQuestion(item.topicCard.coreQuestion)}</div>
+                  <div className="poolcard-format">{topicFormatLabel(item.topicCard, t.labels.format)}</div>
                   <div className="poolcard-prod">
-                    <span className="poolcard-prod-l">生产进度</span>
-                    <span className={`pp-chip ${production?.script ? "on" : ""}`}>脚本</span>
-                    <span className={`pp-chip ${production?.storyboard ? "on" : ""}`}>分镜</span>
-                    <span className={`pp-chip ${production && checklistDone ? "on" : ""}`}>任务</span>
+                    <span className="poolcard-prod-l">{t.views.pool.prodLabel}</span>
+                    <span className={`pp-chip ${production?.script ? "on" : ""}`}>{t.views.pool.prodScript}</span>
+                    <span className={`pp-chip ${production?.storyboard ? "on" : ""}`}>{t.views.pool.prodStoryboard}</span>
+                    <span className={`pp-chip ${production && checklistDone ? "on" : ""}`}>{t.views.pool.prodTask}</span>
                   </div>
                   <div className="poolcard-people">
                     {item.addedBy ? (
@@ -125,7 +126,7 @@ export function TopicPoolView({ locale }: { locale: Locale }) {
                         <span className="pavatar" style={{ background: item.addedBy.color }}>
                           {item.addedBy.avatarChar}
                         </span>
-                        <span className="pp-text">{item.addedBy.name} 加入</span>
+                        <span className="pp-text">{t.views.pool.addedBy(item.addedBy.name)}</span>
                       </span>
                     ) : null}
                     {item.owner ? (
@@ -134,22 +135,23 @@ export function TopicPoolView({ locale }: { locale: Locale }) {
                           {item.owner.avatarChar}
                         </span>
                         <span className="pp-text">
-                          {item.owner.name} 负责{isMine ? "（你）" : ""}
+                          {t.views.pool.owner(item.owner.name)}
+                          {isMine ? t.views.pool.mineSuffix : ""}
                         </span>
                       </span>
                     ) : (
                       <button type="button" className="pp-claim" onClick={() => store.claim(item.topicCard.id)}>
-                        + 我来认领
+                        {t.views.pool.claim}
                       </button>
                     )}
                   </div>
                   <div className="poolcard-actions">
                     <button type="button" className="vbtn" onClick={() => jump(briefId, "sources")}>
-                      查看原简报
+                      {t.views.pool.viewBrief}
                     </button>
                     <span className="poolcard-spacer" />
                     <button type="button" className="vbtn primary" onClick={() => jump(briefId, "pool")}>
-                      打开工作台
+                      {t.views.pool.openStudio}
                     </button>
                   </div>
                 </article>

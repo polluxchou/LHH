@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useCopy } from "@/lib/i18n/locale-context";
 
 interface ObserveDialogProps {
   open: boolean;
@@ -11,6 +12,7 @@ interface ObserveDialogProps {
 }
 
 export function ObserveDialog({ open, briefTitle, onClose, onConfirm }: ObserveDialogProps) {
+  const d = useCopy().dialogs.observe;
   const [dimensions, setDimensions] = useState<string[]>([""]);
 
   useEffect(() => {
@@ -67,10 +69,11 @@ export function ObserveDialog({ open, briefTitle, onClose, onConfirm }: ObserveD
       <div className="at-dialog observe-dialog" onClick={(event) => event.stopPropagation()}>
         <header className="at-head">
           <div>
-            <div className="at-kicker">持续观察</div>
-            <h2 className="at-title">添加观察维度</h2>
+            <div className="at-kicker">{d.kicker}</div>
+            <h2 className="at-title">{d.title}</h2>
             <div className="at-sub">
-              {briefTitle ? `「${briefTitle}」` : "这条简报"} · 列出需要持续关注的维度，确认后加入持续观察
+              {briefTitle ? d.titleWrap(briefTitle) : d.thisBrief}
+              {d.subSuffix}
             </div>
           </div>
         </header>
@@ -82,7 +85,7 @@ export function ObserveDialog({ open, briefTitle, onClose, onConfirm }: ObserveD
                 <span className="observe-row-no">{index + 1}</span>
                 <input
                   className="at-input"
-                  placeholder="例：下一次发射窗口 / FAA 调查结论 / 后续融资进展"
+                  placeholder={d.rowPlaceholder}
                   value={value}
                   autoFocus={index === dimensions.length - 1}
                   onChange={(event) => updateAt(index, event.target.value)}
@@ -97,8 +100,8 @@ export function ObserveDialog({ open, briefTitle, onClose, onConfirm }: ObserveD
                   type="button"
                   className="observe-row-del"
                   onClick={() => removeAt(index)}
-                  aria-label="删除该维度"
-                  title="删除该维度"
+                  aria-label={d.rowDel}
+                  title={d.rowDel}
                 >
                   ×
                 </button>
@@ -106,18 +109,18 @@ export function ObserveDialog({ open, briefTitle, onClose, onConfirm }: ObserveD
             ))}
           </div>
           <button type="button" className="observe-add" onClick={addRow}>
-            + 添加观察维度
+            {d.addRow}
           </button>
         </div>
 
         <footer className="at-foot">
-          <span className="at-foot-info">已填 {cleaned.length} 条 · 加入持续观察后可在简报卡上查看</span>
+          <span className="at-foot-info">{d.footInfo(cleaned.length)}</span>
           <span className="at-foot-spacer" />
           <button type="button" className="at-foot-btn ghost" onClick={onClose}>
-            取消
+            {d.cancel}
           </button>
           <button type="button" className="at-foot-btn primary" onClick={submit} disabled={!canSubmit}>
-            加入持续观察
+            {d.confirm}
           </button>
         </footer>
       </div>

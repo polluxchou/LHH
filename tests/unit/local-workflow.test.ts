@@ -56,6 +56,25 @@ describe("local workflow integration", () => {
     expect(secondState.lastFeedback?.message).toContain("Brief already exists");
   });
 
+  it("generates a zh brief grounded in the real signal, not placeholder copy", () => {
+    const state = createInitialWorkflowState();
+    const signal = state.candidateSignals.find((s) => s.id === "s-sbx-05")!;
+    const next = generateBriefForSignal(state, "s-sbx-05", { locale: "zh" });
+    const brief = next.editorialBriefs.find((b) => b.candidateSignalId === "s-sbx-05")!;
+
+    // fact summary mirrors the real signal summary
+    expect(brief.factSummary).toBe(signal.summary);
+    // fact bullets surface the real summary, never the old placeholder
+    const bullets = (brief.factBullets ?? []).join("\n");
+    expect(bullets).toContain(signal.summary);
+    expect(bullets).not.toContain("（草稿）由信号自动展开的事实摘要");
+    // why-it-matters is derived from real fields, not the static placeholder
+    expect(brief.whyItMatters).not.toContain("（草稿）AI 自动生成");
+    expect(brief.whyItMatters.length).toBeGreaterThan(0);
+    // tagline no longer the generic "waiting for editor" placeholder
+    expect(brief.tagline ?? "").not.toBe("由信号自动生成的简报草稿，等待编辑核查");
+  });
+
   it("approves an unscreened brief into the topic pool and marks it screened", () => {
     const state = createInitialWorkflowState();
     const nextState = screenBrief(state, {

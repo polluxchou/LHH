@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import type { EditorialBrief } from "@/lib/domain/types";
 import { buildMapBriefPreview } from "@/lib/workflow/map-brief-preview";
+import { useCopy } from "@/lib/i18n/locale-context";
 
 /**
  * 简报详情弹窗 · 地图模式与首页编辑简报卡片共用。
@@ -17,6 +18,7 @@ export function BriefPreviewDialog({
   footer: ReactNode;
   onClose: () => void;
 }) {
+  const d = useCopy().dialogs.briefPreview;
   const preview = buildMapBriefPreview(brief);
 
   return (
@@ -30,20 +32,20 @@ export function BriefPreviewDialog({
       >
         <header className="mbp-head">
           <div>
-            <div className="mbp-kicker">地图上下文 · 简报预览</div>
+            <div className="mbp-kicker">{d.kicker}</div>
             <h3 id="brief-preview-title" className="mbp-title">
               {preview.title}
             </h3>
             {preview.tagline ? <div className="mbp-tagline">{preview.tagline}</div> : null}
           </div>
-          <button type="button" className="mbp-close" onClick={onClose} aria-label="关闭简报预览">
+          <button type="button" className="mbp-close" onClick={onClose} aria-label={d.close}>
             ×
           </button>
         </header>
 
         <div className="mbp-body">
           <section className="mbp-block">
-            <div className="mbp-label">事实摘要</div>
+            <div className="mbp-label">{d.blockFacts}</div>
             <ul className="mbp-facts">
               {preview.facts.map((fact, index) => (
                 <li key={index}>{fact}</li>
@@ -51,20 +53,20 @@ export function BriefPreviewDialog({
             </ul>
           </section>
           <section className="mbp-block">
-            <div className="mbp-label">为什么重要</div>
+            <div className="mbp-label">{d.blockWhy}</div>
             <p>{preview.whyItMatters}</p>
           </section>
           <section className="mbp-block accent">
-            <div className="mbp-label">地图上下文</div>
+            <div className="mbp-label">{d.blockMap}</div>
             <p>{preview.mapContext}</p>
           </section>
           <section className="mbp-block">
-            <div className="mbp-label">来源摘要</div>
+            <div className="mbp-label">{d.blockSources}</div>
             <p>{preview.sourceSummary}</p>
           </section>
           <div className="mbp-grid">
             <section className="mbp-block compact">
-              <div className="mbp-label">可写角度</div>
+              <div className="mbp-label">{d.blockAngles}</div>
               <ul>
                 {preview.possibleAngles.slice(0, 3).map((angle) => (
                   <li key={angle}>{angle}</li>
@@ -72,7 +74,7 @@ export function BriefPreviewDialog({
               </ul>
             </section>
             <section className="mbp-block compact">
-              <div className="mbp-label">待确认问题</div>
+              <div className="mbp-label">{d.blockQuestions}</div>
               <ul>
                 {preview.openQuestions.slice(0, 3).map((question) => (
                   <li key={question}>{question}</li>

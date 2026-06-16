@@ -16,6 +16,7 @@ import { generateEditorialBrief } from "@/lib/briefing/brief-generator";
 import { applyScreeningTransition } from "@/lib/domain/screening-transition";
 import { createStubProduction } from "@/lib/production/stub-production";
 import type { ProductionPackage, StoryboardShot } from "@/lib/domain/production";
+import type { AnalyzedBrief } from "@/lib/ingest/types";
 import type {
   CandidateSignal,
   ContentValueScore,
@@ -114,6 +115,8 @@ interface SelectTrackingObjectOptions extends WorkflowCallOptions {
 
 interface GenerateBriefOptions extends WorkflowCallOptions {
   locale?: "en" | "zh";
+  /** 实时 DeepSeek 分析结果；存在时用 AI 的 factSummary/whyItMatters 等覆盖模板拼装 */
+  ai?: AnalyzedBrief;
 }
 
 export interface AddTrackingObjectInput {
@@ -297,11 +300,68 @@ export function runFailedMockSearchForTrackingObject(
   };
 }
 
-const ZH_GENERATED_BRIEF_COPY = {
-  tagline: "由信号自动生成的简报草稿，等待编辑核查",
-  factBullets: ["（草稿）由信号自动展开的事实摘要 · 待核查", "编辑可在此处补充关键数字与时间线"],
-  whyItMatters: "（草稿）AI 自动生成的\"为什么重要\"。建议编辑覆写为面向自有读者群的视角。",
+const ZH_SIGNAL_TYPE_LABELS: Record<CandidateSignal["signalType"], string> = {
+  technical_project_milestone: "技术/项目里程碑",
+  location_facility_change: "选址/设施变更",
+  policy_regulatory_change: "政策/监管变化",
 };
+
+/**
+ * 用候选信号与其来源的真实内容，组装一份中文简报草稿（确定性、不臆造）。
+ * factSummary 直接取信号摘要，factBullets/whyItMatters 等由真实字段派生，
+ * 取代此前的占位文案，确保简报与信号本身一致。
+ */
+function buildZhBriefFields(
+  generated: EditorialBrief,
+  signal: CandidateSignal,
+  sources: Source[],
+  subjectName: string,
+  ai?: AnalyzedBrief,
+): EditorialBrief {
+  const pct = Math.round(signal.confidence * 100);
+  const kind = ZH_SIGNAL_TYPE_LABELS[signal.signalType];
+  const sourceText = sources.map((s) => `${s.publisher ?? "来源"}《${s.title}》`).join("；");
+  const sourceSummary = sourceText ? `共 ${sources.length} 个来源：${sourceText}。` : generated.sourceSummary;
+
+  // 有 DeepSeek 实时分析结果 → 用 AI 的 factSummary/whyItMatters 等；事实列点附上事件日期/来源上下文。
+  if (ai) {
+    const aiBullets = [
+      ai.factSummary,
+      signal.eventDate ? `事件日期：${signal.eventDate}` : null,
+      sourceText ? `来源：${sourceText}` : null,
+    ].filter((x): x is string => Boolean(x));
+
+    return {
+      ...generated,
+      tagline: `${kind} · AI 综合 ${sources.length} 个来源`,
+      factSummary: ai.factSummary,
+      factBullets: aiBullets,
+      sourceSummary,
+      whyItMatters: ai.whyItMatters,
+      possibleAngles: ai.possibleAngles.length ? ai.possibleAngles : [`${kind}解读`, `${subjectName}动态追踪`],
+      openQuestions: ai.openQuestions.length ? ai.openQuestions : ["该说法能否由官方或监管来源交叉确认？"],
+      riskNotes: ai.riskNotes.length ? ai.riskNotes : [`来源置信度 ${pct}%，发布前需核实原始报道。`],
+    };
+  }
+
+  const factBullets = [
+    signal.summary,
+    signal.eventDate ? `事件日期：${signal.eventDate}` : null,
+    sourceText ? `来源：${sourceText}` : null,
+  ].filter((x): x is string => Boolean(x));
+
+  return {
+    ...generated,
+    tagline: `${kind} · 来源置信度 ${pct}%`,
+    factSummary: signal.summary,
+    factBullets,
+    sourceSummary,
+    whyItMatters: `这是一条关于「${subjectName}」的${kind}信号，来源置信度 ${pct}%。建议核实关键数字与时间线后，再判断是否值得展开选题。`,
+    possibleAngles: [`${kind}解读`, `${subjectName}动态追踪`, "结合来源的事实梳理"],
+    openQuestions: ["该说法能否由官方或监管来源交叉确认？", "与上一次已知状态相比，发生了什么变化？"],
+    riskNotes: [`来源置信度 ${pct}%，发布前需核实原始报道。`],
+  };
+}
 
 export function generateBriefForSignal(
   state: LocalWorkflowState,
@@ -346,15 +406,11 @@ export function generateBriefForSignal(
     mapContext: createMapContext(state.locationAnchors, locationAnchorIds),
     createdAt: options.now,
   });
+  const subjectObject = state.trackingObjects.find((o) => o.id === signal.trackingObjectId);
+  const subjectName = subjectObject?.nameZh ?? subjectObject?.name ?? "该追踪对象";
   const brief: EditorialBrief =
     options.locale === "zh"
-      ? {
-          ...generated,
-          tagline: ZH_GENERATED_BRIEF_COPY.tagline,
-          factSummary: signal.summary,
-          factBullets: ZH_GENERATED_BRIEF_COPY.factBullets,
-          whyItMatters: ZH_GENERATED_BRIEF_COPY.whyItMatters,
-        }
+      ? buildZhBriefFields(generated, signal, matchingSources, subjectName, options.ai)
       : generated;
   const score = createDefaultScore(brief, signal.confidence);
 

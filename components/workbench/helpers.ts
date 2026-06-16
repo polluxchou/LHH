@@ -21,25 +21,12 @@ export const SIGNAL_KIND_BY_TYPE: Record<CandidateSignalType, SignalKind> = {
   policy_regulatory_change: "policy",
 };
 
-export const KIND_LABELS: Record<SignalKind, string> = {
-  milestone: "里程碑",
-  policy: "政策 / 监管",
-  facility: "设施 / 地点",
-};
-
 export function signalKind(signal: CandidateSignal): SignalKind {
   return SIGNAL_KIND_BY_TYPE[signal.signalType];
 }
 
 // ── 简报 UI 状态（域状态 + 筛选决策 → 设计稿四态） ─────────────
 export type BriefUiStatus = "pending" | "pool" | "watch" | "rejected";
-
-export const BRIEF_STATUS_LABELS: Record<BriefUiStatus, string> = {
-  pending: "待筛",
-  pool: "已入选题库",
-  watch: "观察中",
-  rejected: "已拒绝",
-};
 
 export function deriveBriefUiStatus(brief: EditorialBrief, decisions: ScreeningDecision[]): BriefUiStatus {
   if (brief.status !== "screened") {
@@ -80,33 +67,35 @@ export const PRIORITY_BY_CLASS: Record<"high" | "mid" | "low", TrackingObjectPri
   low: 3,
 };
 
-// ── 来源类型展示 ─────────────────────────────────────────────
-export function sourceKindMeta(sourceType: Source["sourceType"]): { className: string; label: string } {
+// ── 来源类型展示（className 是 CSS，label 文案走字典 labels.sourceKind[key]）──
+export type SourceKindKey = "official" | "regulatory" | "social" | "database" | "media" | "other";
+
+export function sourceKindMeta(sourceType: Source["sourceType"]): { className: string; key: SourceKindKey } {
   switch (sourceType) {
     case "official":
-      return { className: "official", label: "官方" };
+      return { className: "official", key: "official" };
     case "regulator":
-      return { className: "regulatory", label: "监管" };
+      return { className: "regulatory", key: "regulatory" };
     case "social_public_post":
-      return { className: "social", label: "社交" };
+      return { className: "social", key: "social" };
     case "database":
-      return { className: "press", label: "数据库" };
+      return { className: "press", key: "database" };
     case "authoritative_media":
     case "trade_media":
-      return { className: "press", label: "媒体" };
+      return { className: "press", key: "media" };
     default:
-      return { className: "press", label: "其他" };
+      return { className: "press", key: "other" };
   }
 }
 
-// ── 地点类型展示 ─────────────────────────────────────────────
-export const LOCATION_KIND_META: Record<LocationAnchorType, { glyph: string; label: string }> = {
-  launch_site: { glyph: "🚀", label: "发射场" },
-  company_office: { glyph: "🏢", label: "总部 / 办公" },
-  manufacturing_supply_chain: { glyph: "🏭", label: "制造 / 供应链" },
-  test_site: { glyph: "🧪", label: "试验场" },
-  investor_policy_industrial_park: { glyph: "🏛", label: "政策 / 产业节点" },
-  extraterrestrial: { glyph: "🌑", label: "地外" },
+// ── 地点类型展示（glyph 与语言无关，label 文案走字典 labels.locationKind[type]）──
+export const LOCATION_KIND_GLYPH: Record<LocationAnchorType, string> = {
+  launch_site: "🚀",
+  company_office: "🏢",
+  manufacturing_supply_chain: "🏭",
+  test_site: "🧪",
+  investor_policy_industrial_park: "🏛",
+  extraterrestrial: "🌑",
 };
 
 export function formatCoord(location: LocationAnchor): string {
@@ -137,17 +126,13 @@ export function projectLocation(location: LocationAnchor, index: number): { x: n
 }
 
 // ── 选题形式标签 ─────────────────────────────────────────────
-export const FORMAT_LABELS: Record<TopicCard["recommendedFormat"], string> = {
-  news_brief: "新闻短讯",
-  technical_explainer: "技术解读",
-  company_tracking: "公司追踪",
-  policy_explainer: "政策解读",
-  industry_map: "产业地图",
-  other: "内容形式待定",
-};
-
-export function topicFormatLabel(topicCard: TopicCard): string {
-  return topicCard.formatLabel ?? FORMAT_LABELS[topicCard.recommendedFormat];
+// `formatLabel` 是逐卡的内容覆盖（含时长等编辑信息），保留原样；缺省时回退到
+// 字典枚举标签 labels.format[recommendedFormat]，由调用方按 locale 传入。
+export function topicFormatLabel(
+  topicCard: TopicCard,
+  formatLabels: Record<TopicCard["recommendedFormat"], string>,
+): string {
+  return topicCard.formatLabel ?? formatLabels[topicCard.recommendedFormat];
 }
 
 // ── 评分 ───────────────────────────────────────────────────

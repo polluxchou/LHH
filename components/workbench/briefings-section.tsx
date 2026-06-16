@@ -5,13 +5,8 @@ import type { EditorialBrief } from "@/lib/domain/types";
 import { BriefPreviewDialog } from "@/components/workbench/brief-preview-dialog";
 import { EmptyState } from "@/components/workbench/empty-state";
 import { SectionHint } from "@/components/workbench/section-hint";
-import {
-  BRIEF_STATUS_LABELS,
-  KIND_LABELS,
-  formatDateTimeShort,
-  type BriefUiStatus,
-  type SignalKind,
-} from "@/components/workbench/helpers";
+import { formatDateTimeShort, type BriefUiStatus, type SignalKind } from "@/components/workbench/helpers";
+import { useCopy } from "@/lib/i18n/locale-context";
 
 export type BriefStyle = "card" | "table" | "timeline";
 export type BriefFilter = "all" | BriefUiStatus;
@@ -44,14 +39,6 @@ interface BriefingsSectionProps {
   onObserve: (briefId: string) => void;
 }
 
-const FILTERS: Array<{ id: BriefFilter; label: string }> = [
-  { id: "all", label: "全部" },
-  { id: "pending", label: "待筛" },
-  { id: "pool", label: "已通过" },
-  { id: "watch", label: "观察" },
-  { id: "rejected", label: "已拒" },
-];
-
 export function BriefingsSection({
   items,
   counts,
@@ -65,15 +52,25 @@ export function BriefingsSection({
   onDecide,
   onObserve,
 }: BriefingsSectionProps) {
+  const t = useCopy();
+  const b = t.workbench.briefings;
+  const filters: Array<{ id: BriefFilter; label: string }> = [
+    { id: "all", label: b.filterAll },
+    { id: "pending", label: b.filterPending },
+    { id: "pool", label: b.filterPool },
+    { id: "watch", label: b.filterWatch },
+    { id: "rejected", label: b.filterRejected },
+  ];
+
   return (
     <div className="briefings-section">
       <div className="section-head inline">
-        <span className="kicker">编辑简报</span>
-        <SectionHint label="BRIEFINGS" description="事实 + 为什么重要 + 来源 · 由编辑筛选" />
+        <span className="kicker">{b.sectionTitle}</span>
+        <SectionHint label="BRIEFINGS" description={b.hint} />
         <span className="count">{counts.all}</span>
       </div>
       <div className="brief-filters">
-        {FILTERS.map((item) => (
+        {filters.map((item) => (
           <button
             key={item.id}
             type="button"
@@ -86,12 +83,7 @@ export function BriefingsSection({
         ))}
       </div>
       {items.length === 0 ? (
-        <EmptyState
-          flush
-          glyph="📑"
-          title="没有匹配的简报"
-          sub="尝试切换筛选条件，或针对这个追踪对象重新运行搜索。"
-        />
+        <EmptyState flush glyph="📑" title={b.emptyTitle} sub={b.emptySub} />
       ) : (
         <div className={`briefings-grid style-${cardStyle}`}>
           {items.map((item) => (
@@ -129,6 +121,8 @@ function BriefingCard({
   onDecide: (briefId: string, decision: Exclude<BriefUiStatus, "pending">) => void;
   onObserve: (briefId: string) => void;
 }) {
+  const t = useCopy();
+  const b = t.workbench.briefings;
   const { brief, uiStatus, score, kind, sourceCount, locationCount, rejectReason, poolTitle, observationDimensions } =
     item;
   const decided = uiStatus !== "pending";
@@ -140,11 +134,11 @@ function BriefingCard({
       className={`brief-card status-${uiStatus} ${isSelected ? "selected" : ""}`}
       onClick={() => onSelect(brief.id)}
     >
-      {decided ? <span className={`brief-status s-${uiStatus}`}>{BRIEF_STATUS_LABELS[uiStatus]}</span> : null}
+      {decided ? <span className={`brief-status s-${uiStatus}`}>{t.labels.briefStatus[uiStatus]}</span> : null}
       <div className="brief-head">
         <div className={`brief-score ${score >= 85 ? "high" : ""}`}>
           <div className="n">{score}</div>
-          <div className="l">价值</div>
+          <div className="l">{b.score}</div>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h3
@@ -154,16 +148,16 @@ function BriefingCard({
               onSelect(brief.id);
               onToggleExpand(brief.id);
             }}
-            title={isExpanded ? "收起细节" : "展开细节"}
+            title={isExpanded ? b.collapseTitle : b.expandTitle}
           >
             {brief.briefTitle}
           </h3>
           {brief.tagline ? <div className="brief-tagline">{brief.tagline}</div> : null}
           <div className="brief-meta-row">
-            <span className={`chip kind-${kind}`}>{KIND_LABELS[kind]}</span>
+            <span className={`chip kind-${kind}`}>{t.labels.signalKind[kind]}</span>
             <span>{formatDateTimeShort(brief.createdAt)}</span>
-            <span>· {sourceCount} 个来源</span>
-            <span>· {locationCount} 个地点</span>
+            <span>· {b.sources(sourceCount)}</span>
+            <span>· {b.locations(locationCount)}</span>
           </div>
         </div>
       </div>
@@ -171,7 +165,7 @@ function BriefingCard({
       {isExpanded ? (
         <div className="brief-body" onClick={(event) => event.stopPropagation()}>
           <div>
-            <div className="block-title">事实摘要</div>
+            <div className="block-title">{b.blockFacts}</div>
             <ul className="facts">
               {facts.map((fact, index) => (
                 <li key={index}>{fact}</li>
@@ -179,12 +173,12 @@ function BriefingCard({
             </ul>
           </div>
           <div>
-            <div className="block-title">为什么重要</div>
+            <div className="block-title">{b.blockWhy}</div>
             <div className="why">{brief.whyItMatters}</div>
           </div>
           {observationDimensions && observationDimensions.length > 0 ? (
             <div>
-              <div className="block-title">观察维度</div>
+              <div className="block-title">{b.blockObserve}</div>
               <ul className="observe-dims">
                 {observationDimensions.map((dimension, index) => (
                   <li key={index}>{dimension}</li>
@@ -197,36 +191,42 @@ function BriefingCard({
 
       <div className="brief-actions" onClick={(event) => event.stopPropagation()}>
         <button type="button" className="brief-action" onClick={() => setShowPreview(true)}>
-          ⤢ 详情
+          ⤢ {b.detail}
         </button>
         <span className="spacer" />
         {uiStatus === "pending" ? (
           <>
             <button type="button" className="brief-action reject" onClick={() => onDecide(brief.id, "rejected")}>
-              拒绝
+              {b.reject}
             </button>
             <button type="button" className="brief-action watch" onClick={() => onObserve(brief.id)}>
-              观察
+              {b.watch}
             </button>
             <button type="button" className="brief-action pass" onClick={() => onDecide(brief.id, "pool")}>
-              通过 · 入选题库
+              {b.pass}
             </button>
           </>
         ) : uiStatus === "rejected" ? (
           <div className="brief-decided">
-            <span>已拒绝{rejectReason ? ` · ${rejectReason}` : ""}</span>
+            <span>
+              {b.decidedRejected}
+              {rejectReason ? ` · ${rejectReason}` : ""}
+            </span>
           </div>
         ) : uiStatus === "pool" ? (
           <div className="brief-decided pool">
-            <span>已入选题库：{poolTitle ?? brief.briefTitle}</span>
+            <span>
+              {b.decidedPoolPrefix}
+              {poolTitle ?? brief.briefTitle}
+            </span>
           </div>
         ) : (
           <div className="brief-decided">
             <span>
-              持续观察中
+              {b.watchingActive}
               {observationDimensions && observationDimensions.length > 0
-                ? ` · ${observationDimensions.length} 个观察维度`
-                : " · 等待下一轮信号变化"}
+                ? ` · ${b.watchingDims(observationDimensions.length)}`
+                : ` · ${b.watchingWaiting}`}
             </span>
           </div>
         )}
@@ -248,7 +248,7 @@ function BriefingCard({
                       setShowPreview(false);
                     }}
                   >
-                    拒绝
+                    {b.reject}
                   </button>
                   <button
                     type="button"
@@ -258,7 +258,7 @@ function BriefingCard({
                       setShowPreview(false);
                     }}
                   >
-                    观察
+                    {b.watch}
                   </button>
                   <button
                     type="button"
@@ -268,19 +268,19 @@ function BriefingCard({
                       setShowPreview(false);
                     }}
                   >
-                    通过 · 入选题库
+                    {b.pass}
                   </button>
                   <span className="spacer" />
                   <button type="button" className="mbp-btn" onClick={() => setShowPreview(false)}>
-                    关闭
+                    {b.close}
                   </button>
                 </>
               ) : (
                 <>
-                  <span className="mbp-foot-status">{BRIEF_STATUS_LABELS[uiStatus]}</span>
+                  <span className="mbp-foot-status">{t.labels.briefStatus[uiStatus]}</span>
                   <span className="spacer" />
                   <button type="button" className="mbp-btn" onClick={() => setShowPreview(false)}>
-                    关闭
+                    {b.close}
                   </button>
                 </>
               )

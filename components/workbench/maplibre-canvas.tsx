@@ -2,7 +2,7 @@
 
 import Map, { Marker, NavigationControl } from "react-map-gl/maplibre";
 import type { LocationAnchor } from "@/lib/domain/types";
-import { LOCATION_KIND_META } from "@/components/workbench/helpers";
+import { LOCATION_KIND_GLYPH } from "@/components/workbench/helpers";
 import { getMapViewport } from "@/lib/workflow/map-viewport";
 
 const MAP_STYLE = "https://demotiles.maplibre.org/style.json";
@@ -25,7 +25,7 @@ export function MapLibreCanvas({ locations }: { locations: LocationAnchor[] }) {
       >
         <NavigationControl position="top-right" showCompass={false} />
         {mappedLocations.map((location) => {
-          const kind = LOCATION_KIND_META[location.type];
+          const glyph = LOCATION_KIND_GLYPH[location.type];
 
           return (
             <Marker
@@ -40,7 +40,7 @@ export function MapLibreCanvas({ locations }: { locations: LocationAnchor[] }) {
                 title={location.nameZh ?? location.name}
                 aria-label={location.nameZh ?? location.name}
               >
-                {kind.glyph}
+                {glyph}
               </button>
             </Marker>
           );

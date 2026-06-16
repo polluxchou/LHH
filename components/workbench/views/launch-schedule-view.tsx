@@ -8,31 +8,17 @@ import { LAUNCH_SIM_TODAY, launchOrgs, launches } from "@/lib/data/launches";
 import { EXPO_SIM_TODAY, expoOrgs, fastenerExpos, usesExpoSchedule } from "@/lib/data/fastener-expos";
 import { useWorkflow } from "@/components/workbench/workflow-provider";
 import { useSpaceSession } from "@/components/account/space-provider";
+import { useCopy } from "@/lib/i18n/locale-context";
 
 type RangeKey = "today" | "week" | "month" | "all";
 
-const RANGE_OPTIONS: Array<[RangeKey, string]> = [
-  ["today", "今天"],
-  ["week", "未来 7 天"],
-  ["month", "未来 30 天"],
-  ["all", "全部"],
-];
-
-/** 一个"日程模块"的数据与文案；按空间切换（航天发射 / 紧固件展会）。 */
+/** 一个"日程模块"的数据（文案走字典 t.views.launches[kind]）；按空间切换（航天发射 / 紧固件展会）。 */
 interface ScheduleConfig {
   kind: "launch" | "expo";
   simToday: string;
   items: Launch[];
   orgs: Record<string, LaunchOrg>;
-  statusLabels: Record<LaunchStatus, string>;
-  kicker: string;
-  title: string;
   emptyGlyph: string;
-  emptyTitle: string;
-  emptySub: string;
-  orgGroupLabel: string;
-  countSuffix: string;
-  windowLabel: string;
   watchIcon: string;
 }
 
@@ -41,15 +27,7 @@ const LAUNCH_SCHEDULE: ScheduleConfig = {
   simToday: LAUNCH_SIM_TODAY,
   items: launches,
   orgs: launchOrgs,
-  statusLabels: { confirmed: "确认", window: "窗口", tentative: "待定", standby: "待命" },
-  kicker: "发射窗口期 · LAUNCH SCHEDULE",
-  title: "全球火箭发射日程 · 未来 30 天",
   emptyGlyph: "🚀",
-  emptyTitle: "所选范围内没有发射任务",
-  emptySub: "尝试放宽时间范围或调整机构筛选。",
-  orgGroupLabel: "发射机构",
-  countSuffix: "次发射",
-  windowLabel: "窗口",
   watchIcon: "▶",
 };
 
@@ -58,19 +36,9 @@ const EXPO_SCHEDULE: ScheduleConfig = {
   simToday: EXPO_SIM_TODAY,
   items: fastenerExpos,
   orgs: expoOrgs,
-  statusLabels: { confirmed: "确认", window: "报名中", tentative: "筹备中", standby: "待定" },
-  kicker: "行业展会 · FASTENER EXPOS",
-  title: "全球紧固件展会日程 · 2026 全年",
   emptyGlyph: "🔩",
-  emptyTitle: "所选范围内没有展会",
-  emptySub: "尝试放宽时间范围或调整地区筛选。",
-  orgGroupLabel: "地区 / 主办",
-  countSuffix: "场展会",
-  windowLabel: "展期",
   watchIcon: "🔗",
 };
-
-const WEEKDAYS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
 
 // 发射机构官网（真实域名）—— 发射卡的 watch 是直播渠道标签（非网址），链到机构官网作为可达入口。
 const LAUNCH_ORG_SITE: Record<string, string> = {
@@ -99,10 +67,20 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
   const store = useWorkflow();
   const { mySpaces, currentSpaceId } = useSpaceSession();
   const router = useRouter();
+  const t = useCopy();
+  const L = t.views.launches;
   const home = locale === "zh" ? "/zh" : "/";
 
   const spaceName = mySpaces.find((s) => s.space.id === currentSpaceId)?.space.name;
   const config = usesExpoSchedule(spaceName) ? EXPO_SCHEDULE : LAUNCH_SCHEDULE;
+  const ct = config.kind === "expo" ? L.expo : L.launch;
+  const RANGE_OPTIONS: Array<[RangeKey, string]> = [
+    ["today", L.range.today],
+    ["week", L.range.week],
+    ["month", L.range.month],
+    ["all", L.range.all],
+  ];
+  const WEEKDAYS = L.weekdays;
 
   // 展会按全年分布、稀疏，默认看「全部」（也让 1–5 月已过的展会出现）；发射保持「未来 7 天」。
   const [range, setRange] = useState<RangeKey>(config.kind === "expo" ? "all" : "week");
@@ -122,18 +100,18 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
 
   const dayLabel = (date: string): string => {
     const diff = dayDiff(date);
-    if (diff === 0) return "今天";
-    if (diff === 1) return "明天";
-    if (diff === 2) return "后天";
-    if (diff < 0) return `${-diff} 天前`;
-    return `+${diff} 天`;
+    if (diff === 0) return L.relToday;
+    if (diff === 1) return L.relTomorrow;
+    if (diff === 2) return L.relDayAfter;
+    if (diff < 0) return L.relAgo(-diff);
+    return L.relIn(diff);
   };
 
   const statusOptions: Array<[LaunchStatus | "all", string]> = [
-    ["all", "全部"],
-    ["confirmed", config.statusLabels.confirmed],
-    ["window", config.statusLabels.window],
-    ["tentative", config.statusLabels.tentative],
+    ["all", t.views.filterAll],
+    ["confirmed", ct.status.confirmed],
+    ["window", ct.status.window],
+    ["tentative", ct.status.tentative],
   ];
 
   const orgCounts = useMemo(() => {
@@ -185,19 +163,19 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
     <div className="vv lv">
       <header className="vv-head">
         <div className="vv-head-left">
-          <div className="vv-kicker">{config.kicker}</div>
-          <h2 className="vv-title">{config.title}</h2>
+          <div className="vv-kicker">{ct.kicker}</div>
+          <h2 className="vv-title">{ct.title}</h2>
         </div>
         <div className="vv-head-right">
           <button type="button" className="vv-action ghost" onClick={() => router.push(home)}>
-            返回工作台
+            {t.views.backToWorkbench}
           </button>
         </div>
       </header>
 
       <div className="vv-toolbar lv-toolbar">
         <div className="vv-tool">
-          <span className="vv-tool-l">时间范围</span>
+          <span className="vv-tool-l">{L.toolRange}</span>
           <div className="vv-pills">
             {RANGE_OPTIONS.map(([key, label]) => (
               <button
@@ -212,7 +190,7 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
           </div>
         </div>
         <div className="vv-tool">
-          <span className="vv-tool-l">状态</span>
+          <span className="vv-tool-l">{t.views.toolStatus}</span>
           <div className="vv-pills">
             {statusOptions.map(([key, label]) => (
               <button
@@ -227,7 +205,7 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
           </div>
         </div>
         <div className="vv-tool flex-1">
-          <span className="vv-tool-l">{config.orgGroupLabel}</span>
+          <span className="vv-tool-l">{ct.orgGroupLabel}</span>
           <div className="lv-org-chips">
             {Object.entries(config.orgs).map(([orgId, org]) => {
               const on = orgFilter.size === 0 || orgFilter.has(orgId);
@@ -249,7 +227,7 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
             })}
             {orgFilter.size > 0 ? (
               <button type="button" className="lv-org-reset" onClick={() => setOrgFilter(new Set())}>
-                清除筛选
+                {L.clearFilter}
               </button>
             ) : null}
           </div>
@@ -260,8 +238,8 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
         {byDate.length === 0 ? (
           <div className="vv-empty">
             <div className="vv-empty-glyph">{config.emptyGlyph}</div>
-            <div className="vv-empty-title">{config.emptyTitle}</div>
-            <div className="vv-empty-sub">{config.emptySub}</div>
+            <div className="vv-empty-title">{ct.emptyTitle}</div>
+            <div className="vv-empty-sub">{ct.emptySub}</div>
           </div>
         ) : (
           <div className="lv-timeline">
@@ -273,7 +251,7 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
                   <header className="lv-day-head">
                     <div className="lv-day-marker">
                       <span className="lv-day-d">{date.slice(8)}</span>
-                      <span className="lv-day-m">{date.slice(5, 7)}月</span>
+                      <span className="lv-day-m">{L.monthLabel(date.slice(5, 7))}</span>
                     </div>
                     <div className="lv-day-meta">
                       <span className="lv-day-rel">{dayLabel(date)}</span>
@@ -282,7 +260,7 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
                       </span>
                     </div>
                     <span className="lv-day-n">
-                      {items.length} {config.countSuffix}
+                      {items.length} {ct.countSuffix}
                     </span>
                   </header>
                   <div className="lv-launches">
@@ -306,12 +284,12 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
                             {config.kind === "expo" ? (
                               <>
                                 <span className="lv-time-utc">{launch.window}</span>
-                                <span className="lv-time-z">展期</span>
+                                <span className="lv-time-z">{L.expoWindow}</span>
                               </>
                             ) : (
                               <>
                                 <span className="lv-time-utc">{launch.timeUTC}</span>
-                                <span className="lv-time-z">UTC</span>
+                                <span className="lv-time-z">{L.utc}</span>
                               </>
                             )}
                           </div>
@@ -320,13 +298,13 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
                             <div className="lv-mission-row">
                               <span className="lv-mission">{launch.mission}</span>
                               <span className={`lv-status s-${launch.status}`}>
-                                {config.statusLabels[launch.status]}
+                                {ct.status[launch.status]}
                               </span>
                               {isMine && tracked && launch.trackingObjectId ? (
                                 <button
                                   type="button"
                                   className="lv-tracked-tag"
-                                  title={`你关注的对象 · ${tracked.nameZh ?? tracked.name}`}
+                                  title={L.trackedTagTitle(tracked.nameZh ?? tracked.name)}
                                   onClick={() => jumpToTracked(launch.trackingObjectId!)}
                                 >
                                   ★ {tracked.nameZh ?? tracked.name}
@@ -356,7 +334,7 @@ export function LaunchScheduleView({ locale }: { locale: Locale }) {
                                 <>
                                   <span className="lv-sep">·</span>
                                   <span className="lv-window">
-                                    {config.windowLabel} {launch.window}
+                                    {ct.windowLabel} {launch.window}
                                   </span>
                                 </>
                               )}

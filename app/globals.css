@@ -1199,6 +1199,16 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   color: var(--color-primary);
   text-decoration: underline;
 }
+.signal-card .signal-source.disabled {
+  color: var(--color-text-faint, var(--color-text-sub));
+  opacity: 0.55;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+.signal-card .signal-source.disabled:hover {
+  color: var(--color-text-faint, var(--color-text-sub));
+  text-decoration: none;
+}
 .signal-card .gen-brief.has::before { content: '↗ '; }
 .signal-card .gen-brief.gen::before { content: '＋ '; }
 

@@ -19,10 +19,12 @@ import {
   getSignalCounts,
 } from "@/components/workbench/selectors";
 import { BRIEF_STATUS_ORDER, compositeScoreFor, formatDateTimeShort } from "@/components/workbench/helpers";
+import { useCopy } from "@/lib/i18n/locale-context";
 
 export function Workbench() {
   const store = useWorkflow();
   const { state } = store;
+  const t = useCopy();
   const [briefFilter, setBriefFilter] = useState<BriefFilter>("all");
   const [studio, setStudio] = useState<{ topicCardId: string; tab: StudioTab } | null>(null);
   const [trackedCollapsed, setTrackedCollapsed] = useState(false);
@@ -58,7 +60,7 @@ export function Workbench() {
     hits: latestRun?.resultCount ?? 0,
     signals: activeSignals.length,
     dedup: activeSignals.filter((signal) => signal.noveltyStatus === "duplicate").length,
-    lastRun: latestRun?.completedAt ? formatDateTimeShort(latestRun.completedAt) : "未运行",
+    lastRun: latestRun?.completedAt ? formatDateTimeShort(latestRun.completedAt) : t.workbench.lastRunNever,
     failReason: latestRun?.errorSummary ?? "",
   };
 
@@ -122,7 +124,6 @@ export function Workbench() {
   }, [state.sources, state.candidateSignals]);
 
   const handleAdvance = (topicCardId: string, kind: StudioAdvanceKind) => {
-    const labels: Record<StudioAdvanceKind, string> = { script: "脚本", storyboard: "分镜", video: "视频任务" };
     const topicCard = state.topicCards.find((item) => item.id === topicCardId);
 
     if (!topicCard) {
@@ -130,7 +131,11 @@ export function Workbench() {
     }
 
     store.ensureProduction(topicCard.sourceEditorialBriefId);
-    store.logDemo("info", `打开${labels[kind]}工作台 · ${topicCard.workingTitle}`, topicCard.sourceEditorialBriefId);
+    store.logDemo(
+      "info",
+      `${t.workbench.openStudioLog(t.labels.studioKind[kind])} · ${topicCard.workingTitle}`,
+      topicCard.sourceEditorialBriefId,
+    );
     setStudio({ topicCardId, tab: kind === "video" ? "task" : kind });
   };
 
@@ -186,26 +191,20 @@ export function Workbench() {
                 tracked={activeTracked}
                 runner={runner}
                 onRun={() => store.startSearch(false)}
+                onFail={() => store.startSearch(true)}
                 onDemoAction={(message) => store.logDemo("info", message)}
               />
 
               {runner.state === "err" ? (
-                <EmptyState
-                  glyph="🛰"
-                  title="搜索失败 · 暂无信号可供筛选"
-                  sub="上方的搜索运行区已展示错误详情。可重试，或先切换到其他追踪对象继续工作。"
-                />
+                <EmptyState glyph="🛰" title={t.workbench.empty.errTitle} sub={t.workbench.empty.errSub} />
               ) : runner.state === "run" ? (
-                <EmptyState
-                  glyph="⏳"
-                  title="正在搜索 · 通常需要 30 秒"
-                  sub="系统正在向 19 个来源池发起查询，去重并识别候选信号。你可以先离开，完成后会刷新这一区域。"
-                />
+                <EmptyState glyph="⏳" title={t.workbench.empty.runTitle} sub={t.workbench.empty.runSub} />
               ) : (
                 <SignalStrip
                   signals={activeSignals}
                   briefBySignalId={briefBySignalId}
                   sourceById={signalSourceById}
+                  generatingIds={store.generatingBriefIds}
                   onGenerate={store.generateBrief}
                   onOpenBrief={store.openBriefFromSignal}
                 />
@@ -228,8 +227,8 @@ export function Workbench() {
           ) : (
             <EmptyState
               glyph="📡"
-              title="还没有可见的追踪对象"
-              sub="切换到「团队全部」订阅一个对象，或点击左下角「新增追踪对象」。"
+              title={t.workbench.empty.noTrackedTitle}
+              sub={t.workbench.empty.noTrackedSub}
             />
           )}
         </div>
@@ -241,14 +240,14 @@ export function Workbench() {
               className={`right-tab ${store.rightTab === "sources" || store.rightTab === "map" ? "active" : ""}`}
               onClick={() => store.setRightTab(store.rightTab === "map" ? "map" : "sources")}
             >
-              信源 <span className="n">{selectedSources.length + selectedLocations.length}</span>
+              {t.workbench.tabs.sources} <span className="n">{selectedSources.length + selectedLocations.length}</span>
             </button>
             <button
               type="button"
               className={`right-tab ${store.rightTab === "pool" ? "active" : ""}`}
               onClick={() => store.setRightTab("pool")}
             >
-              选题库 <span className="n">{poolItems.length}</span>
+              {t.workbench.tabs.pool} <span className="n">{poolItems.length}</span>
             </button>
           </div>
           <div className="right-content">
@@ -260,14 +259,14 @@ export function Workbench() {
                     className={`right-subtab ${store.rightTab === "sources" ? "active" : ""}`}
                     onClick={() => store.setRightTab("sources")}
                   >
-                    链接 <span className="n">{selectedSources.length}</span>
+                    {t.workbench.tabs.links} <span className="n">{selectedSources.length}</span>
                   </button>
                   <button
                     type="button"
                     className={`right-subtab ${store.rightTab === "map" ? "active" : ""}`}
                     onClick={() => store.setRightTab("map")}
                   >
-                    发生地 <span className="n">{selectedLocations.length}</span>
+                    {t.workbench.tabs.places} <span className="n">{selectedLocations.length}</span>
                   </button>
                 </div>
                 {store.rightTab === "sources" ? (
@@ -283,6 +282,10 @@ export function Workbench() {
                 currentMember={store.currentMember}
                 onClaim={store.claim}
                 onAdvance={handleAdvance}
+                onGenerateArticle={(topicCardId) => {
+                  const topicCard = state.topicCards.find((item) => item.id === topicCardId);
+                  store.logDemo("info", `生成文章 · 功能开发中 · ${topicCard?.workingTitle ?? topicCardId}`);
+                }}
               />
             ) : null}
           </div>

@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import type { GeminiNewsItem } from "@/lib/ingest/types";
+import { isLikelyHomepageUrl } from "@/lib/search/url";
 
 export interface GroundingChunk {
   web?: { uri?: string; title?: string };
@@ -33,27 +34,8 @@ function normalizeTitle(s: string): string {
     .replace(/[\p{P}\p{S}]/gu, "");
 }
 
-/**
- * 判断是否为"纯域名 / 首页 / 栏目根"这类无效来源链接（不是具体文章页）。
- * 无法解析的也视为无效。
- */
-export function isLikelyHomepageUrl(rawUrl: string): boolean {
-  let u: URL;
-  try {
-    u = new URL(rawUrl);
-  } catch {
-    return true;
-  }
-  const path = u.pathname.replace(/\/+$/, "");
-  if (path === "") return true; // 根域名 / 末尾斜杠
-  const segments = path.split("/").filter(Boolean);
-  if (segments.length === 0) return true;
-  // 单段且是常见的首页/频道根（如 /index.html、/news、/zh）→ 视为首页
-  if (segments.length === 1 && /^(index|index\.html?|index\.php|home|default\.html?|news|zh|cn|en|zh-cn)$/i.test(segments[0])) {
-    return true;
-  }
-  return false;
-}
+// 首页/栏目根判定（纯函数）已抽到 lib/search/url.ts，供采集层与 UI 层共用；此处重导出以兼容既有引用。
+export { isLikelyHomepageUrl };
 
 /** 按标题把一条新闻匹配到它的 grounding 来源（Google 实际引用页），命中返回其真实 uri。 */
 function matchGroundingUri(title: string, chunks: readonly GroundingChunk[]): string | null {

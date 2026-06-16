@@ -3,6 +3,7 @@
 import type { TeamMember, TopicCard } from "@/lib/domain/types";
 import { EmptyMini } from "@/components/workbench/empty-state";
 import { formatDateShort, topicFormatLabel } from "@/components/workbench/helpers";
+import { useCopy } from "@/lib/i18n/locale-context";
 
 export type StudioAdvanceKind = "script" | "storyboard" | "video";
 
@@ -19,20 +20,22 @@ interface TopicPoolPanelProps {
   currentMember: TeamMember;
   onClaim: (topicCardId: string) => void;
   onAdvance: (topicCardId: string, kind: StudioAdvanceKind) => void;
+  /** 「生成文章」：图文方向，功能单独实现 */
+  onGenerateArticle: (topicCardId: string) => void;
 }
 
-export function TopicPoolPanel({ items, currentMember, onClaim, onAdvance }: TopicPoolPanelProps) {
+export function TopicPoolPanel({ items, currentMember, onClaim, onAdvance, onGenerateArticle }: TopicPoolPanelProps) {
+  const t = useCopy();
+
   if (items.length === 0) {
-    return (
-      <EmptyMini glyph="📦" title="选题库为空" sub="通过的简报会进入这里。从这里继续产出脚本、分镜、配音稿、视频任务。" />
-    );
+    return <EmptyMini glyph="📦" title={t.workbench.pool.emptyTitle} sub={t.workbench.pool.emptySub} />;
   }
 
   return (
     <div>
       <div className="rail-title split">
-        <span>团队共享 · {items.length} 条</span>
-        <span className="aux">全员可见</span>
+        <span>{t.workbench.pool.shared(items.length)}</span>
+        <span className="aux">{t.workbench.pool.allVisible}</span>
       </div>
       {items.map(({ topicCard, score, createdAt, addedBy, owner }) => {
         const isMine = owner?.id === currentMember.id;
@@ -40,10 +43,10 @@ export function TopicPoolPanel({ items, currentMember, onClaim, onAdvance }: Top
         return (
           <div key={topicCard.id} className="pool-item">
             <div className="pheadline">{topicCard.workingTitle}</div>
-            <div className="pq">核心问题 · {topicCard.coreQuestion}</div>
+            <div className="pq">{t.workbench.pool.coreQuestion(topicCard.coreQuestion)}</div>
             {topicCard.observationDimensions && topicCard.observationDimensions.length > 0 ? (
               <div className="pobserve">
-                <span className="pobserve-label">观察维度</span>
+                <span className="pobserve-label">{t.workbench.pool.observeLabel}</span>
                 <ul className="observe-dims">
                   {topicCard.observationDimensions.map((dimension, index) => (
                     <li key={index}>{dimension}</li>
@@ -52,43 +55,41 @@ export function TopicPoolPanel({ items, currentMember, onClaim, onAdvance }: Top
               </div>
             ) : null}
             <div className="pmeta">
-              <span className="ptag">{topicFormatLabel(topicCard)}</span>
-              <span>价值 {score}</span>
+              <span className="ptag">{topicFormatLabel(topicCard, t.labels.format)}</span>
+              <span>{t.workbench.pool.value(score)}</span>
               <span>· {formatDateShort(createdAt)}</span>
             </div>
             <div className="powner">
               {addedBy ? (
-                <span className="powner-added" title={`由 ${addedBy.name} 加入`}>
+                <span className="powner-added" title={t.workbench.pool.addedByTitle(addedBy.name)}>
                   <span className="pavatar" style={{ background: addedBy.color }}>
                     {addedBy.avatarChar}
                   </span>
-                  <span className="powner-text">{addedBy.name} 加入</span>
+                  <span className="powner-text">{t.workbench.pool.addedByText(addedBy.name)}</span>
                 </span>
               ) : null}
               {owner ? (
-                <span className={`powner-owner ${isMine ? "mine" : ""}`} title={`${owner.name} 负责`}>
+                <span className={`powner-owner ${isMine ? "mine" : ""}`} title={t.workbench.pool.ownerTitle(owner.name)}>
                   <span className="pavatar" style={{ background: owner.color }}>
                     {owner.avatarChar}
                   </span>
                   <span className="powner-text">
-                    {owner.name} 负责{isMine ? "（你）" : ""}
+                    {t.workbench.pool.ownerText(owner.name)}
+                    {isMine ? t.workbench.pool.mineSuffix : ""}
                   </span>
                 </span>
               ) : (
                 <button type="button" className="powner-claim" onClick={() => onClaim(topicCard.id)}>
-                  + 我来认领
+                  {t.workbench.pool.claim}
                 </button>
               )}
             </div>
             <div className="pactions">
               <button type="button" className="pact-btn" onClick={() => onAdvance(topicCard.id, "script")}>
-                生成脚本
+                {t.workbench.pool.genVideo}
               </button>
-              <button type="button" className="pact-btn" onClick={() => onAdvance(topicCard.id, "storyboard")}>
-                分镜
-              </button>
-              <button type="button" className="pact-btn" onClick={() => onAdvance(topicCard.id, "video")}>
-                视频任务
+              <button type="button" className="pact-btn" onClick={() => onGenerateArticle(topicCard.id)}>
+                {t.workbench.pool.genArticle}
               </button>
             </div>
           </div>

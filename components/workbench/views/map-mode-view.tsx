@@ -8,6 +8,7 @@ import type { Locale } from "@/lib/i18n/copy";
 import { getMapBounds, getMapViewport } from "@/lib/workflow/map-viewport";
 import { BriefPreviewDialog } from "@/components/workbench/brief-preview-dialog";
 import { useWorkflow } from "@/components/workbench/workflow-provider";
+import { useCopy } from "@/lib/i18n/locale-context";
 
 // 演示数据的「今天」（与 fixtures 保持一致）
 const SIM_TODAY = new Date("2026-06-10");
@@ -30,13 +31,6 @@ const PALETTE = [
   "#2d2d5e", "#c49a6c", "#faad14", "#13c2c2", "#eb2f96", "#52525b",
 ];
 
-const DATE_OPTIONS = [
-  { value: "1", label: "今天" },
-  { value: "3", label: "最近 3 天" },
-  { value: "7", label: "最近 7 天" },
-  { value: "all", label: "全部" },
-];
-
 function formatCoordMono(location: LocationAnchor): string {
   if (location.coordLabel) {
     return location.coordLabel;
@@ -56,7 +50,15 @@ export function MapModeView({ locale }: { locale: Locale }) {
   const store = useWorkflow();
   const { state } = store;
   const router = useRouter();
+  const t = useCopy();
+  const mv = t.views.map;
   const home = locale === "zh" ? "/zh" : "/";
+  const DATE_OPTIONS = [
+    { value: "1", label: mv.date.today },
+    { value: "3", label: mv.date.d3 },
+    { value: "7", label: mv.date.d7 },
+    { value: "all", label: mv.date.all },
+  ];
   const [dateFilter, setDateFilter] = useState("7");
   const [activeTrackedIds, setActiveTrackedIds] = useState<Set<string> | null>(null);
   const [hoveredLoc, setHoveredLoc] = useState<string | null>(null);
@@ -178,7 +180,7 @@ export function MapModeView({ locale }: { locale: Locale }) {
 
   const jumpToBrief = (brief: EditorialBrief) => {
     store.focusBrief(brief.id, "sources");
-    store.logDemo("info", `从地图模式跳转 · ${brief.briefTitle}`, brief.id);
+    store.logDemo("info", mv.jumpLog(brief.briefTitle), brief.id);
     setPreviewBriefId(brief.id);
   };
 
@@ -196,24 +198,25 @@ export function MapModeView({ locale }: { locale: Locale }) {
     <div className="mm">
       <header className="mm-head">
         <div className="mm-head-left">
-          <div className="mm-kicker">地图模式 · MAP MODE</div>
-          <h2 className="mm-title">事件发生地 · 按天追踪</h2>
+          <div className="mm-kicker">{mv.kicker}</div>
+          <h2 className="mm-title">{mv.title}</h2>
         </div>
         <div className="mm-head-right">
           <div className="mm-stats">
             <span>
-              <b>{events.length}</b> 个事件 · <b>{locationGroups.length}</b> 个地点 · <b>{visibleTrackedIds.size}</b> 个对象
+              <b>{events.length}</b> {mv.statEvents} · <b>{locationGroups.length}</b> {mv.statPlaces} ·{" "}
+              <b>{visibleTrackedIds.size}</b> {mv.statObjects}
             </span>
           </div>
           <button type="button" className="mm-close" onClick={() => router.push(home)}>
-            返回工作台
+            {t.views.backToWorkbench}
           </button>
         </div>
       </header>
 
       <div className="mm-controls">
         <div className="mm-control-group">
-          <span className="mm-clabel">时间</span>
+          <span className="mm-clabel">{mv.toolTime}</span>
           <div className="mm-date-pills">
             {DATE_OPTIONS.map((option) => (
               <button
@@ -228,14 +231,16 @@ export function MapModeView({ locale }: { locale: Locale }) {
           </div>
         </div>
         <div className="mm-control-group flex-1">
-          <span className="mm-clabel">追踪对象（{store.scope === "mine" ? "我关注的" : "团队全部"}）</span>
+          <span className="mm-clabel">
+            {mv.trackedScopeLabel(store.scope === "mine" ? t.views.scopeMine : t.views.scopeTeam)}
+          </span>
           <div className="mm-tracked-chips">
             <button
               type="button"
               className={`mm-chip-all ${isAllOn ? "active" : ""}`}
               onClick={() => setActiveTrackedIds(null)}
             >
-              全部 <span className="n">{scopeTrackedIds.size}</span>
+              {mv.allChip} <span className="n">{scopeTrackedIds.size}</span>
             </button>
             {[...scopeTrackedIds].map((id) => {
               const isOn = isAllOn || (activeTrackedIds?.has(id) ?? false);
@@ -269,11 +274,11 @@ export function MapModeView({ locale }: { locale: Locale }) {
             onSelect={(locationId) => setSelectedLoc((current) => (current === locationId ? null : locationId))}
           />
           <div className="mm-canvas-foot">
-            <span>MAPLIBRE · OSM DEMO TILES · 可缩放拖拽</span>
+            <span>{mv.canvasFoot}</span>
             <span className="mm-legend">
-              <span className="lg-dot small" /> 单事件
-              <span className="lg-dot mid" /> 多事件
-              <span className="lg-dot lrg" /> 集群
+              <span className="lg-dot small" /> {mv.legendSingle}
+              <span className="lg-dot mid" /> {mv.legendMulti}
+              <span className="lg-dot lrg" /> {mv.legendCluster}
             </span>
           </div>
         </div>
@@ -283,7 +288,7 @@ export function MapModeView({ locale }: { locale: Locale }) {
             <div className="mm-side">
               <div className="mm-side-head">
                 <button type="button" className="mm-back" onClick={() => setSelectedLoc(null)}>
-                  ← 返回时间线
+                  {mv.backTimeline}
                 </button>
                 <div className="mm-side-loc">
                   <div className="mm-side-loc-name">{selectedGroup.location.nameZh ?? selectedGroup.location.name}</div>
@@ -296,7 +301,7 @@ export function MapModeView({ locale }: { locale: Locale }) {
                 </div>
               </div>
               <div className="mm-side-list">
-                <div className="mm-side-listhead">{selectedGroup.events.length} 个事件 · 按日期倒序</div>
+                <div className="mm-side-listhead">{mv.eventsDesc(selectedGroup.events.length)}</div>
                 {[...selectedGroup.events]
                   .sort((a, b) => (b.signal.eventDate ?? "").localeCompare(a.signal.eventDate ?? ""))
                   .map((event, index) => (
@@ -311,7 +316,7 @@ export function MapModeView({ locale }: { locale: Locale }) {
                       <div className="mm-evt-title">{event.signal.headline}</div>
                       {event.brief ? (
                         <button type="button" className="mm-evt-jump" onClick={() => jumpToBrief(event.brief!)}>
-                          ↗ 跳转到简报
+                          {mv.jumpBrief}
                         </button>
                       ) : null}
                     </div>
@@ -321,18 +326,18 @@ export function MapModeView({ locale }: { locale: Locale }) {
           ) : dateGroups.length === 0 ? (
             <div className="mm-side mm-empty">
               <div className="mm-empty-glyph">🛰</div>
-              <div className="mm-empty-title">所选时间段内无事件</div>
-              <div className="mm-empty-sub">尝试拉长时间范围，或勾选更多追踪对象。</div>
+              <div className="mm-empty-title">{mv.emptyTitle}</div>
+              <div className="mm-empty-sub">{mv.emptySub}</div>
             </div>
           ) : (
             <div className="mm-side">
-              <div className="mm-side-headlite">事件时间线 · 点击地图上的圆点查看详情</div>
+              <div className="mm-side-headlite">{mv.timelineHint}</div>
               <div className="mm-side-list">
                 {dateGroups.map(([date, dayEvents]) => (
                   <div key={date} className="mm-day">
                     <div className="mm-day-head">
                       <span className="mm-day-d">{date.slice(5)}</span>
-                      <span className="mm-day-n">{dayEvents.length} 事件</span>
+                      <span className="mm-day-n">{mv.dayEvents(dayEvents.length)}</span>
                     </div>
                     {dayEvents.map((event, index) => (
                       <div key={`${event.signal.id}-${index}`} className="mm-evt">
@@ -348,7 +353,7 @@ export function MapModeView({ locale }: { locale: Locale }) {
                         <div className="mm-evt-title">{event.signal.headline}</div>
                         {event.brief ? (
                           <button type="button" className="mm-evt-jump" onClick={() => jumpToBrief(event.brief!)}>
-                            ↗ 跳转到简报
+                            {mv.jumpBrief}
                           </button>
                         ) : null}
                       </div>
@@ -367,10 +372,10 @@ export function MapModeView({ locale }: { locale: Locale }) {
           footer={
             <>
               <button type="button" className="mbp-btn" onClick={() => setPreviewBriefId(null)}>
-                关闭
+                {mv.close}
               </button>
               <button type="button" className="mbp-btn primary" onClick={() => router.push(home)}>
-                在工作台查看
+                {mv.openInWorkbench}
               </button>
             </>
           }
@@ -397,6 +402,7 @@ function MapModeLibreCanvas({
   onHover: (locationId: string | null) => void;
   onSelect: (locationId: string) => void;
 }) {
+  const mv = useCopy().views.map;
   const drawableGroups = groups.filter(
     (group): group is LocationGroup & { location: LocationAnchor & { latitude: number; longitude: number } } =>
       group.location.latitude !== null && group.location.longitude !== null,
@@ -461,7 +467,7 @@ function MapModeLibreCanvas({
           >
             <div className="mm-tt-name">{hoveredGroup.location.nameZh ?? hoveredGroup.location.name}</div>
             <div className="mm-tt-meta">
-              {formatCoordMono(hoveredGroup.location)} · {hoveredGroup.events.length} 个事件
+              {formatCoordMono(hoveredGroup.location)} · {hoveredGroup.events.length} {mv.statEvents}
             </div>
             <div className="mm-tt-tracked">
               {[...hoveredGroup.trackingObjectIds].map((id) => (

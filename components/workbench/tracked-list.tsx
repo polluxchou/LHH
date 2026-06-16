@@ -3,6 +3,7 @@
 import type { TeamMember, TrackingObject } from "@/lib/domain/types";
 import { getTrackedAbbreviation, getTrackedCountRatio, getTrackedRailLabel } from "@/lib/workflow/tracked-counts";
 import { priorityClass } from "@/components/workbench/helpers";
+import { useCopy } from "@/lib/i18n/locale-context";
 
 export type TrackedScope = "mine" | "team";
 
@@ -37,6 +38,8 @@ export function TrackedList({
   onSubToggle,
   onAdd,
 }: TrackedListProps) {
+  const t = useCopy();
+  const tk = t.workbench.tracked;
   const mineCount = allItems.filter((item) => currentMember.trackingObjectIds.includes(item.id)).length;
   const trackedCountRatio = getTrackedCountRatio(allItems, currentMember);
   const railLabel = getTrackedRailLabel(allItems, currentMember);
@@ -48,8 +51,8 @@ export function TrackedList({
           type="button"
           className="tracked-rail-expand"
           onClick={() => onCollapsedChange(false)}
-          title="展开追踪对象"
-          aria-label="展开追踪对象"
+          title={tk.expandTitle}
+          aria-label={tk.expandTitle}
         >
           ‹
         </button>
@@ -64,7 +67,7 @@ export function TrackedList({
                 className={`tracked-rail-dot prio-${priorityClass(item.priority)} ${item.id === activeId ? "active" : ""}`}
                 onClick={() => onPick(item.id)}
                 title={label}
-                aria-label={`切换到${label}`}
+                aria-label={tk.switchTo(label)}
               >
                 {getTrackedAbbreviation(item)}
               </button>
@@ -78,24 +81,24 @@ export function TrackedList({
   return (
     <div className="col col-left">
       <div className="section-head">
-        <span className="kicker">追踪对象</span>
+        <span className="kicker">{tk.kicker}</span>
         <span className="sub">{trackedCountRatio}</span>
         <button
           type="button"
           className="tracked-collapse-btn"
           onClick={() => onCollapsedChange(true)}
-          aria-label="折叠追踪对象"
-          title="折叠追踪对象"
+          aria-label={tk.collapseTitle}
+          title={tk.collapseTitle}
         >
           ‹
         </button>
       </div>
       <div className="scope-toggle">
         <button type="button" className={`scope-btn ${scope === "mine" ? "active" : ""}`} onClick={() => onScopeChange("mine")}>
-          我关注的 <span className="n">{mineCount}</span>
+          {tk.scopeMine} <span className="n">{mineCount}</span>
         </button>
         <button type="button" className={`scope-btn ${scope === "team" ? "active" : ""}`} onClick={() => onScopeChange("team")}>
-          团队全部 <span className="n">{allItems.length}</span>
+          {tk.scopeTeam} <span className="n">{allItems.length}</span>
         </button>
       </div>
       <div className="tracked-list">
@@ -117,7 +120,7 @@ export function TrackedList({
               <span className="tname">{item.nameZh ?? item.name}</span>
               <span className={`tcount ${signalCount === 0 ? "zero" : ""}`}>{signalCount}</span>
               <span className="tmeta">
-                {item.primaryTrack} · 更新于 {item.updatedAt.slice(5, 10)}
+                {item.primaryTrack} · {tk.updatedPrefix} {item.updatedAt.slice(5, 10)}
               </span>
               {scope === "team" ? (
                 <span className="tsubs" title={subscribers.map((member) => member.name).join(" · ")}>
@@ -143,7 +146,7 @@ export function TrackedList({
                       }
                     }}
                   >
-                    {isSubscribed ? "✓ 已订阅" : "+ 订阅"}
+                    {isSubscribed ? tk.subscribed : tk.subscribe}
                   </span>
                 </span>
               ) : null}
@@ -151,7 +154,7 @@ export function TrackedList({
           );
         })}
         <button type="button" className="tracked-list-add" onClick={onAdd}>
-          ＋ 新增追踪对象
+          {tk.addObject}
         </button>
       </div>
     </div>

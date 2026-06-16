@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { BriefStyle } from "@/components/workbench/briefings-section";
+import { useCopy } from "@/lib/i18n/locale-context";
 
 export interface WorkbenchTweaks {
   theme: "warm" | "cool" | "dark";
@@ -57,40 +58,6 @@ export function useWorkbenchTweaks(): [WorkbenchTweaks, (patch: Partial<Workbenc
   return [tweaks, update];
 }
 
-const GROUPS: Array<{
-  key: keyof WorkbenchTweaks;
-  label: string;
-  options: Array<{ value: string; label: string }>;
-}> = [
-  {
-    key: "theme",
-    label: "配色",
-    options: [
-      { value: "warm", label: "暖棕" },
-      { value: "cool", label: "冷工具" },
-      { value: "dark", label: "暗色" },
-    ],
-  },
-  {
-    key: "font",
-    label: "字体",
-    options: [
-      { value: "sans", label: "Sans" },
-      { value: "serif", label: "Serif" },
-      { value: "mono", label: "Mono" },
-    ],
-  },
-  {
-    key: "briefStyle",
-    label: "简报卡片样式",
-    options: [
-      { value: "card", label: "卡片" },
-      { value: "table", label: "表格" },
-      { value: "timeline", label: "时间线" },
-    ],
-  },
-];
-
 export function TweaksPanel({
   tweaks,
   onChange,
@@ -99,12 +66,46 @@ export function TweaksPanel({
   onChange: (patch: Partial<WorkbenchTweaks>) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const tw = useCopy().dialogs.tweaks;
+  const GROUPS: Array<{
+    key: keyof WorkbenchTweaks;
+    label: string;
+    options: Array<{ value: string; label: string }>;
+  }> = [
+    {
+      key: "theme",
+      label: tw.groupTheme,
+      options: [
+        { value: "warm", label: tw.themeWarm },
+        { value: "cool", label: tw.themeCool },
+        { value: "dark", label: tw.themeDark },
+      ],
+    },
+    {
+      key: "font",
+      label: tw.groupFont,
+      options: [
+        { value: "sans", label: tw.fontSans },
+        { value: "serif", label: tw.fontSerif },
+        { value: "mono", label: tw.fontMono },
+      ],
+    },
+    {
+      key: "briefStyle",
+      label: tw.groupBriefStyle,
+      options: [
+        { value: "card", label: tw.styleCard },
+        { value: "table", label: tw.styleTable },
+        { value: "timeline", label: tw.styleTimeline },
+      ],
+    },
+  ];
 
   return (
     <div className="tweaks-host">
       {open ? (
         <div className="tweaks-pop">
-          <div className="tw-head">显示设置 · TWEAKS</div>
+          <div className="tw-head">{tw.head}</div>
           {GROUPS.map((group) => (
             <div key={group.key} className="tw-group">
               <div className="tw-label">{group.label}</div>

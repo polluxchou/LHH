@@ -9,26 +9,28 @@ import { getSignalCounts } from "@/components/workbench/selectors";
 import { priorityClass } from "@/components/workbench/helpers";
 import { canDeleteTrackingObject } from "@/lib/workflow/can-delete-tracking-object";
 import type { TrackingObject, TrackingObjectType } from "@/lib/domain/types";
+import { useCopy } from "@/lib/i18n/locale-context";
 
-const TYPE_LABEL: Record<TrackingObjectType, string> = { company: "公司", facility: "设施", program: "项目", project: "项目" };
 const TYPE_GLYPH: Record<TrackingObjectType, string> = { company: "🏢", facility: "🚀", program: "🛰", project: "🛰" };
-const PRIO_LABEL = { high: "高", mid: "中", low: "低" } as const;
 
 type SortKey = "signals" | "priority" | "update" | "name";
-
-const SORTS: Array<[SortKey, string]> = [
-  ["signals", "新信号数"],
-  ["priority", "优先级"],
-  ["update", "更新时间"],
-  ["name", "名称"],
-];
 
 export function TrackedManageView({ locale }: { locale: Locale }) {
   const store = useWorkflow();
   const { state } = store;
   const session = useSpaceSession();
   const router = useRouter();
+  const t = useCopy();
+  const tv = t.views.tracked;
   const home = locale === "zh" ? "/zh" : "/";
+  const TYPE_LABEL: Record<TrackingObjectType, string> = tv.type;
+  const PRIO_LABEL = tv.prio;
+  const SORTS: Array<[SortKey, string]> = [
+    ["signals", tv.sortSignals],
+    ["priority", tv.sortPriority],
+    ["update", tv.sortUpdate],
+    ["name", tv.sortName],
+  ];
   const [sortBy, setSortBy] = useState<SortKey>("signals");
   const [pendingDelete, setPendingDelete] = useState<TrackingObject | null>(null);
 
@@ -75,41 +77,41 @@ export function TrackedManageView({ locale }: { locale: Locale }) {
     <div className="vv">
       <header className="vv-head">
         <div className="vv-head-left">
-          <div className="vv-kicker">追踪对象 · TRACKED</div>
-          <h2 className="vv-title">所有正在监测的航空航天对象</h2>
+          <div className="vv-kicker">{tv.kicker}</div>
+          <h2 className="vv-title">{tv.title}</h2>
         </div>
         <div className="vv-head-right">
           <button type="button" className="vv-action" onClick={() => store.setAddOpen(true)}>
-            ＋ 新增对象
+            {tv.addObject}
           </button>
           <button type="button" className="vv-action ghost" onClick={() => router.push(home)}>
-            返回工作台
+            {t.views.backToWorkbench}
           </button>
         </div>
       </header>
 
       <div className="vv-toolbar">
         <div className="vv-tool">
-          <span className="vv-tool-l">视图</span>
+          <span className="vv-tool-l">{t.views.toolView}</span>
           <div className="vv-pills">
             <button
               type="button"
               className={`vv-pill ${store.scope === "mine" ? "active" : ""}`}
               onClick={() => store.setScope("mine")}
             >
-              我关注的 <span className="n">{mineCount}</span>
+              {t.views.scopeMine} <span className="n">{mineCount}</span>
             </button>
             <button
               type="button"
               className={`vv-pill ${store.scope === "team" ? "active" : ""}`}
               onClick={() => store.setScope("team")}
             >
-              团队全部 <span className="n">{state.trackingObjects.length}</span>
+              {t.views.scopeTeam} <span className="n">{state.trackingObjects.length}</span>
             </button>
           </div>
         </div>
         <div className="vv-tool">
-          <span className="vv-tool-l">排序</span>
+          <span className="vv-tool-l">{t.views.toolSort}</span>
           <div className="vv-pills">
             {SORTS.map(([key, label]) => (
               <button
@@ -128,15 +130,15 @@ export function TrackedManageView({ locale }: { locale: Locale }) {
       <div className="vv-body">
         <div className="vv-table tracked-table">
           <div className="vv-row vv-head-row">
-            <span className="vc-name">对象</span>
-            <span className="vc-type">类型</span>
-            <span className="vc-track">赛道</span>
-            <span className="vc-prio">优先</span>
-            <span className="vc-hq">总部 / 地点</span>
-            <span className="vc-update">最近更新</span>
-            <span className="vc-stats">新信号 · 已生成简报</span>
-            <span className="vc-subs">订阅者</span>
-            <span className="vc-act">操作</span>
+            <span className="vc-name">{tv.colObject}</span>
+            <span className="vc-type">{tv.colType}</span>
+            <span className="vc-track">{tv.colTrack}</span>
+            <span className="vc-prio">{tv.colPrio}</span>
+            <span className="vc-hq">{tv.colHq}</span>
+            <span className="vc-update">{tv.colUpdate}</span>
+            <span className="vc-stats">{tv.colStats}</span>
+            <span className="vc-subs">{tv.colSubs}</span>
+            <span className="vc-act">{tv.colAct}</span>
           </div>
           {list.map((object) => {
             const isSubscribed = store.currentMember.trackingObjectIds.includes(object.id);
@@ -189,23 +191,23 @@ export function TrackedManageView({ locale }: { locale: Locale }) {
                       router.push(home);
                     }}
                   >
-                    查看
+                    {tv.view}
                   </button>
                   <button
                     type="button"
                     className={`vbtn ${isSubscribed ? "subbed" : "subscribe"}`}
                     onClick={() => store.subToggle(object.id)}
                   >
-                    {isSubscribed ? "✓ 已订" : "+ 订阅"}
+                    {isSubscribed ? tv.subbed : tv.subscribe}
                   </button>
                   {canDelete ? (
                     <button
                       type="button"
                       className="vbtn danger"
                       onClick={() => setPendingDelete(object)}
-                      title="删除我添加的对象"
+                      title={tv.deleteTitleAttr}
                     >
-                      🗑 删除
+                      {tv.delete}
                     </button>
                   ) : null}
                 </span>
@@ -220,28 +222,29 @@ export function TrackedManageView({ locale }: { locale: Locale }) {
           <div className="at-dialog" onClick={(event) => event.stopPropagation()}>
             <header className="at-head">
               <div>
-                <div className="at-kicker">删除追踪对象</div>
-                <h2 className="at-title">删除「{pendingDelete.nameZh ?? pendingDelete.name}」？</h2>
+                <div className="at-kicker">{tv.deleteKicker}</div>
+                <h2 className="at-title">{tv.deleteTitle(pendingDelete.nameZh ?? pendingDelete.name)}</h2>
                 <div className="at-sub">
-                  此操作不可撤销，将
+                  {tv.deleteWarnLead}
                   <span className="at-warn">
-                    {" "}
-                    一并永久删除 {signalCounts[pendingDelete.id] ?? 0} 条信号 ·{" "}
-                    {briefCounts[pendingDelete.id] ?? 0} 份已生成简报 ·{" "}
-                    {state.teamMembers.filter((m) => m.trackingObjectIds.includes(pendingDelete.id)).length} 个订阅
+                    {tv.deleteWarn(
+                      signalCounts[pendingDelete.id] ?? 0,
+                      briefCounts[pendingDelete.id] ?? 0,
+                      state.teamMembers.filter((m) => m.trackingObjectIds.includes(pendingDelete.id)).length,
+                    )}
                   </span>
-                  。
+                  {tv.deleteWarnTail}
                 </div>
               </div>
-              <button type="button" className="at-close" onClick={() => setPendingDelete(null)} aria-label="关闭">
+              <button type="button" className="at-close" onClick={() => setPendingDelete(null)} aria-label={tv.close}>
                 ✕
               </button>
             </header>
             <footer className="at-foot">
-              <span className="at-foot-info">仅你添加的对象、或管理员/所有者可删除</span>
+              <span className="at-foot-info">{tv.deleteFootInfo}</span>
               <span className="at-foot-spacer" />
               <button type="button" className="at-foot-btn ghost" onClick={() => setPendingDelete(null)}>
-                取消
+                {tv.cancel}
               </button>
               <button
                 type="button"
@@ -251,7 +254,7 @@ export function TrackedManageView({ locale }: { locale: Locale }) {
                   setPendingDelete(null);
                 }}
               >
-                确认删除
+                {tv.confirmDelete}
               </button>
             </footer>
           </div>

@@ -27,6 +27,8 @@ import {
   type WorkflowRunLogEntry,
 } from "@/lib/workflow/local-workflow";
 import { generateProductionAction } from "@/app/actions/generate-production";
+import { generateBriefAction } from "@/app/actions/generate-brief";
+import type { AnalyzedBrief } from "@/lib/ingest/types";
 import type { StoryboardShot } from "@/lib/domain/production";
 import type { TrackedScope } from "@/components/workbench/tracked-list";
 import type { BriefUiStatus } from "@/components/workbench/helpers";
@@ -62,7 +64,9 @@ export interface WorkbenchStore {
   // ── actions ──
   pickTracked: (trackingObjectId: string) => void;
   startSearch: (fail: boolean) => void;
-  generateBrief: (signalId: string) => void;
+  generateBrief: (signalId: string) => Promise<void>;
+  /** 正在调 AI 生成简报的候选信号 id（按钮 loading 用） */
+  generatingBriefIds: ReadonlySet<string>;
   openBriefFromSignal: (signalId: string) => void;
   selectBrief: (briefId: string) => void;
   decide: (briefId: string, decision: Exclude<BriefUiStatus, "pending">) => void;
@@ -120,6 +124,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     () => new Set(state.activeBriefId ? [state.activeBriefId] : []),
   );
   const [runningIds, setRunningIds] = useState<ReadonlySet<string>>(() => new Set());
+  const [generatingBriefIds, setGeneratingBriefIds] = useState<ReadonlySet<string>>(() => new Set());
   const [addOpen, setAddOpen] = useState(false);
   const [tweaks, setTweak] = useWorkbenchTweaks();
   const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
@@ -174,6 +179,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
       });
     },
     runningIds,
+    generatingBriefIds,
     addOpen,
     setAddOpen,
     tweaks,
@@ -250,21 +256,67 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
         });
     },
 
-    generateBrief: (signalId) => {
+    generateBrief: async (signalId) => {
+      const signal = state.candidateSignals.find((s) => s.id === signalId);
+      // 已有简报：沿用原同步逻辑（去重提示 + 展开），不调 AI。
+      const existing = state.editorialBriefs.find((b) => b.candidateSignalId === signalId);
+      if (!signal || existing) {
+        setState((current) => {
+          try {
+            return generateBriefForSignal(current, signalId, { locale: "zh", now: nowIso() });
+          } catch (error) {
+            return appendWorkflowLog(
+              current,
+              { level: "error", message: `简报生成失败 · ${error instanceof Error ? error.message : "未知工作流错误"}` },
+              { now: nowIso() },
+            );
+          }
+        });
+        setExpandedBriefIds((previous) => new Set(previous).add(`brief-${signalId}`));
+        return;
+      }
+
+      // 实时调 DeepSeek：把信号 + 来源综合成 factSummary/whyItMatters。失败回退模板。
+      const subject = state.trackingObjects.find((o) => o.id === signal.trackingObjectId);
+      const brand = subject?.nameZh ?? subject?.name ?? "该追踪对象";
+      const sources = state.sources.filter((s) => signal.sourceIds.includes(s.id));
+
+      setGeneratingBriefIds((prev) => new Set(prev).add(signalId));
+      let ai: AnalyzedBrief | undefined;
+      try {
+        const result = await generateBriefAction({
+          brand,
+          signal: { headline: signal.headline, summary: signal.summary, eventDate: signal.eventDate },
+          sources: sources.map((s) => ({ title: s.title, url: s.url, publishedAt: s.publishedAt })),
+        });
+        if (result.ok) ai = result.analyzed;
+        else store.logDemo("warning", `AI 生成失败,已用模板草稿 · ${result.reason}`, `brief-${signalId}`);
+      } catch (error) {
+        store.logDemo(
+          "warning",
+          `AI 生成失败,已用模板草稿 · ${error instanceof Error ? error.message : "未知错误"}`,
+          `brief-${signalId}`,
+        );
+      } finally {
+        setGeneratingBriefIds((prev) => {
+          const next = new Set(prev);
+          next.delete(signalId);
+          return next;
+        });
+      }
+
       setState((current) => {
         try {
-          return generateBriefForSignal(current, signalId, { locale: "zh", now: nowIso() });
+          return generateBriefForSignal(current, signalId, { locale: "zh", now: nowIso(), ai });
         } catch (error) {
           return appendWorkflowLog(
             current,
-            {
-              level: "error",
-              message: `简报生成失败 · ${error instanceof Error ? error.message : "未知工作流错误"}`,
-            },
+            { level: "error", message: `简报生成失败 · ${error instanceof Error ? error.message : "未知工作流错误"}` },
             { now: nowIso() },
           );
         }
       });
+      if (ai) store.logDemo("success", `AI 简报生成完成 · ${signal.headline}`, `brief-${signalId}`);
       setExpandedBriefIds((previous) => new Set(previous).add(`brief-${signalId}`));
     },
 
