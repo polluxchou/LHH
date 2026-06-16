@@ -186,7 +186,6 @@ export function Workbench() {
                 tracked={activeTracked}
                 runner={runner}
                 onRun={() => store.startSearch(false)}
-                onFail={() => store.startSearch(true)}
                 onDemoAction={(message) => store.logDemo("info", message)}
               />
 

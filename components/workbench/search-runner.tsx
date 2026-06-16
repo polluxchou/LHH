@@ -18,11 +18,10 @@ interface SearchRunnerProps {
   tracked: TrackingObject;
   runner: RunnerViewModel;
   onRun: () => void;
-  onFail: () => void;
   onDemoAction: (message: string) => void;
 }
 
-export function SearchRunner({ tracked, runner, onRun, onFail, onDemoAction }: SearchRunnerProps) {
+export function SearchRunner({ tracked, runner, onRun, onDemoAction }: SearchRunnerProps) {
   const failed = runner.state === "err";
   const displayName = tracked.name;
   const secondaryName = tracked.nameZh && tracked.nameZh !== tracked.name ? tracked.nameZh : "";
@@ -41,9 +40,6 @@ export function SearchRunner({ tracked, runner, onRun, onFail, onDemoAction }: S
           <button type="button" className="btn-run" onClick={onRun} disabled={runner.state === "run"}>
             <span className="ic"></span>
             {runner.state === "run" ? "搜索中…" : "运行日更搜索"}
-          </button>
-          <button type="button" className="btn-fail" onClick={onFail} disabled={runner.state === "run"}>
-            模拟搜索失败
           </button>
         </div>
       </div>
