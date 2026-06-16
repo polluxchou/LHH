@@ -17,8 +17,8 @@ export function AddTrackedDialog({ open, currentMember, onClose, onAdd }: AddTra
   const d = useCopy().dialogs.addTracked;
   const TYPE_OPTIONS: Array<{ value: TrackingObjectType; label: string; glyph: string; sub: string }> = [
     { value: "company", label: d.typeCompanyLabel, glyph: "🏢", sub: d.typeCompanySub },
-    { value: "facility", label: d.typeFacilityLabel, glyph: "🚀", sub: d.typeFacilitySub },
-    { value: "program", label: d.typeProgramLabel, glyph: "🛰", sub: d.typeProgramSub },
+    { value: "facility", label: d.typeFacilityLabel, glyph: "🏭", sub: d.typeFacilitySub },
+    { value: "program", label: d.typeProgramLabel, glyph: "📋", sub: d.typeProgramSub },
   ];
   const PRIORITY_OPTIONS: Array<{ value: "high" | "mid" | "low"; label: string; sub: string }> = [
     { value: "high", label: d.prioHighLabel, sub: d.prioHighSub },

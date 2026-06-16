@@ -33,19 +33,9 @@ import type { StoryboardShot } from "@/lib/domain/production";
 import type { TrackedScope } from "@/components/workbench/tracked-list";
 import type { BriefUiStatus } from "@/components/workbench/helpers";
 import { useWorkbenchTweaks, type WorkbenchTweaks } from "@/components/workbench/tweaks-panel";
+import { getCopy, type Locale } from "@/lib/i18n/copy";
 
 export type RightTab = "sources" | "map" | "pool";
-
-const SIMULATED_FAILURE = "API 网关超时 · 3/18 来源返回错误";
-
-const DECISION_INPUT: Record<
-  Exclude<BriefUiStatus, "pending">,
-  { decision: "approved" | "watch" | "rejected"; reason: string }
-> = {
-  pool: { decision: "approved", reason: "" },
-  watch: { decision: "watch", reason: "等待下一轮信号变化" },
-  rejected: { decision: "rejected", reason: "编辑判断价值不足" },
-};
 
 export interface WorkbenchStore {
   state: LocalWorkflowState;
@@ -101,9 +91,18 @@ export function useWorkflow(): WorkbenchStore {
   return store;
 }
 
-export function WorkflowProvider({ children }: { children: ReactNode }) {
+export function WorkflowProvider({ locale, children }: { locale: Locale; children: ReactNode }) {
   const session = useSpaceSession();
   const router = useRouter();
+  const L = getCopy(locale).log;
+  const DECISION_INPUT: Record<
+    Exclude<BriefUiStatus, "pending">,
+    { decision: "approved" | "watch" | "rejected"; reason: string }
+  > = {
+    pool: { decision: "approved", reason: "" },
+    watch: { decision: "watch", reason: L.reasonWatch },
+    rejected: { decision: "rejected", reason: L.reasonRejected },
+  };
   // Content state is owned per-space by SpaceProvider; mirror it here behind the
   // existing setState(updater) contract so every action below stays unchanged.
   const state = session.contentState ?? createInitialWorkflowState();
@@ -212,12 +211,12 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
       if (fail) {
         // Demo button「模拟搜索失败」keeps the mock failure path.
         setState((current) =>
-          appendWorkflowLog(current, { level: "info", event: "search_started", message: `日更搜索启动 · ${label}`, trackingObjectId: target.id }, { now: nowIso() }),
+          appendWorkflowLog(current, { level: "info", event: "search_started", message: L.searchStartMock(label), trackingObjectId: target.id }, { now: nowIso() }),
         );
         const timer = setTimeout(() => {
           timersRef.current.delete(timer);
           clearRunning();
-          setState((current) => runFailedMockSearchForTrackingObject(current, target.id, SIMULATED_FAILURE, { now: nowIso() }));
+          setState((current) => runFailedMockSearchForTrackingObject(current, target.id, L.simulatedFailure, { now: nowIso() }));
         }, 1200);
         timersRef.current.add(timer);
         return;
@@ -225,7 +224,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
 
       // Real on-demand search: Gemini grounding → DeepSeek → write to DB, then refresh.
       setState((current) =>
-        appendWorkflowLog(current, { level: "info", event: "search_started", message: `真实搜索启动 · ${label} · Gemini→DeepSeek`, trackingObjectId: target.id }, { now: nowIso() }),
+        appendWorkflowLog(current, { level: "info", event: "search_started", message: L.searchStartReal(label), trackingObjectId: target.id }, { now: nowIso() }),
       );
       runSearchForObject(target.id)
         .then(({ wrote, reason }) => {
@@ -236,7 +235,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
               {
                 level: wrote ? "success" : "warning",
                 event: "search_completed",
-                message: wrote ? `真实搜索完成 · 已产出简报 · ${label}` : `真实搜索完成 · 未产出（${reason ?? "无新内容"}）`,
+                message: wrote ? L.searchDoneWrote(label) : L.searchDoneEmpty(reason ?? L.searchNoNew),
                 trackingObjectId: target.id,
               },
               { now: nowIso() },
@@ -249,7 +248,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
           setState((current) =>
             appendWorkflowLog(
               current,
-              { level: "error", event: "search_failed", message: `真实搜索失败 · ${error instanceof Error ? error.message : "未知错误"}`, trackingObjectId: target.id },
+              { level: "error", event: "search_failed", message: L.searchFailed(error instanceof Error ? error.message : L.errUnknown), trackingObjectId: target.id },
               { now: nowIso() },
             ),
           );
@@ -267,7 +266,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
           } catch (error) {
             return appendWorkflowLog(
               current,
-              { level: "error", message: `简报生成失败 · ${error instanceof Error ? error.message : "未知工作流错误"}` },
+              { level: "error", message: L.briefGenFailed(error instanceof Error ? error.message : L.errWorkflow) },
               { now: nowIso() },
             );
           }
@@ -278,7 +277,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
 
       // 实时调 DeepSeek：把信号 + 来源综合成 factSummary/whyItMatters。失败回退模板。
       const subject = state.trackingObjects.find((o) => o.id === signal.trackingObjectId);
-      const brand = subject?.nameZh ?? subject?.name ?? "该追踪对象";
+      const brand = subject?.nameZh ?? subject?.name ?? L.defaultSubject;
       const sources = state.sources.filter((s) => signal.sourceIds.includes(s.id));
 
       setGeneratingBriefIds((prev) => new Set(prev).add(signalId));
@@ -290,11 +289,11 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
           sources: sources.map((s) => ({ title: s.title, url: s.url, publishedAt: s.publishedAt })),
         });
         if (result.ok) ai = result.analyzed;
-        else store.logDemo("warning", `AI 生成失败,已用模板草稿 · ${result.reason}`, `brief-${signalId}`);
+        else store.logDemo("warning", L.aiFailedTemplate(result.reason), `brief-${signalId}`);
       } catch (error) {
         store.logDemo(
           "warning",
-          `AI 生成失败,已用模板草稿 · ${error instanceof Error ? error.message : "未知错误"}`,
+          L.aiFailedTemplate(error instanceof Error ? error.message : L.errUnknown),
           `brief-${signalId}`,
         );
       } finally {
@@ -311,12 +310,12 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
         } catch (error) {
           return appendWorkflowLog(
             current,
-            { level: "error", message: `简报生成失败 · ${error instanceof Error ? error.message : "未知工作流错误"}` },
+            { level: "error", message: L.briefGenFailed(error instanceof Error ? error.message : L.errWorkflow) },
             { now: nowIso() },
           );
         }
       });
-      if (ai) store.logDemo("success", `AI 简报生成完成 · ${signal.headline}`, `brief-${signalId}`);
+      if (ai) store.logDemo("success", L.aiBriefDone(signal.headline), `brief-${signalId}`);
       setExpandedBriefIds((previous) => new Set(previous).add(`brief-${signalId}`));
     },
 
@@ -330,7 +329,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
       setState((current) =>
         appendWorkflowLog(
           { ...current, activeBriefId: brief.id },
-          { level: "info", message: `打开已生成简报：${brief.briefTitle}`, briefId: brief.id },
+          { level: "info", message: L.openBrief(brief.briefTitle), briefId: brief.id },
           { now: nowIso() },
         ),
       );
@@ -354,7 +353,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
             current,
             {
               level: "error",
-              message: `筛选操作失败 · ${error instanceof Error ? error.message : "未知工作流错误"}`,
+              message: L.screenFailed(error instanceof Error ? error.message : L.errWorkflow),
               briefId,
             },
             { now: nowIso() },
@@ -375,7 +374,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
             {
               briefId,
               decision: "watch",
-              reason: "持续观察",
+              reason: L.reasonObserve,
               observationDimensions: dimensions,
               decidedBy: current.currentMemberId,
             },
@@ -386,7 +385,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
             current,
             {
               level: "error",
-              message: `加入持续观察失败 · ${error instanceof Error ? error.message : "未知工作流错误"}`,
+              message: L.observeFailed(error instanceof Error ? error.message : L.errWorkflow),
               briefId,
             },
             { now: nowIso() },
@@ -425,7 +424,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
           setState((current) =>
             appendWorkflowLog(
               current,
-              { level: "error", message: `新增追踪对象失败 · ${error instanceof Error ? error.message : "未知错误"}` },
+              { level: "error", message: L.addFailed(error instanceof Error ? error.message : L.errUnknown) },
               { now: nowIso() },
             ),
           ),
@@ -444,7 +443,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
           setState((current) =>
             appendWorkflowLog(
               current,
-              { level: "error", message: `删除追踪对象失败 · ${error instanceof Error ? error.message : "未知错误"}` },
+              { level: "error", message: L.removeFailed(error instanceof Error ? error.message : L.errUnknown) },
               { now: nowIso() },
             ),
           );
@@ -496,16 +495,16 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     generateProduction: async (briefId, targetDuration) => {
       const brief = state.editorialBriefs.find((b) => b.id === briefId);
       if (!brief) {
-        store.logDemo("warning", `生成失败 · 找不到简报 ${briefId}`, briefId);
+        store.logDemo("warning", L.prodNotFound(briefId), briefId);
         return;
       }
       const topicCard = state.topicCards.find((t) => t.sourceEditorialBriefId === briefId) ?? null;
       const result = await generateProductionAction({ brief, topicCard, targetDuration });
       if (result.ok) {
         setState((current) => setProductionDraft(current, briefId, result.pkg));
-        store.logDemo("success", `AI 生成完成 · ${brief.briefTitle}`, briefId);
+        store.logDemo("success", L.prodDone(brief.briefTitle), briefId);
       } else {
-        store.logDemo("warning", `AI 生成失败,已保留模板草稿 · ${result.reason}`, briefId);
+        store.logDemo("warning", L.prodFailedTemplate(result.reason), briefId);
       }
     },
   };

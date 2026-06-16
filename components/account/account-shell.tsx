@@ -63,7 +63,7 @@ export async function AccountShell({
       contentBySpace={contentBySpace}
       initialSpaceId={resolvedSpaceId ?? undefined}
     >
-      <WorkflowProvider>{children}</WorkflowProvider>
+      <WorkflowProvider locale={locale}>{children}</WorkflowProvider>
     </SpaceProvider>
   );
 }
