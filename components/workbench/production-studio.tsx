@@ -470,36 +470,36 @@ function TaskPanel({
     <div className="task-panel">
       <div className="task-grid">
         <div className="task-kv">
-          <span className="k">工作标题</span>
+          <span className="k">{s.taskTitle}</span>
           <span className="v strong">{task.title}</span>
         </div>
         <div className="task-kv">
-          <span className="k">内容形式</span>
+          <span className="k">{s.taskFormat}</span>
           <span className="v">{task.format}</span>
         </div>
         <div className="task-kv">
-          <span className="k">分发频道</span>
+          <span className="k">{s.taskChannel}</span>
           <span className="v">{task.channel}</span>
         </div>
         <div className="task-kv">
-          <span className="k">负责人</span>
+          <span className="k">{s.taskOwner}</span>
           <span className="v">{task.owner}</span>
         </div>
         <div className="task-kv">
-          <span className="k">交付日期</span>
+          <span className="k">{s.taskDeadline}</span>
           <span className="v strong">{task.deadline}</span>
         </div>
         <div className="task-kv">
-          <span className="k">预算</span>
+          <span className="k">{s.taskBudget}</span>
           <span className="v">{task.budget}</span>
         </div>
       </div>
 
       <div className="task-progress">
         <div className="task-progress-head">
-          <span className="t">生产清单</span>
+          <span className="t">{s.checklist}</span>
           <span className="n">
-            <b>{done}</b> / {checks.length} 完成 · {pct}%
+            <b>{done}</b> / {checks.length} {s.completed} · {pct}%
           </span>
         </div>
         <div className="task-pbar">
@@ -510,7 +510,7 @@ function TaskPanel({
       <ul className="task-checklist">
         {checks.map((check) => (
           <li key={check.id} className={check.done ? "done" : ""}>
-            <button type="button" className="check-toggle" onClick={() => toggle(check.id)} aria-label="切换完成">
+            <button type="button" className="check-toggle" onClick={() => toggle(check.id)} aria-label={s.toggleDone}>
               {check.done ? "✓" : ""}
             </button>
             <div className="task-info">
