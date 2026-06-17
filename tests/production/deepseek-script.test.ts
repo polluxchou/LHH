@@ -83,7 +83,7 @@ describe("generateProduction", () => {
   const okJson = JSON.stringify({ sections: goodSections, storyboard: goodShots });
 
   it("注入 mock complete → 组装出完整 ProductionPackage", async () => {
-    const pkg = await generateProduction({ brief, topicCard: card }, { complete: async () => okJson });
+    const pkg = await generateProduction({ brief, topicCard: card }, undefined, { complete: async () => ({ text: okJson, usage: null }) });
     expect(pkg.script.sections).toHaveLength(4);
     expect(pkg.storyboard).toHaveLength(6);
     expect(pkg.script.targetDuration).toBe("12-15 min"); // 来自 formatLabel
@@ -93,7 +93,7 @@ describe("generateProduction", () => {
   });
 
   it("complete 返回坏 JSON → 抛错", async () => {
-    await expect(generateProduction({ brief, topicCard: card }, { complete: async () => "garbage" })).rejects.toThrow();
+    await expect(generateProduction({ brief, topicCard: card }, undefined, { complete: async () => ({ text: "garbage", usage: null }) })).rejects.toThrow();
   });
 });
 
@@ -102,23 +102,23 @@ describe("generateProduction 重试", () => {
 
   it("首次坏 JSON、重试good → 成功(调用 2 次)", async () => {
     let calls = 0;
-    const complete = async () => { calls += 1; return calls === 1 ? "garbage" : okJson2; };
-    const pkg = await generateProduction({ brief, topicCard: card }, { complete });
+    const complete = async () => { calls += 1; return calls === 1 ? { text: "garbage", usage: null } : { text: okJson2, usage: null }; };
+    const pkg = await generateProduction({ brief, topicCard: card }, undefined, { complete });
     expect(pkg.script.sections).toHaveLength(4);
     expect(calls).toBe(2);
   });
 
   it("两次都坏 → 抛错(调用 2 次,不再无限重试)", async () => {
     let calls = 0;
-    const complete = async () => { calls += 1; return "garbage"; };
-    await expect(generateProduction({ brief, topicCard: card }, { complete })).rejects.toThrow();
+    const complete = async () => { calls += 1; return { text: "garbage", usage: null }; };
+    await expect(generateProduction({ brief, topicCard: card }, undefined, { complete })).rejects.toThrow();
     expect(calls).toBe(2);
   });
 
   it("首次就 good → 不重试(只调用 1 次)", async () => {
     let calls = 0;
-    const complete = async () => { calls += 1; return okJson2; };
-    await generateProduction({ brief, topicCard: card }, { complete });
+    const complete = async () => { calls += 1; return { text: okJson2, usage: null }; };
+    await generateProduction({ brief, topicCard: card }, undefined, { complete });
     expect(calls).toBe(1);
   });
 });
@@ -135,7 +135,8 @@ describe("目标时长覆盖", () => {
   it("generateProduction 把 targetDuration 写进 script、覆盖 formatLabel", async () => {
     const pkg = await generateProduction(
       { brief, topicCard: card, targetDuration: "9 min" },
-      { complete: async () => okJson3 },
+      undefined,
+      { complete: async () => ({ text: okJson3, usage: null }) },
     );
     expect(pkg.script.targetDuration).toBe("9 min");
   });
@@ -143,8 +144,24 @@ describe("目标时长覆盖", () => {
   it("未传 targetDuration 时回退到 formatLabel 推导", async () => {
     const pkg = await generateProduction(
       { brief, topicCard: card },
-      { complete: async () => okJson3 },
+      undefined,
+      { complete: async () => ({ text: okJson3, usage: null }) },
     );
     expect(pkg.script.targetDuration).toBe("12-15 min");
+  });
+});
+
+describe("generateProduction onUsage", () => {
+  const okJson4 = JSON.stringify({ sections: goodSections, storyboard: goodShots });
+  it("forwards usage per completion call", async () => {
+    const events: unknown[] = [];
+    await generateProduction(
+      { brief, topicCard: card },
+      (e) => events.push(e),
+      { complete: async () => ({ text: okJson4, usage: { promptTokens: 700, completionTokens: 900, totalTokens: 1600 } }) },
+    );
+    expect(events).toEqual([
+      { provider: "deepseek", model: "deepseek-v4-flash", usage: { promptTokens: 700, completionTokens: 900, totalTokens: 1600 } },
+    ]);
   });
 });
