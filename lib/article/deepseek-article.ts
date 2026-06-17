@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { extractOpenAIUsage, type TokenUsage, type UsageSink } from "@/lib/usage/extract";
 import type { ArticleLang, ArticlePlatform, ArticleSection, ArticleType } from "@/lib/domain/article";
 import type { EditorialBrief, TopicCard } from "@/lib/domain/types";
 
@@ -84,8 +85,10 @@ export function parseSections(jsonText: string): ArticleSection[] | null {
   return out;
 }
 
+const ARTICLE_MODEL = "deepseek-v4-flash";
+
 export interface ArticleDeps {
-  complete: (prompt: string) => Promise<string>;
+  complete: (prompt: string) => Promise<{ text: string; usage: TokenUsage | null }>;
 }
 
 function defaultDeps(): ArticleDeps {
@@ -93,33 +96,41 @@ function defaultDeps(): ArticleDeps {
   return {
     complete: async (prompt) => {
       const res = await client.chat.completions.create({
-        model: "deepseek-v4-flash",
+        model: ARTICLE_MODEL,
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
         max_tokens: 2000,
       });
-      return res.choices[0]?.message?.content ?? "";
+      return { text: res.choices[0]?.message?.content ?? "", usage: extractOpenAIUsage(res) };
     },
   };
 }
 
-export async function generateArticle(a: GenArgs, deps: ArticleDeps = defaultDeps()): Promise<ArticleSection[] | null> {
-  return parseSections(await deps.complete(buildArticlePrompt(a)));
+export async function generateArticle(a: GenArgs, onUsage?: UsageSink, deps: ArticleDeps = defaultDeps()): Promise<ArticleSection[] | null> {
+  const { text, usage } = await deps.complete(buildArticlePrompt(a));
+  onUsage?.({ provider: "deepseek", model: ARTICLE_MODEL, usage });
+  return parseSections(text);
 }
 
 export async function regenerateSection(
   a: GenArgs,
   section: ArticleSection,
+  onUsage?: UsageSink,
   deps: ArticleDeps = defaultDeps(),
 ): Promise<string | null> {
-  const secs = parseSections(await deps.complete(buildSectionRegenPrompt(a, section)));
+  const { text, usage } = await deps.complete(buildSectionRegenPrompt(a, section));
+  onUsage?.({ provider: "deepseek", model: ARTICLE_MODEL, usage });
+  const secs = parseSections(text);
   return secs?.find((s) => s.id === section.id)?.body ?? secs?.[0]?.body ?? null;
 }
 
 export async function translateSections(
   sections: ArticleSection[],
   lang: ArticleLang,
+  onUsage?: UsageSink,
   deps: ArticleDeps = defaultDeps(),
 ): Promise<ArticleSection[] | null> {
-  return parseSections(await deps.complete(buildTranslatePrompt(sections, lang)));
+  const { text, usage } = await deps.complete(buildTranslatePrompt(sections, lang));
+  onUsage?.({ provider: "deepseek", model: ARTICLE_MODEL, usage });
+  return parseSections(text);
 }
