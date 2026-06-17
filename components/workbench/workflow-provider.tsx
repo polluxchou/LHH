@@ -422,6 +422,7 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
         possibleAngles: brief.possibleAngles,
         openQuestions: brief.openQuestions,
         riskNotes: brief.riskNotes ?? [],
+        verification: brief.verification ?? null,
         status: brief.status,
         score: {
           freshnessScore: score.freshnessScore,

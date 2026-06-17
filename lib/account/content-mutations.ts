@@ -6,6 +6,7 @@ import { getMySpaces } from "@/lib/account/queries";
 import { ingestTrackingObject } from "@/lib/ingest/run";
 import { canDeleteTrackingObject } from "@/lib/workflow/can-delete-tracking-object";
 import type { AddTrackingObjectInput } from "@/lib/workflow/local-workflow";
+import type { Verification } from "@/lib/domain/types";
 
 /**
  * On-demand real search for one tracking object: read its row (for space_id + brand
@@ -64,6 +65,7 @@ export interface PersistBriefInput {
   possibleAngles: string[];
   openQuestions: string[];
   riskNotes: string[];
+  verification?: Verification | null;
   status: "draft" | "ready_for_screening" | "screened";
   score: {
     freshnessScore: number;
@@ -114,6 +116,7 @@ export async function persistGeneratedBrief(
       possible_angles: input.possibleAngles,
       open_questions: input.openQuestions,
       risk_notes: input.riskNotes,
+      verification: input.verification ?? null,
       status: input.status,
     })
     .select("id")

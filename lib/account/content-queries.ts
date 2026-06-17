@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
-  CandidateSignal, ContentValueScore, EditorialBrief, ScreeningDecision, SearchRun, Source, TopicCard, TrackingObject,
+  CandidateSignal, ContentValueScore, EditorialBrief, ScreeningDecision, SearchRun, Source, TopicCard, TrackingObject, Verification,
 } from "@/lib/domain/types";
 
 /** The DB-backed slice of a space's content (ingestion outputs + migrated demo). */
@@ -68,6 +68,7 @@ export async function getSpaceContent(spaceId: string): Promise<SpaceContent> {
     whyItMatters: r.why_it_matters, possibleAngles: r.possible_angles ?? [], openQuestions: r.open_questions ?? [],
     riskNotes: r.risk_notes ?? [], locationAnchorIds: r.location_anchor_ids ?? [], status: r.status,
     createdAt: r.created_at,
+    verification: (r.verification as Verification | null) ?? undefined,
   }));
   const signalByBrief = new Map(editorialBriefs.map((b) => [b.id, b.candidateSignalId]));
 
