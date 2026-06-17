@@ -1,4 +1,4 @@
--- 0010_usage_logs.sql — 每次 AI 调用的 token 用量与成本快照
+-- 0011_usage_logs.sql — 每次 AI 调用的 token 用量与成本快照
 -- 新增式、非破坏性。写入走 service-role（绕过 RLS）；读策略与 0003/0008 一致。
 -- 沿用 0002 的 security-definer helper is_space_member / is_space_owner（避免在 space_members 上递归 RLS）。
 
