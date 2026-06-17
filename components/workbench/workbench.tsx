@@ -208,6 +208,7 @@ export function Workbench() {
                   sourceById={signalSourceById}
                   generatingIds={store.generatingBriefIds}
                   onGenerate={store.generateBrief}
+                  onRegenerate={store.regenerateBrief}
                   onOpenBrief={store.openBriefFromSignal}
                 />
               )}

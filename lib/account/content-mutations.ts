@@ -100,6 +100,16 @@ export async function persistGeneratedBrief(
   const mine = await getMySpaces();
   if (!mine.some((m) => m.space.id === obj.space_id)) return { ok: false, reason: "forbidden" };
 
+  // Overwrite path (also serves regenerate): drop any existing brief for this signal in
+  // this space first — FK `on delete cascade` clears its content_value_scores. On first
+  // generation this matches nothing (no-op); on regenerate it replaces the old brief.
+  const { error: delErr } = await admin
+    .from("editorial_briefs")
+    .delete()
+    .eq("candidate_signal_id", input.candidateSignalId)
+    .eq("space_id", obj.space_id);
+  if (delErr) return { ok: false, reason: `overwrite: ${delErr.message}` };
+
   const { data: brief, error: brErr } = await admin
     .from("editorial_briefs")
     .insert({
