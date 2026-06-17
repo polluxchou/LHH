@@ -138,6 +138,116 @@ export async function persistGeneratedBrief(
   return { ok: true, id: brief.id as string };
 }
 
+export interface PersistDecisionInput {
+  editorialBriefId: string;
+  decision: "approved" | "watch" | "rejected";
+  reason: string;
+  observationDimensions: string[];
+  decidedBy: string;
+  decidedAt: string;
+  /** present only for `approved` — the topic card the transition produced */
+  topicCard?: {
+    sourceEditorialBriefId: string;
+    workingTitle: string;
+    coreQuestion: string;
+    recommendedFormat: string;
+    formatLabel: string | null;
+    keyFacts: string[];
+    sourceIds: string[];
+    mapContext: string | null;
+    status: string;
+    ownerId: string | null;
+    observationDimensions: string[];
+  };
+}
+
+/** Resolve a brief's space and verify the caller is a member of it. */
+async function spaceForBrief(
+  admin: ReturnType<typeof createSupabaseAdminClient>,
+  editorialBriefId: string,
+): Promise<{ ok: true; spaceId: string } | { ok: false; reason: string }> {
+  const { data: brief, error } = await admin
+    .from("editorial_briefs")
+    .select("space_id")
+    .eq("id", editorialBriefId)
+    .single();
+  if (error || !brief) return { ok: false, reason: "brief_not_found" };
+  const mine = await getMySpaces();
+  if (!mine.some((m) => m.space.id === brief.space_id)) return { ok: false, reason: "forbidden" };
+  return { ok: true, spaceId: brief.space_id as string };
+}
+
+/**
+ * Persist a screening decision so it survives a refresh (previously in-memory only).
+ * Upserts screening_decisions (PK = editorial_brief_id); for `approved`, also upserts the
+ * topic card (unique on source_editorial_brief_id). Space-scoped, membership-checked,
+ * service-role. The DB generates the topic-card id (uuid).
+ */
+export async function persistScreeningDecision(
+  input: PersistDecisionInput,
+): Promise<{ ok: boolean; reason?: string }> {
+  const admin = createSupabaseAdminClient();
+  const space = await spaceForBrief(admin, input.editorialBriefId);
+  if (!space.ok) return space;
+
+  const { error: decErr } = await admin.from("screening_decisions").upsert(
+    {
+      editorial_brief_id: input.editorialBriefId,
+      space_id: space.spaceId,
+      decision: input.decision,
+      reason: input.reason,
+      observation_dimensions: input.observationDimensions,
+      decided_by: input.decidedBy,
+      decided_at: input.decidedAt,
+    },
+    { onConflict: "editorial_brief_id" },
+  );
+  if (decErr) return { ok: false, reason: `decision: ${decErr.message}` };
+
+  if (input.decision === "approved" && input.topicCard) {
+    const tc = input.topicCard;
+    const { error: cardErr } = await admin.from("topic_cards").upsert(
+      {
+        source_editorial_brief_id: tc.sourceEditorialBriefId,
+        space_id: space.spaceId,
+        working_title: tc.workingTitle,
+        core_question: tc.coreQuestion,
+        recommended_format: tc.recommendedFormat,
+        format_label: tc.formatLabel,
+        key_facts: tc.keyFacts,
+        source_ids: tc.sourceIds,
+        map_context: tc.mapContext,
+        status: tc.status,
+        owner_id: tc.ownerId,
+        observation_dimensions: tc.observationDimensions,
+      },
+      { onConflict: "source_editorial_brief_id" },
+    );
+    if (cardErr) return { ok: false, reason: `topic_card: ${cardErr.message}` };
+  }
+
+  return { ok: true };
+}
+
+/**
+ * Persist a topic-card claim/owner change. Identified by the source brief id (stable
+ * across the in-memory `topic-<id>` vs DB-uuid split). ownerId = null releases it.
+ */
+export async function persistTopicCardOwner(
+  sourceEditorialBriefId: string,
+  ownerId: string | null,
+): Promise<{ ok: boolean; reason?: string }> {
+  const admin = createSupabaseAdminClient();
+  const space = await spaceForBrief(admin, sourceEditorialBriefId);
+  if (!space.ok) return space;
+  const { error } = await admin
+    .from("topic_cards")
+    .update({ owner_id: ownerId })
+    .eq("source_editorial_brief_id", sourceEditorialBriefId);
+  if (error) return { ok: false, reason: `claim: ${error.message}` };
+  return { ok: true };
+}
+
 /**
  * Persist a new tracking object into a space. Membership is checked against the
  * RLS-scoped getMySpaces(); the write goes through the service-role client (content

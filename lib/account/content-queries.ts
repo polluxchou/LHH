@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
-  CandidateSignal, ContentValueScore, EditorialBrief, SearchRun, Source, TrackingObject,
+  CandidateSignal, ContentValueScore, EditorialBrief, ScreeningDecision, SearchRun, Source, TopicCard, TrackingObject,
 } from "@/lib/domain/types";
 
 /** The DB-backed slice of a space's content (ingestion outputs + migrated demo). */
@@ -11,10 +11,13 @@ export interface SpaceContent {
   candidateSignals: CandidateSignal[];
   editorialBriefs: EditorialBrief[];
   contentValueScores: ContentValueScore[];
+  screeningDecisions: ScreeningDecision[];
+  topicCards: TopicCard[];
 }
 
 const EMPTY: SpaceContent = {
   trackingObjects: [], searchRuns: [], sources: [], candidateSignals: [], editorialBriefs: [], contentValueScores: [],
+  screeningDecisions: [], topicCards: [],
 };
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -26,12 +29,14 @@ export async function getSpaceContent(spaceId: string): Promise<SpaceContent> {
   if (!spaceId) return EMPTY;
   const db = await createSupabaseServerClient();
 
-  const [toRes, runRes, sigRes, briefRes, scoreRes] = await Promise.all([
+  const [toRes, runRes, sigRes, briefRes, scoreRes, decRes, cardRes] = await Promise.all([
     db.from("tracking_objects").select("*").eq("space_id", spaceId),
     db.from("search_runs").select("*").eq("space_id", spaceId),
     db.from("candidate_signals").select("*").eq("space_id", spaceId),
     db.from("editorial_briefs").select("*").eq("space_id", spaceId),
     db.from("content_value_scores").select("*").eq("space_id", spaceId),
+    db.from("screening_decisions").select("*").eq("space_id", spaceId),
+    db.from("topic_cards").select("*").eq("space_id", spaceId),
   ]);
 
   const trackingObjects: TrackingObject[] = rows(toRes.data).map((r) => ({
@@ -78,6 +83,20 @@ export async function getSpaceContent(spaceId: string): Promise<SpaceContent> {
     };
   });
 
+  const screeningDecisions: ScreeningDecision[] = rows(decRes.data).map((r) => ({
+    editorialBriefId: r.editorial_brief_id, decision: r.decision, reason: r.reason,
+    observationDimensions: r.observation_dimensions?.length ? r.observation_dimensions : undefined,
+    decidedBy: r.decided_by, decidedAt: r.decided_at,
+  }));
+
+  const topicCards: TopicCard[] = rows(cardRes.data).map((r) => ({
+    id: r.id, sourceEditorialBriefId: r.source_editorial_brief_id, workingTitle: r.working_title,
+    coreQuestion: r.core_question, recommendedFormat: r.recommended_format,
+    formatLabel: r.format_label ?? undefined, keyFacts: r.key_facts ?? [], sourceIds: r.source_ids ?? [],
+    mapContext: r.map_context ?? null, status: r.status, ownerId: r.owner_id ?? null,
+    observationDimensions: r.observation_dimensions?.length ? r.observation_dimensions : undefined,
+  }));
+
   // sources are global; fetch only those referenced by this space's signals.
   const referenced = new Set<string>();
   for (const s of candidateSignals) for (const id of s.sourceIds) referenced.add(id);
@@ -97,7 +116,7 @@ export async function getSpaceContent(spaceId: string): Promise<SpaceContent> {
     }));
   }
 
-  return { trackingObjects, searchRuns, sources, candidateSignals, editorialBriefs, contentValueScores };
+  return { trackingObjects, searchRuns, sources, candidateSignals, editorialBriefs, contentValueScores, screeningDecisions, topicCards };
 }
 
 /** Per-user tracking-object subscriptions ("我关注的") for a space → { userId: objectId[] }. */
