@@ -70,6 +70,10 @@ export function parseVerification(
 
 // ── verifyOnX ────────────────────────────────────────────────────────────────
 
+// 事件日期前后各取 N 天作为 x-search 时间窗。放宽到 ±7 以减少"误判式 unverifiable":
+// 合练/里程碑类信号常在事件后数天才被官方/媒体在 X 上提及。
+const WINDOW_DAYS = 7;
+
 export interface VerifyDeps {
   search: (prompt: string, opts: { fromDate?: string; toDate?: string }) => Promise<{ text: string; citations: Citation[] }>;
 }
@@ -169,8 +173,8 @@ export async function verifyOnX(
   try {
     const prompt = buildVerifyPrompt(opts.claim, { brand: opts.brand, eventDate: opts.eventDate });
     const result = await deps.search(prompt, {
-      fromDate: shiftDate(opts.eventDate, -3),
-      toDate: shiftDate(opts.eventDate, 3),
+      fromDate: shiftDate(opts.eventDate, -WINDOW_DAYS),
+      toDate: shiftDate(opts.eventDate, WINDOW_DAYS),
     });
     return parseVerification(result.text, result.citations, { checkedAt });
   } catch {
