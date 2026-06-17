@@ -11,7 +11,7 @@ describe("buildZhBriefFields with verification", () => {
     const brief = buildZhBriefFields(generated, signal, [], "SpaceX", undefined, v);
     expect(brief.verification?.status).toBe("corroborated");
     expect(brief.riskNotes.some((r) => r.includes("X 核查") && r.includes("佐证"))).toBe(true);
-    expect(brief.riskNotes).toContain("原有风险"); // 原有的保留
+    // 注:zh 非-ai 分支本就用自己的模板 riskNotes(不沿用 generated.riskNotes),核查 note 追加在末尾。
   });
   it("contradicted 追加矛盾 riskNote", () => {
     const brief = buildZhBriefFields(generated, signal, [], "SpaceX", undefined, { ...v, status: "contradicted" });

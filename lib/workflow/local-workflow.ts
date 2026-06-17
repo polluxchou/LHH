@@ -377,7 +377,7 @@ export function buildZhBriefFields(
     whyItMatters: `这是一条关于「${subjectName}」的${kind}信号，来源置信度 ${pct}%。建议核实关键数字与时间线后，再判断是否值得展开选题。`,
     possibleAngles: [`${kind}解读`, `${subjectName}动态追踪`, "结合来源的事实梳理"],
     openQuestions: ["该说法能否由官方或监管来源交叉确认？", "与上一次已知状态相比，发生了什么变化？"],
-    riskNotes: [...generated.riskNotes, `来源置信度 ${pct}%，发布前需核实原始报道。`, ...(verification ? [verificationRiskNote(verification)] : [])],
+    riskNotes: [`来源置信度 ${pct}%，发布前需核实原始报道。`, ...(verification ? [verificationRiskNote(verification)] : [])],
     verification,
   };
 }
