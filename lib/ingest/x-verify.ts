@@ -65,3 +65,107 @@ export function parseVerification(
     checkedAt: opts.checkedAt,
   };
 }
+
+// ── verifyOnX ────────────────────────────────────────────────────────────────
+
+export interface VerifyDeps {
+  search: (prompt: string, opts: { fromDate?: string; toDate?: string }) => Promise<{ text: string; citations: Citation[] }>;
+}
+
+/** eventDate ± days → YYYY-MM-DD; 无 eventDate 返回 undefined。 */
+function shiftDate(eventDate: string | null, days: number): string | undefined {
+  if (!eventDate) return undefined;
+  const d = new Date(`${eventDate}T00:00:00.000Z`);
+  if (Number.isNaN(d.getTime())) return undefined;
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Extract Grok's text answer from the xAI Responses API response.
+ * Per docs: response.output[] contains content blocks; text blocks have type "output_text"
+ * and the text lives at output[].content[].text.
+ * Fallback: top-level output_text (not documented but defensive).
+ */
+function extractText(data: Record<string, unknown>): string {
+  // Primary: output[].content[].text (real xAI Responses API shape)
+  const output = (data as { output?: unknown[] }).output;
+  if (Array.isArray(output)) {
+    for (const block of output) {
+      const content = (block as { content?: unknown[] }).content;
+      if (Array.isArray(content)) {
+        for (const item of content) {
+          const itemTyped = item as { type?: string; text?: string };
+          if (itemTyped.type === "output_text" && typeof itemTyped.text === "string") {
+            return itemTyped.text;
+          }
+        }
+      }
+    }
+  }
+  // Fallback: top-level output_text (defensive)
+  if (typeof (data as { output_text?: unknown }).output_text === "string") {
+    return (data as { output_text: string }).output_text;
+  }
+  return "";
+}
+
+/**
+ * Extract citations from the xAI Responses API response.
+ * Per docs: response.citations is a top-level array of URL strings or citation objects.
+ * Each citation may be a plain URL string or an object with at least a `url` field.
+ */
+function extractCitations(data: Record<string, unknown>): Citation[] {
+  const raw = (data as { citations?: unknown }).citations;
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((c) => (typeof c === "string" ? { url: c } : (c as Citation)))
+    .filter((c) => c && typeof c.url === "string");
+}
+
+function defaultDeps(): VerifyDeps {
+  return {
+    search: async (prompt, opts) => {
+      const res = await fetch("https://api.x.ai/v1/responses", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${process.env.XAI_API_KEY ?? ""}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "grok-4.3",
+          // Per xAI docs: input is an array of message objects
+          input: [{ role: "user", content: prompt }],
+          tools: [
+            {
+              type: "x_search",
+              ...(opts.fromDate ? { from_date: opts.fromDate } : {}),
+              ...(opts.toDate ? { to_date: opts.toDate } : {}),
+            },
+          ],
+        }),
+      });
+      if (!res.ok) throw new Error(`x-search HTTP ${res.status}`);
+      const data = (await res.json()) as Record<string, unknown>;
+      return { text: extractText(data), citations: extractCitations(data) };
+    },
+  };
+}
+
+export async function verifyOnX(
+  opts: { claim: string; brand: string; eventDate: string | null },
+  deps: VerifyDeps = defaultDeps(),
+  now: () => string = () => new Date().toISOString(),
+): Promise<Verification> {
+  const checkedAt = now();
+  try {
+    const prompt = buildVerifyPrompt(opts.claim, { brand: opts.brand, eventDate: opts.eventDate });
+    const result = await deps.search(prompt, {
+      fromDate: shiftDate(opts.eventDate, -3),
+      toDate: shiftDate(opts.eventDate, 3),
+    });
+    return parseVerification(result.text, result.citations, { checkedAt });
+  } catch {
+    return { status: "unverifiable", confidence: 0, summary: "X 核查调用失败", evidence: [], checkedAt };
+  }
+}
