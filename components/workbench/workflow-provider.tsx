@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import type { TeamMember } from "@/lib/domain/types";
+import type { TeamMember, Verification } from "@/lib/domain/types";
 import { useSpaceSession } from "@/components/account/space-provider";
 import { addTrackingObjectToSpace, deleteTrackingObject, runSearchForObject, setSubscription, persistGeneratedBrief, persistScreeningDecision, persistTopicCardOwner } from "@/lib/account/content-mutations";
 import {
@@ -360,13 +360,14 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
 
       setGeneratingBriefIds((prev) => new Set(prev).add(signalId));
       let ai: AnalyzedBrief | undefined;
+      let verification: Verification | undefined;
       try {
         const result = await generateBriefAction({
           brand,
           signal: { headline: signal.headline, summary: signal.summary, eventDate: signal.eventDate },
           sources: sources.map((s) => ({ title: s.title, url: s.url, publishedAt: s.publishedAt })),
         });
-        if (result.ok) ai = result.analyzed;
+        if (result.ok) { ai = result.analyzed; verification = result.verification; }
         else store.logDemo("warning", L.aiFailedTemplate(result.reason), `brief-${signalId}`);
       } catch (error) {
         store.logDemo(
@@ -387,7 +388,7 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
       let failed = false;
       setState((current) => {
         try {
-          return generateBriefForSignal(current, signalId, { locale: "zh", now: nowIso(), ai });
+          return generateBriefForSignal(current, signalId, { locale: "zh", now: nowIso(), ai, verification });
         } catch (error) {
           failed = true;
           return appendWorkflowLog(
@@ -404,7 +405,7 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
       // 2) Persist to the DB so the brief survives a refresh (mirrors the search path).
       //    Recompute the brief fields deterministically from the snapshot — pure, used
       //    only to read fields; the DB generates the row id.
-      const draft = generateBriefForSignal(state, signalId, { locale: "zh", now: nowIso(), ai });
+      const draft = generateBriefForSignal(state, signalId, { locale: "zh", now: nowIso(), ai, verification });
       const brief = draft.editorialBriefs.find((b) => b.candidateSignalId === signalId);
       const score = brief ? draft.contentValueScores.find((s) => s.editorialBriefId === brief.id) : undefined;
       if (!brief || !score) return;
