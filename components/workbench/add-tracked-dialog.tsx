@@ -1,20 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { TeamMember, TrackingObjectType } from "@/lib/domain/types";
+import type { TeamMember, TrackingObject, TrackingObjectType } from "@/lib/domain/types";
 import type { AddTrackingObjectInput } from "@/lib/workflow/local-workflow";
 import { PRIORITY_BY_CLASS } from "@/components/workbench/helpers";
-import { useCopy } from "@/lib/i18n/locale-context";
+import { buildAdaptiveAddCopy } from "@/lib/workflow/adaptive-add-copy";
+import { useCopy, useLocale } from "@/lib/i18n/locale-context";
 
 interface AddTrackedDialogProps {
   open: boolean;
   currentMember: TeamMember;
+  /** content theme set when the space was created; woven into the title when present */
+  spaceTheme?: string;
+  /** objects already tracked in this space; their fields seed the placeholders */
+  existingObjects: TrackingObject[];
   onClose: () => void;
   onAdd: (input: AddTrackingObjectInput) => void;
 }
 
-export function AddTrackedDialog({ open, currentMember, onClose, onAdd }: AddTrackedDialogProps) {
+export function AddTrackedDialog({ open, currentMember, spaceTheme, existingObjects, onClose, onAdd }: AddTrackedDialogProps) {
   const d = useCopy().dialogs.addTracked;
+  const locale = useLocale();
+  const a = buildAdaptiveAddCopy({ base: d, theme: spaceTheme, objects: existingObjects, locale });
   const TYPE_OPTIONS: Array<{ value: TrackingObjectType; label: string; glyph: string; sub: string }> = [
     { value: "company", label: d.typeCompanyLabel, glyph: "🏢", sub: d.typeCompanySub },
     { value: "facility", label: d.typeFacilityLabel, glyph: "🏭", sub: d.typeFacilitySub },
@@ -95,7 +102,7 @@ export function AddTrackedDialog({ open, currentMember, onClose, onAdd }: AddTra
         <header className="at-head">
           <div>
             <div className="at-kicker">{d.kicker}</div>
-            <h2 className="at-title">{d.title}</h2>
+            <h2 className="at-title">{a.title}</h2>
             <div className="at-sub">{d.sub}</div>
           </div>
           <button type="button" className="at-close" onClick={onClose} aria-label={d.close}>
@@ -112,7 +119,7 @@ export function AddTrackedDialog({ open, currentMember, onClose, onAdd }: AddTra
               </span>
               <input
                 className="at-input"
-                placeholder={d.nameZhPlaceholder}
+                placeholder={a.nameZhPlaceholder}
                 value={nameZh}
                 onChange={(event) => setNameZh(event.target.value)}
                 autoFocus
@@ -122,7 +129,7 @@ export function AddTrackedDialog({ open, currentMember, onClose, onAdd }: AddTra
               <span className="at-label">{d.nameEnLabel}</span>
               <input
                 className="at-input"
-                placeholder={d.nameEnPlaceholder}
+                placeholder={a.nameEnPlaceholder}
                 value={name}
                 onChange={(event) => setName(event.target.value)}
               />
@@ -169,7 +176,7 @@ export function AddTrackedDialog({ open, currentMember, onClose, onAdd }: AddTra
               <span className="at-label">{d.trackLabel}</span>
               <input
                 className="at-input"
-                placeholder={d.trackPlaceholder}
+                placeholder={a.trackPlaceholder}
                 value={track}
                 onChange={(event) => setTrack(event.target.value)}
               />
@@ -178,7 +185,7 @@ export function AddTrackedDialog({ open, currentMember, onClose, onAdd }: AddTra
               <span className="at-label">{d.hqLabel}</span>
               <input
                 className="at-input"
-                placeholder={d.hqPlaceholder}
+                placeholder={a.hqPlaceholder}
                 value={headquarters}
                 onChange={(event) => setHeadquarters(event.target.value)}
               />
@@ -192,7 +199,7 @@ export function AddTrackedDialog({ open, currentMember, onClose, onAdd }: AddTra
             </span>
             <input
               className="at-input"
-              placeholder={d.keywordsPlaceholder}
+              placeholder={a.keywordsPlaceholder}
               value={keywords}
               onChange={(event) => setKeywords(event.target.value)}
             />

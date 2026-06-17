@@ -407,6 +407,8 @@ const en = {
     addTracked: {
       kicker: "Add tracked object",
       title: "Add a new tracked object",
+      titleThemed: (theme: string) => `Add a new “${theme}” tracked object`,
+      egPrefix: "e.g. ",
       sub: "The daily search covers it automatically · subscribe yourself, or recommend it to the team",
       close: "Close",
       nameZhLabel: "Chinese name",
@@ -890,6 +892,8 @@ const zh: typeof en = {
     addTracked: {
       kicker: "新增追踪对象",
       title: "添加一个新的追踪对象",
+      titleThemed: (theme) => `添加一个新的「${theme}」追踪对象`,
+      egPrefix: "例：",
       sub: "每天的日更搜索会自动覆盖它 · 你可以选择只自己订阅，或者推荐给团队",
       close: "关闭",
       nameZhLabel: "中文名称",
