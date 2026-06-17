@@ -76,6 +76,8 @@ export interface WorkbenchStore {
   pickTracked: (trackingObjectId: string) => void;
   startSearch: (fail: boolean) => void;
   generateBrief: (signalId: string) => Promise<void>;
+  /** 已有简报时重新生成：重跑 AI，内存+DB 覆盖旧简报 */
+  regenerateBrief: (signalId: string) => Promise<void>;
   /** 正在调 AI 生成简报的候选信号 id（按钮 loading 用） */
   generatingBriefIds: ReadonlySet<string>;
   openBriefFromSignal: (signalId: string) => void;
@@ -406,6 +408,111 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
       //    Recompute the brief fields deterministically from the snapshot — pure, used
       //    only to read fields; the DB generates the row id.
       const draft = generateBriefForSignal(state, signalId, { locale: "zh", now: nowIso(), ai, verification });
+      const brief = draft.editorialBriefs.find((b) => b.candidateSignalId === signalId);
+      const score = brief ? draft.contentValueScores.find((s) => s.editorialBriefId === brief.id) : undefined;
+      if (!brief || !score) return;
+      persistGeneratedBrief({
+        trackingObjectId: brief.trackingObjectId,
+        candidateSignalId: signalId,
+        briefTitle: brief.briefTitle,
+        tagline: brief.tagline ?? null,
+        factBullets: brief.factBullets ?? [],
+        factSummary: brief.factSummary,
+        sourceSummary: brief.sourceSummary,
+        mapContext: brief.mapContext ?? null,
+        whyItMatters: brief.whyItMatters,
+        possibleAngles: brief.possibleAngles,
+        openQuestions: brief.openQuestions,
+        riskNotes: brief.riskNotes ?? [],
+        verification: brief.verification ?? null,
+        status: brief.status,
+        score: {
+          freshnessScore: score.freshnessScore,
+          importanceScore: score.importanceScore,
+          rarityScore: score.rarityScore,
+          audienceInterestScore: score.audienceInterestScore,
+          visualPotentialScore: score.visualPotentialScore,
+          riskScore: score.riskScore,
+          overallRecommendation: score.overallRecommendation,
+          scoringNotes: score.scoringNotes,
+        },
+      })
+        .then((res) => {
+          if (!res.ok) store.logDemo("warning", L.briefNotPersisted(res.reason ?? L.errUnknown), `brief-${signalId}`);
+        })
+        .catch((error) => {
+          store.logDemo("warning", L.briefNotPersisted(error instanceof Error ? error.message : L.errUnknown), `brief-${signalId}`);
+        });
+    },
+
+    regenerateBrief: async (signalId) => {
+      const signal = state.candidateSignals.find((s) => s.id === signalId);
+      if (!signal) return;
+      // 没有旧简报时，等同首次生成。
+      const existing = state.editorialBriefs.find((b) => b.candidateSignalId === signalId);
+      if (!existing) return store.generateBrief(signalId);
+
+      // 去掉该信号的旧简报 + 其评分，让 generateBriefForSignal 不再短路（brief id 为确定式，沿用同一 id）。
+      const stripBrief = (s: LocalWorkflowState): LocalWorkflowState => {
+        const old = s.editorialBriefs.find((b) => b.candidateSignalId === signalId);
+        if (!old) return s;
+        return {
+          ...s,
+          editorialBriefs: s.editorialBriefs.filter((b) => b.candidateSignalId !== signalId),
+          contentValueScores: s.contentValueScores.filter((sc) => sc.editorialBriefId !== old.id),
+        };
+      };
+
+      const subject = state.trackingObjects.find((o) => o.id === signal.trackingObjectId);
+      const brand = subject?.nameZh ?? subject?.name ?? L.defaultSubject;
+      const sources = state.sources.filter((s) => signal.sourceIds.includes(s.id));
+
+      setGeneratingBriefIds((prev) => new Set(prev).add(signalId));
+      let ai: AnalyzedBrief | undefined;
+      let verification: Verification | undefined;
+      try {
+        const result = await generateBriefAction({
+          brand,
+          signal: { headline: signal.headline, summary: signal.summary, eventDate: signal.eventDate },
+          sources: sources.map((s) => ({ title: s.title, url: s.url, publishedAt: s.publishedAt })),
+        });
+        if (result.ok) { ai = result.analyzed; verification = result.verification; }
+        else store.logDemo("warning", L.aiFailedTemplate(result.reason), `brief-${signalId}`);
+      } catch (error) {
+        store.logDemo(
+          "warning",
+          L.aiFailedTemplate(error instanceof Error ? error.message : L.errUnknown),
+          `brief-${signalId}`,
+        );
+      } finally {
+        setGeneratingBriefIds((prev) => {
+          const next = new Set(prev);
+          next.delete(signalId);
+          return next;
+        });
+      }
+
+      // 1) 内存覆盖：先剥掉旧简报，再生成（functional updater，叠在最新 state 上）。
+      let failed = false;
+      setState((current) => {
+        try {
+          return generateBriefForSignal(stripBrief(current), signalId, { locale: "zh", now: nowIso(), ai, verification });
+        } catch (error) {
+          failed = true;
+          return appendWorkflowLog(
+            current,
+            { level: "error", message: L.briefGenFailed(error instanceof Error ? error.message : L.errWorkflow) },
+            { now: nowIso() },
+          );
+        }
+      });
+      if (failed) return;
+      store.logDemo("success", L.aiBriefRegenerated(signal.headline), `brief-${signalId}`);
+      setExpandedBriefIds((previous) => new Set(previous).add(`brief-${signalId}`));
+
+      // 2) DB 覆盖：从剥掉旧简报的快照重算字段（否则闭包里的旧 state 会触发短路），
+      //    persistGeneratedBrief 内部「先删后插」完成覆盖。
+      const draft = generateBriefForSignal(stripBrief(state), signalId, { locale: "zh", now: nowIso(), ai, verification });
       const brief = draft.editorialBriefs.find((b) => b.candidateSignalId === signalId);
       const score = brief ? draft.contentValueScores.find((s) => s.editorialBriefId === brief.id) : undefined;
       if (!brief || !score) return;

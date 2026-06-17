@@ -15,6 +15,7 @@ interface SignalStripProps {
   /** 正在调 AI 生成简报的信号 id（按钮 loading） */
   generatingIds?: ReadonlySet<string>;
   onGenerate: (signalId: string) => void;
+  onRegenerate: (signalId: string) => void;
   onOpenBrief: (signalId: string) => void;
 }
 
@@ -24,6 +25,7 @@ export function SignalStrip({
   sourceById,
   generatingIds,
   onGenerate,
+  onRegenerate,
   onOpenBrief,
 }: SignalStripProps) {
   const t = useCopy();
@@ -80,9 +82,21 @@ export function SignalStrip({
                 </span>
               ) : null}
               {hasBrief ? (
-                <button type="button" className="gen-brief has" onClick={() => onOpenBrief(signal.id)}>
-                  {t.workbench.signals.viewBrief}
-                </button>
+                <div className="signal-actions">
+                  <button type="button" className="gen-brief has" onClick={() => onOpenBrief(signal.id)}>
+                    {t.workbench.signals.viewBrief}
+                  </button>
+                  <button
+                    type="button"
+                    className={`regen-brief ${generatingIds?.has(signal.id) ? "spinning" : ""}`}
+                    onClick={() => onRegenerate(signal.id)}
+                    disabled={generatingIds?.has(signal.id)}
+                    title={t.workbench.signals.regenBrief}
+                    aria-label={t.workbench.signals.regenBrief}
+                  >
+                    ↻
+                  </button>
+                </div>
               ) : isDuplicate ? (
                 <button type="button" className="gen-brief" disabled>
                   {t.workbench.signals.skipped}
