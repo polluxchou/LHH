@@ -23,3 +23,45 @@ export function buildVerifyPrompt(claim: string, ctx: { brand: string; eventDate
     .filter(Boolean)
     .join("\n");
 }
+
+function nonEmpty(v: unknown): string {
+  return typeof v === "string" ? v.trim() : "";
+}
+
+function evidenceFrom(citations: Citation[]): VerificationEvidence[] {
+  return (citations ?? [])
+    .map((c) => ({ handle: nonEmpty(c.handle), url: nonEmpty(c.url), excerpt: nonEmpty(c.title), official: false }))
+    .filter((e) => e.url);
+}
+
+export function parseVerification(
+  raw: string,
+  citations: Citation[],
+  opts: { checkedAt: string },
+): Verification {
+  const evidence = evidenceFrom(citations);
+  const fallback = (summary: string): Verification => ({
+    status: "unverifiable",
+    confidence: 0,
+    summary,
+    evidence,
+    checkedAt: opts.checkedAt,
+  });
+
+  let o: Record<string, unknown>;
+  try {
+    o = JSON.parse(raw) as Record<string, unknown>;
+  } catch {
+    return fallback("X 核查未返回有效 JSON");
+  }
+  if (!o || typeof o !== "object" || !STATUSES.includes(o.status as VerificationStatus)) {
+    return fallback("X 核查状态非法或缺失");
+  }
+  return {
+    status: o.status as VerificationStatus,
+    confidence: Math.min(1, Math.max(0, Number(o.confidence) || 0)),
+    summary: nonEmpty(o.summary) || "(无结论)",
+    evidence,
+    checkedAt: opts.checkedAt,
+  };
+}
