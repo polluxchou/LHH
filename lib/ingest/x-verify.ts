@@ -18,7 +18,8 @@ export function buildVerifyPrompt(claim: string, ctx: { brand: string; eventDate
     `1. 优先依据官方/认证账号(蓝标、当事机构或人物本人)的帖子判断;普通账号仅作参考。`,
     `2. 结论取以下之一:corroborated(有官方/可信佐证)| disputed(无官方佐证或说法存疑)| contradicted(X 上有可信信息与之矛盾)| unverifiable(X 上无相关覆盖、无法核验)。`,
     `3. 只输出一个 JSON 对象(不要解释、不要 markdown 代码块):`,
-    `{"status":"corroborated|disputed|contradicted|unverifiable","confidence":0.0,"summary":"1-2 句中文核查结论"}`,
+    `{"status":"corroborated|disputed|contradicted|unverifiable","confidence":0.0,"summary":"1-2 句中文核查结论","evidence":[{"account":"发帖账号(尽量含 @,如 @SpaceX)","quote":"该帖关键原文片段(保留原文语言)","url":"帖子链接"}]}`,
+    `4. evidence 最多列 5 条最关键的支持或反驳帖子,优先官方/认证账号;每条务必带上发帖账号与原文片段。无可引用帖子时给空数组 []。`,
   ]
     .filter(Boolean)
     .join("\n");
@@ -67,17 +68,33 @@ function evidenceFrom(citations: Citation[]): VerificationEvidence[] {
     .filter((e) => e.url || e.handle || e.excerpt);
 }
 
+/**
+ * Grok 在 JSON 里返回的结构化证据:每条带 account(昵称)+ quote(原文片段)+ url。
+ * 这是首选来源——citation URL(尤其 x.com/i/status/<id> 形式)拿不到昵称,Grok 直接给。
+ */
+function evidenceFromGrok(value: unknown): VerificationEvidence[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      const o = (item ?? {}) as Record<string, unknown>;
+      const url = nonEmpty(o.url);
+      const handle = (nonEmpty(o.account).replace(/^@/, "")) || deriveHandle(url);
+      return { handle, url, excerpt: nonEmpty(o.quote), official: false };
+    })
+    .filter((e) => e.url || e.handle || e.excerpt);
+}
+
 export function parseVerification(
   raw: string,
   citations: Citation[],
   opts: { checkedAt: string },
 ): Verification {
-  const evidence = evidenceFrom(citations);
+  const citationEvidence = evidenceFrom(citations);
   const fallback = (summary: string): Verification => ({
     status: "unverifiable",
     confidence: 0,
     summary,
-    evidence,
+    evidence: citationEvidence,
     checkedAt: opts.checkedAt,
   });
 
@@ -90,11 +107,13 @@ export function parseVerification(
   if (!o || typeof o !== "object" || !STATUSES.includes(o.status as VerificationStatus)) {
     return fallback("X 核查状态非法或缺失");
   }
+  // 优先 Grok 结构化证据(有昵称+原文);缺省时回落到 citation URL。
+  const grokEvidence = evidenceFromGrok(o.evidence);
   return {
     status: o.status as VerificationStatus,
     confidence: Math.min(1, Math.max(0, Number(o.confidence) || 0)),
     summary: nonEmpty(o.summary) || "(无结论)",
-    evidence,
+    evidence: grokEvidence.length ? grokEvidence : citationEvidence,
     checkedAt: opts.checkedAt,
   };
 }

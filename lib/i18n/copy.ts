@@ -520,6 +520,7 @@ const en = {
       blockAngles: "Possible angles",
       blockQuestions: "Open questions",
       blockVerify: "X fact-check",
+      viewPost: "View post",
     },
     tweaks: {
       head: "Display settings · TWEAKS",
@@ -1059,6 +1060,7 @@ const zh: typeof en = {
       blockAngles: "可写角度",
       blockQuestions: "待确认问题",
       blockVerify: "X 事实核查",
+      viewPost: "查看原帖",
     },
     tweaks: {
       head: "显示设置 · TWEAKS",

@@ -64,6 +64,11 @@ describe("buildVerifyPrompt", () => {
   it("有事件日期时带上", () => {
     expect(p).toContain("2026-06-13");
   });
+  it("要求返回结构化 evidence(account/quote/url)", () => {
+    expect(p).toContain("evidence");
+    expect(p).toContain("account");
+    expect(p).toContain("quote");
+  });
 });
 
 const cites: Citation[] = [{ url: "https://x.com/SpaceX/status/1", title: "Falcon 9 booster ... 35th flight", handle: "SpaceX" }];
@@ -101,6 +106,22 @@ describe("parseVerification", () => {
     const v = parseVerification(JSON.stringify({ status: "disputed", confidence: 0.3, summary: "x" }), [{ url: "", title: "帖子原文片段" }], { checkedAt: AT });
     expect(v.evidence).toHaveLength(1);
     expect(v.evidence[0].excerpt).toBe("帖子原文片段");
+  });
+  it("Grok 返回结构化 evidence → 优先用它(account 当昵称、quote 当原文)", () => {
+    const raw = JSON.stringify({
+      status: "corroborated", confidence: 0.8, summary: "x",
+      evidence: [{ account: "@Nasdaq", quote: "RKLB joins the Nasdaq-100", url: "https://x.com/i/status/123" }],
+    });
+    const v = parseVerification(raw, [{ url: "https://x.com/i/status/999" }], { checkedAt: AT });
+    expect(v.evidence).toHaveLength(1);
+    expect(v.evidence[0].handle).toBe("Nasdaq");
+    expect(v.evidence[0].excerpt).toBe("RKLB joins the Nasdaq-100");
+    expect(v.evidence[0].url).toBe("https://x.com/i/status/123");
+  });
+  it("Grok evidence 缺省/为空 → 回落到 citations", () => {
+    const raw = JSON.stringify({ status: "corroborated", confidence: 0.8, summary: "x", evidence: [] });
+    const v = parseVerification(raw, [{ url: "https://x.com/SpaceX/status/1" }], { checkedAt: AT });
+    expect(v.evidence[0].handle).toBe("SpaceX");
   });
 });
 

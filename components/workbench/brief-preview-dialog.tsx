@@ -73,20 +73,29 @@ export function BriefPreviewDialog({
               {brief.verification.evidence.length ? (
                 <ul className="bv-evidence">
                   {brief.verification.evidence.map((e, i) => {
-                    // 账号名为可点链接:有帖子链接 → 直达该帖;否则回落到账号主页。
+                    // 昵称与原文都做成指向该帖的可点链接;有帖子链接 → 直达,否则回落到账号主页。
                     const href = e.url || (e.handle ? `https://x.com/${e.handle}` : "");
-                    const label = e.handle ? `@${e.handle}` : e.url;
                     return (
                       <li key={e.url || e.handle || i}>
-                        {label ? (
+                        {e.handle ? (
                           href ? (
-                            <a href={href} target="_blank" rel="noreferrer">{label}</a>
+                            <a className="bv-acct" href={href} target="_blank" rel="noreferrer">@{e.handle}</a>
                           ) : (
-                            <span className="bv-acct">{label}</span>
+                            <span className="bv-acct">@{e.handle}</span>
                           )
                         ) : null}
-                        {/* 去不到帖子时,这里就是展示的「帖子原文」 */}
-                        {e.excerpt ? <p className="bv-excerpt">{e.excerpt}</p> : null}
+                        {/* 帖子原文:可点(跳该帖);去不到帖子时退化为纯文本 */}
+                        {e.excerpt ? (
+                          href ? (
+                            <a className="bv-quote" href={href} target="_blank" rel="noreferrer">{e.excerpt}</a>
+                          ) : (
+                            <p className="bv-excerpt">{e.excerpt}</p>
+                          )
+                        ) : null}
+                        {/* 既无昵称也无原文、只有链接 → 给个可点「查看原帖」,不暴露裸地址 */}
+                        {!e.handle && !e.excerpt && href ? (
+                          <a href={href} target="_blank" rel="noreferrer">{d.viewPost} ↗</a>
+                        ) : null}
                       </li>
                     );
                   })}

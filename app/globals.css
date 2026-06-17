@@ -4001,6 +4001,9 @@ body.theme-dark .tw-option { background: rgba(255,255,255,0.04); }
 .bv-evidence a:hover { text-decoration: underline; }
 .bv-acct { color: var(--color-text); }
 .bv-excerpt { margin: 4px 0 0; font-size: 12.5px; line-height: 1.55; color: var(--color-text-light); }
+/* 可点的帖子原文:正文色 + hover 下划线(区别于蓝色 @昵称链接) */
+.bv-evidence a.bv-quote { display: block; margin-top: 4px; font-size: 12.5px; line-height: 1.55; font-weight: 400; color: var(--color-text-light); text-decoration: none; }
+.bv-evidence a.bv-quote:hover { color: var(--color-text); text-decoration: underline; }
 .mbp-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
