@@ -1,9 +1,18 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { EditorialBrief } from "@/lib/domain/types";
+import type { EditorialBrief, VerificationStatus } from "@/lib/domain/types";
 import { buildMapBriefPreview } from "@/lib/workflow/map-brief-preview";
 import { useCopy } from "@/lib/i18n/locale-context";
+
+function verifyLabel(status: VerificationStatus): string {
+  switch (status) {
+    case "corroborated": return "✅ 已获 X 佐证";
+    case "disputed": return "⚠️ 存疑";
+    case "contradicted": return "❌ 有矛盾";
+    default: return "— 未核验";
+  }
+}
 
 /**
  * 简报详情弹窗 · 地图模式与首页编辑简报卡片共用。
@@ -56,6 +65,22 @@ export function BriefPreviewDialog({
             <div className="mbp-label">{d.blockWhy}</div>
             <p>{preview.whyItMatters}</p>
           </section>
+          {brief.verification ? (
+            <section className="brief-verify">
+              <span className={`bv-badge bv-${brief.verification.status}`}>{verifyLabel(brief.verification.status)}</span>
+              <p className="bv-summary">{brief.verification.summary}</p>
+              {brief.verification.evidence.length ? (
+                <ul className="bv-evidence">
+                  {brief.verification.evidence.map((e) => (
+                    <li key={e.url}>
+                      <a href={e.url} target="_blank" rel="noreferrer">{e.handle ? `@${e.handle}` : e.url}</a>
+                      {e.excerpt ? <span className="bv-excerpt"> · {e.excerpt}</span> : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
+          ) : null}
           <section className="mbp-block accent">
             <div className="mbp-label">{d.blockMap}</div>
             <p>{preview.mapContext}</p>
