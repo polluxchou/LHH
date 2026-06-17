@@ -4,6 +4,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import type { Locale } from "@/lib/i18n/copy";
 import { LocaleProvider } from "@/lib/i18n/locale-context";
 import { countUpcomingLaunches } from "@/lib/data/launches";
+import { useSpaceSession } from "@/components/account/space-provider";
 import { useWorkflow } from "@/components/workbench/workflow-provider";
 import { getTotalPending } from "@/components/workbench/selectors";
 import { TopNav } from "@/components/workbench/top-nav";
@@ -17,6 +18,8 @@ import { TweaksPanel } from "@/components/workbench/tweaks-panel";
  */
 export function AppFrame({ locale, children }: { locale: Locale; children: ReactNode }) {
   const store = useWorkflow();
+  const session = useSpaceSession();
+  const spaceTheme = session.mySpaces.find((s) => s.space.id === session.currentSpaceId)?.space.theme ?? "";
   const [logExpanded, setLogExpanded] = useState(false);
   const totalPending = useMemo(
     () => getTotalPending(store.state),
@@ -43,6 +46,8 @@ export function AppFrame({ locale, children }: { locale: Locale; children: React
       <AddTrackedDialog
         open={store.addOpen}
         currentMember={store.currentMember}
+        spaceTheme={spaceTheme}
+        existingObjects={store.state.trackingObjects}
         onClose={() => store.setAddOpen(false)}
         onAdd={store.addTracked}
       />
