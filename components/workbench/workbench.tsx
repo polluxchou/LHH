@@ -11,6 +11,7 @@ import { MapPanel } from "@/components/workbench/map-panel";
 import { TopicPoolPanel, type StudioAdvanceKind } from "@/components/workbench/topic-pool-panel";
 import { ProductionStudio, type StudioTab } from "@/components/workbench/production-studio";
 import { ObserveDialog } from "@/components/workbench/observe-dialog";
+import { ArticleStudio } from "@/components/workbench/article-studio";
 import { useWorkflow } from "@/components/workbench/workflow-provider";
 import {
   buildBriefViewModel,
@@ -29,6 +30,7 @@ export function Workbench() {
   const [studio, setStudio] = useState<{ topicCardId: string; tab: StudioTab } | null>(null);
   const [trackedCollapsed, setTrackedCollapsed] = useState(false);
   const [observeBriefId, setObserveBriefId] = useState<string | null>(null);
+  const [articleTopicId, setArticleTopicId] = useState<string | null>(null);
 
   const visibleTracked = useMemo(() => {
     if (store.scope === "team") {
@@ -282,10 +284,7 @@ export function Workbench() {
                 currentMember={store.currentMember}
                 onClaim={store.claim}
                 onAdvance={handleAdvance}
-                onGenerateArticle={(topicCardId) => {
-                  const topicCard = state.topicCards.find((item) => item.id === topicCardId);
-                  store.logDemo("info", `生成文章 · 功能开发中 · ${topicCard?.workingTitle ?? topicCardId}`);
-                }}
+                onGenerateArticle={(topicCardId) => setArticleTopicId(topicCardId)}
               />
             ) : null}
           </div>
@@ -319,6 +318,31 @@ export function Workbench() {
           }
         }}
       />
+
+      {articleTopicId
+        ? (() => {
+            const tc = state.topicCards.find((t) => t.id === articleTopicId);
+            const br = tc ? state.editorialBriefs.find((b) => b.id === tc.sourceEditorialBriefId) : null;
+            if (!tc || !br) return null;
+            return (
+              <ArticleStudio
+                brief={br}
+                topicCard={tc}
+                draft={state.articleDrafts[tc.id] ?? null}
+                generating={store.generatingArticleKeys.has(tc.id)}
+                isSectionBusy={(sectionId) => store.busyArticleSectionKeys.has(`${tc.id}:${sectionId}`)}
+                isTransBusy={(lang, sectionId) => store.busyArticleSectionKeys.has(`${tc.id}:${lang}:${sectionId}`)}
+                onClose={() => setArticleTopicId(null)}
+                onGenerate={(cfg) => store.generateArticle(tc.id, cfg)}
+                onRegenSection={(sectionId) => store.regenerateArticleSection(tc.id, sectionId)}
+                onEditSection={(sectionId, body) => store.editArticleSectionBody(tc.id, sectionId, body)}
+                onTranslate={(langs) => store.translateArticleLangs(tc.id, langs)}
+                onRetranslateSection={(lang, sectionId) => store.retranslateArticleSection(tc.id, lang, sectionId)}
+                onEditTranslation={(lang, sectionId, body) => store.editArticleTranslationBody(tc.id, lang, sectionId, body)}
+              />
+            );
+          })()
+        : null}
     </>
   );
 }
