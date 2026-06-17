@@ -28,6 +28,21 @@ import {
 } from "@/lib/workflow/local-workflow";
 import { generateProductionAction } from "@/app/actions/generate-production";
 import { generateBriefAction } from "@/app/actions/generate-brief";
+import {
+  generateArticleAction,
+  regenerateArticleSectionAction,
+  translateArticleAction,
+  retranslateSectionAction,
+} from "@/app/actions/generate-article";
+import { buildArticleStub, buildTranslateStub } from "@/lib/article/stub-article";
+import {
+  setArticleDraft,
+  setArticleSectionBody,
+  editArticleSection,
+  upsertTranslation,
+  editTranslationSection,
+} from "@/lib/workflow/article-draft";
+import type { ArticleLang, ArticlePlatform, ArticleSection, ArticleType } from "@/lib/domain/article";
 import type { AnalyzedBrief } from "@/lib/ingest/types";
 import type { StoryboardShot } from "@/lib/domain/production";
 import type { TrackedScope } from "@/components/workbench/tracked-list";
@@ -77,6 +92,20 @@ export interface WorkbenchStore {
   toggleCheck: (briefId: string, itemId: string) => void;
   resetProduction: (briefId: string) => void;
   generateProduction: (briefId: string, targetDuration?: string) => Promise<void>;
+  // ── article drafts ──
+  /** 正在整篇生成/翻译的 topicCard.id（loading） */
+  generatingArticleKeys: ReadonlySet<string>;
+  /** 正在单段生成/重译的 key：`${topicCardId}:${sectionId}` 或 `${topicCardId}:${lang}:${sectionId}` */
+  busyArticleSectionKeys: ReadonlySet<string>;
+  generateArticle: (
+    topicCardId: string,
+    cfg: { type: ArticleType; platform: ArticlePlatform; audience: string },
+  ) => Promise<void>;
+  regenerateArticleSection: (topicCardId: string, sectionId: string) => Promise<void>;
+  translateArticleLangs: (topicCardId: string, langs: ArticleLang[]) => Promise<void>;
+  retranslateArticleSection: (topicCardId: string, lang: ArticleLang, sectionId: string) => Promise<void>;
+  editArticleSectionBody: (topicCardId: string, sectionId: string, body: string) => void;
+  editArticleTranslationBody: (topicCardId: string, lang: ArticleLang, sectionId: string, body: string) => void;
 }
 
 const WorkflowContext = createContext<WorkbenchStore | null>(null);
@@ -95,6 +124,7 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
   const session = useSpaceSession();
   const router = useRouter();
   const L = getCopy(locale).log;
+  const A = getCopy(locale).articleStudio;
   const DECISION_INPUT: Record<
     Exclude<BriefUiStatus, "pending">,
     { decision: "approved" | "watch" | "rejected"; reason: string }
@@ -124,6 +154,8 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
   );
   const [runningIds, setRunningIds] = useState<ReadonlySet<string>>(() => new Set());
   const [generatingBriefIds, setGeneratingBriefIds] = useState<ReadonlySet<string>>(() => new Set());
+  const [generatingArticleKeys, setGeneratingArticleKeys] = useState<ReadonlySet<string>>(() => new Set());
+  const [busyArticleSectionKeys, setBusyArticleSectionKeys] = useState<ReadonlySet<string>>(() => new Set());
   const [addOpen, setAddOpen] = useState(false);
   const [tweaks, setTweak] = useWorkbenchTweaks();
   const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
@@ -179,6 +211,8 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
     },
     runningIds,
     generatingBriefIds,
+    generatingArticleKeys,
+    busyArticleSectionKeys,
     addOpen,
     setAddOpen,
     tweaks,
@@ -551,6 +585,96 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
         store.logDemo("warning", L.prodFailedTemplate(result.reason), briefId);
       }
     },
+
+    // ── article drafts ──
+    generateArticle: async (topicCardId, cfg) => {
+      const topicCard = state.topicCards.find((t) => t.id === topicCardId) ?? null;
+      const brief = topicCard
+        ? state.editorialBriefs.find((b) => b.id === topicCard.sourceEditorialBriefId) ?? null
+        : null;
+      if (!topicCard || !brief) return;
+
+      setGeneratingArticleKeys((p) => new Set(p).add(topicCardId));
+      let sections: ArticleSection[] | null = null;
+      try {
+        const r = await generateArticleAction({ brief, topicCard, type: cfg.type, platform: cfg.platform, audience: cfg.audience });
+        if (r.ok) sections = r.value;
+        else store.logDemo("warning", A.genFailLog(r.reason));
+      } catch (e) {
+        store.logDemo("warning", A.genFailLog(e instanceof Error ? e.message : "unknown"));
+      } finally {
+        setGeneratingArticleKeys((p) => { const n = new Set(p); n.delete(topicCardId); return n; });
+      }
+      const finalSections =
+        sections ?? buildArticleStub({ brief, topicCard, type: cfg.type, platform: cfg.platform, audience: cfg.audience });
+      setState((cur) =>
+        setArticleDraft(cur, topicCardId, {
+          type: cfg.type, platform: cfg.platform, audience: cfg.audience, sections: finalSections, translations: [],
+        }),
+      );
+    },
+
+    regenerateArticleSection: async (topicCardId, sectionId) => {
+      const topicCard = state.topicCards.find((t) => t.id === topicCardId) ?? null;
+      const brief = topicCard
+        ? state.editorialBriefs.find((b) => b.id === topicCard.sourceEditorialBriefId) ?? null
+        : null;
+      const draft = state.articleDrafts[topicCardId];
+      const section = draft?.sections.find((s) => s.id === sectionId);
+      if (!topicCard || !brief || !draft || !section) return;
+
+      const key = `${topicCardId}:${sectionId}`;
+      setBusyArticleSectionKeys((p) => new Set(p).add(key));
+      try {
+        const r = await regenerateArticleSectionAction({
+          brief, topicCard, type: draft.type, platform: draft.platform, audience: draft.audience, section,
+        });
+        if (r.ok) setState((cur) => setArticleSectionBody(cur, topicCardId, sectionId, r.value));
+        else store.logDemo("warning", A.genFailLog(r.reason));
+      } catch (e) {
+        store.logDemo("warning", A.genFailLog(e instanceof Error ? e.message : "unknown"));
+      } finally {
+        setBusyArticleSectionKeys((p) => { const n = new Set(p); n.delete(key); return n; });
+      }
+    },
+
+    translateArticleLangs: async (topicCardId, langs) => {
+      const draft = state.articleDrafts[topicCardId];
+      if (!draft || langs.length === 0) return;
+      setGeneratingArticleKeys((p) => new Set(p).add(topicCardId));
+      try {
+        for (const lang of langs) {
+          const r = await translateArticleAction({ sections: draft.sections, lang });
+          const sections = r.ok ? r.value : buildTranslateStub(draft.sections, lang);
+          if (!r.ok) store.logDemo("warning", A.genFailLog(r.reason));
+          setState((cur) => upsertTranslation(cur, topicCardId, { lang, sections }));
+        }
+      } finally {
+        setGeneratingArticleKeys((p) => { const n = new Set(p); n.delete(topicCardId); return n; });
+      }
+    },
+
+    retranslateArticleSection: async (topicCardId, lang, sectionId) => {
+      const draft = state.articleDrafts[topicCardId];
+      const section = draft?.sections.find((s) => s.id === sectionId);
+      if (!draft || !section) return;
+      const key = `${topicCardId}:${lang}:${sectionId}`;
+      setBusyArticleSectionKeys((p) => new Set(p).add(key));
+      try {
+        const r = await retranslateSectionAction({ section, lang });
+        if (r.ok) setState((cur) => editTranslationSection(cur, topicCardId, lang, sectionId, r.value));
+        else store.logDemo("warning", A.genFailLog(r.reason));
+      } catch (e) {
+        store.logDemo("warning", A.genFailLog(e instanceof Error ? e.message : "unknown"));
+      } finally {
+        setBusyArticleSectionKeys((p) => { const n = new Set(p); n.delete(key); return n; });
+      }
+    },
+
+    editArticleSectionBody: (topicCardId, sectionId, body) =>
+      setState((cur) => editArticleSection(cur, topicCardId, sectionId, body)),
+    editArticleTranslationBody: (topicCardId, lang, sectionId, body) =>
+      setState((cur) => editTranslationSection(cur, topicCardId, lang, sectionId, body)),
   };
 
   return <WorkflowContext.Provider value={store}>{children}</WorkflowContext.Provider>;
