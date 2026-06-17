@@ -32,6 +32,7 @@ import type {
   TrackingObject,
   TrackingObjectPriority,
   TrackingObjectType,
+  Verification,
 } from "@/lib/domain/types";
 import { getOverallRecommendation } from "@/lib/domain/scoring";
 import { buildTrackingObjectQueries } from "@/lib/search/query-builder";
@@ -120,6 +121,7 @@ interface GenerateBriefOptions extends WorkflowCallOptions {
   locale?: "en" | "zh";
   /** 实时 DeepSeek 分析结果；存在时用 AI 的 factSummary/whyItMatters 等覆盖模板拼装 */
   ai?: AnalyzedBrief;
+  verification?: Verification;
 }
 
 export interface AddTrackingObjectInput {
@@ -315,12 +317,23 @@ const ZH_SIGNAL_TYPE_LABELS: Record<CandidateSignal["signalType"], string> = {
  * factSummary 直接取信号摘要，factBullets/whyItMatters 等由真实字段派生，
  * 取代此前的占位文案，确保简报与信号本身一致。
  */
-function buildZhBriefFields(
+function verificationRiskNote(v: Verification): string {
+  const pct = Math.round(v.confidence * 100);
+  switch (v.status) {
+    case "corroborated": return `✅ X 核查:已获佐证(可信度 ${pct}%)`;
+    case "disputed": return `⚠️ X 核查:未获官方佐证 / 说法存疑`;
+    case "contradicted": return `❌ X 核查:X 上存在矛盾信息`;
+    default: return `— X 核查:无 X 覆盖,未能核验`;
+  }
+}
+
+export function buildZhBriefFields(
   generated: EditorialBrief,
   signal: CandidateSignal,
   sources: Source[],
   subjectName: string,
   ai?: AnalyzedBrief,
+  verification?: Verification,
 ): EditorialBrief {
   const pct = Math.round(signal.confidence * 100);
   const kind = ZH_SIGNAL_TYPE_LABELS[signal.signalType];
@@ -344,7 +357,8 @@ function buildZhBriefFields(
       whyItMatters: ai.whyItMatters,
       possibleAngles: ai.possibleAngles.length ? ai.possibleAngles : [`${kind}解读`, `${subjectName}动态追踪`],
       openQuestions: ai.openQuestions.length ? ai.openQuestions : ["该说法能否由官方或监管来源交叉确认？"],
-      riskNotes: ai.riskNotes.length ? ai.riskNotes : [`来源置信度 ${pct}%，发布前需核实原始报道。`],
+      riskNotes: [...(ai.riskNotes.length ? ai.riskNotes : [`来源置信度 ${pct}%，发布前需核实原始报道。`]), ...(verification ? [verificationRiskNote(verification)] : [])],
+      verification,
     };
   }
 
@@ -363,7 +377,8 @@ function buildZhBriefFields(
     whyItMatters: `这是一条关于「${subjectName}」的${kind}信号，来源置信度 ${pct}%。建议核实关键数字与时间线后，再判断是否值得展开选题。`,
     possibleAngles: [`${kind}解读`, `${subjectName}动态追踪`, "结合来源的事实梳理"],
     openQuestions: ["该说法能否由官方或监管来源交叉确认？", "与上一次已知状态相比，发生了什么变化？"],
-    riskNotes: [`来源置信度 ${pct}%，发布前需核实原始报道。`],
+    riskNotes: [...generated.riskNotes, `来源置信度 ${pct}%，发布前需核实原始报道。`, ...(verification ? [verificationRiskNote(verification)] : [])],
+    verification,
   };
 }
 
@@ -414,7 +429,7 @@ export function generateBriefForSignal(
   const subjectName = subjectObject?.nameZh ?? subjectObject?.name ?? "该追踪对象";
   const brief: EditorialBrief =
     options.locale === "zh"
-      ? buildZhBriefFields(generated, signal, matchingSources, subjectName, options.ai)
+      ? buildZhBriefFields(generated, signal, matchingSources, subjectName, options.ai, options.verification)
       : generated;
   const score = createDefaultScore(brief, signal.confidence);
 
