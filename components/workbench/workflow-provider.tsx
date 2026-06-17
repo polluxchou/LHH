@@ -365,6 +365,8 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
           brand,
           signal: { headline: signal.headline, summary: signal.summary, eventDate: signal.eventDate },
           sources: sources.map((s) => ({ title: s.title, url: s.url, publishedAt: s.publishedAt })),
+          spaceId: session.currentSpaceId,
+          userId: session.userId,
         });
         if (result.ok) ai = result.analyzed;
         else store.logDemo("warning", L.aiFailedTemplate(result.reason), `brief-${signalId}`);
@@ -641,7 +643,7 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
         return;
       }
       const topicCard = state.topicCards.find((t) => t.sourceEditorialBriefId === briefId) ?? null;
-      const result = await generateProductionAction({ brief, topicCard, targetDuration });
+      const result = await generateProductionAction({ brief, topicCard, targetDuration, spaceId: session.currentSpaceId, userId: session.userId });
       if (result.ok) {
         setState((current) => setProductionDraft(current, briefId, result.pkg));
         store.logDemo("success", L.prodDone(brief.briefTitle), briefId);
@@ -663,6 +665,7 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
       try {
         const r = await generateArticleAction({
           brief, topicCard, platform: cfg.platform, audienceRole: cfg.audienceRole, audienceRegion: cfg.audienceRegion,
+          spaceId: session.currentSpaceId, userId: session.userId,
         });
         if (r.ok) sections = r.value;
         else store.logDemo("warning", A.genFailLog(r.reason));
@@ -697,6 +700,7 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
       try {
         const r = await regenerateArticleSectionAction({
           brief, topicCard, platform: draft.platform, audienceRole: draft.audienceRole, audienceRegion: draft.audienceRegion, section,
+          spaceId: session.currentSpaceId, userId: session.userId,
         });
         if (r.ok) setState((cur) => setArticleSectionBody(cur, topicCardId, sectionId, r.value));
         else store.logDemo("warning", A.genFailLog(r.reason));
@@ -713,7 +717,7 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
       setGeneratingArticleKeys((p) => new Set(p).add(topicCardId));
       try {
         for (const lang of langs) {
-          const r = await translateArticleAction({ sections: draft.sections, lang });
+          const r = await translateArticleAction({ sections: draft.sections, lang, spaceId: session.currentSpaceId, userId: session.userId });
           const sections = r.ok ? r.value : buildTranslateStub(draft.sections, lang);
           if (!r.ok) store.logDemo("warning", A.genFailLog(r.reason));
           setState((cur) => upsertTranslation(cur, topicCardId, { lang, sections }));
@@ -730,7 +734,7 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
       const key = `${topicCardId}:${lang}:${sectionId}`;
       setBusyArticleSectionKeys((p) => new Set(p).add(key));
       try {
-        const r = await retranslateSectionAction({ section, lang });
+        const r = await retranslateSectionAction({ section, lang, spaceId: session.currentSpaceId, userId: session.userId });
         if (r.ok) setState((cur) => editTranslationSection(cur, topicCardId, lang, sectionId, r.value));
         else store.logDemo("warning", A.genFailLog(r.reason));
       } catch (e) {
