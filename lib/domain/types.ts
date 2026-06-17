@@ -155,6 +155,23 @@ export interface CandidateSignal {
   confidence: number;
 }
 
+export type VerificationStatus = "corroborated" | "disputed" | "contradicted" | "unverifiable";
+
+export interface VerificationEvidence {
+  handle: string;
+  url: string;
+  excerpt: string;
+  official: boolean;
+}
+
+export interface Verification {
+  status: VerificationStatus;
+  confidence: number; // 0-1
+  summary: string;
+  evidence: VerificationEvidence[];
+  checkedAt: string; // ISO
+}
+
 export interface EditorialBrief {
   id: string;
   candidateSignalId: string;
@@ -174,6 +191,8 @@ export interface EditorialBrief {
   locationAnchorIds: string[];
   status: BriefStatus;
   createdAt: string;
+  /** X 事实核查结果(生成简报时由 x-search 产出;可选,内存态) */
+  verification?: Verification;
 }
 
 export interface ContentValueScore {
