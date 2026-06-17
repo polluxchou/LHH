@@ -9,9 +9,9 @@ import { createInitialWorkflowState } from "@/lib/workflow/local-workflow";
 import type { ArticleDraft } from "@/lib/domain/article";
 
 const draft: ArticleDraft = {
-  type: "article",
-  platform: "linkedin",
-  audience: "x",
+  platform: "linkedin_article",
+  audienceRole: "buyer",
+  audienceRegion: "domestic",
   sections: [{ id: "lead", label: "导语", body: "中文" }],
   translations: [],
 };

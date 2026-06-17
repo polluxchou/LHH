@@ -1,15 +1,22 @@
 "use server";
 
-import type { ArticleLang, ArticlePlatform, ArticleSection, ArticleType } from "@/lib/domain/article";
+import type {
+  ArticleAudienceRegion,
+  ArticleAudienceRole,
+  ArticleLang,
+  ArticlePlatform,
+  ArticleSection,
+} from "@/lib/domain/article";
 import type { EditorialBrief, TopicCard } from "@/lib/domain/types";
 import { generateArticle, regenerateSection, translateSections } from "@/lib/article/deepseek-article";
+import { recordUsage } from "@/lib/usage/record";
 
 type Base = {
   brief: EditorialBrief;
   topicCard: TopicCard | null;
-  type: ArticleType;
   platform: ArticlePlatform;
-  audience: string;
+  audienceRole: ArticleAudienceRole;
+  audienceRegion: ArticleAudienceRegion;
 };
 
 export type ArticleActionResult<T> = { ok: true; value: T } | { ok: false; reason: string };
@@ -21,7 +28,7 @@ const fail = (e: unknown): { ok: false; reason: string } => ({
 
 export async function generateArticleAction(input: Base): Promise<ArticleActionResult<ArticleSection[]>> {
   try {
-    const v = await generateArticle(input);
+    const v = await generateArticle(input, (e) => void recordUsage({ ...e, operation: "article" }));
     return v ? { ok: true, value: v } : { ok: false, reason: "AI 未返回有效结果" };
   } catch (e) {
     return fail(e);
@@ -32,7 +39,7 @@ export async function regenerateArticleSectionAction(
   input: Base & { section: ArticleSection },
 ): Promise<ArticleActionResult<string>> {
   try {
-    const v = await regenerateSection(input, input.section);
+    const v = await regenerateSection(input, input.section, (e) => void recordUsage({ ...e, operation: "article" }));
     return v ? { ok: true, value: v } : { ok: false, reason: "AI 未返回有效结果" };
   } catch (e) {
     return fail(e);
@@ -44,7 +51,7 @@ export async function translateArticleAction(input: {
   lang: ArticleLang;
 }): Promise<ArticleActionResult<ArticleSection[]>> {
   try {
-    const v = await translateSections(input.sections, input.lang);
+    const v = await translateSections(input.sections, input.lang, (e) => void recordUsage({ ...e, operation: "article" }));
     return v ? { ok: true, value: v } : { ok: false, reason: "AI 未返回有效结果" };
   } catch (e) {
     return fail(e);
@@ -56,7 +63,7 @@ export async function retranslateSectionAction(input: {
   lang: ArticleLang;
 }): Promise<ArticleActionResult<string>> {
   try {
-    const v = await translateSections([input.section], input.lang);
+    const v = await translateSections([input.section], input.lang, (e) => void recordUsage({ ...e, operation: "article" }));
     return v?.[0]?.body ? { ok: true, value: v[0].body } : { ok: false, reason: "AI 未返回有效结果" };
   } catch (e) {
     return fail(e);

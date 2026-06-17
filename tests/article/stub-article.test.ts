@@ -12,15 +12,21 @@ const brief = {
 
 describe("buildArticleStub", () => {
   it("returns non-empty sections with stable ids", () => {
-    const secs = buildArticleStub({ brief, topicCard: null, type: "article", platform: "linkedin", audience: "行业采购" });
+    const secs = buildArticleStub({
+      brief, topicCard: null, platform: "linkedin_article", audienceRole: "buyer", audienceRegion: "europe",
+    });
     expect(secs.length).toBeGreaterThan(0);
     expect(secs.every((s) => s.id && s.label && s.body)).toBe(true);
   });
 
-  it("short type is no longer than article", () => {
-    const a = buildArticleStub({ brief, topicCard: null, type: "article", platform: "website", audience: "" });
-    const s = buildArticleStub({ brief, topicCard: null, type: "short", platform: "sms", audience: "" });
-    expect(s.length).toBeLessThanOrEqual(a.length);
+  it("a short-form platform is no longer than a long-form one", () => {
+    const long = buildArticleStub({
+      brief, topicCard: null, platform: "linkedin_article", audienceRole: "buyer", audienceRegion: "domestic",
+    });
+    const short = buildArticleStub({
+      brief, topicCard: null, platform: "im", audienceRole: "buyer", audienceRegion: "domestic",
+    });
+    expect(short.length).toBeLessThanOrEqual(long.length);
   });
 });
 

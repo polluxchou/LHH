@@ -1,29 +1,58 @@
 import OpenAI from "openai";
-import { extractOpenAIUsage, type TokenUsage, type UsageSink } from "@/lib/usage/extract";
-import type { ArticleLang, ArticlePlatform, ArticleSection, ArticleType } from "@/lib/domain/article";
+import type {
+  ArticleAudienceRegion,
+  ArticleAudienceRole,
+  ArticleLang,
+  ArticlePlatform,
+  ArticleSection,
+} from "@/lib/domain/article";
+import { PLATFORM_LIMITS } from "@/lib/domain/article";
 import type { EditorialBrief, TopicCard } from "@/lib/domain/types";
+import { extractOpenAIUsage, type TokenUsage, type UsageSink } from "@/lib/usage/extract";
 
-const TYPE_HINT: Record<ArticleType, string> = {
-  short: "短讯：1-2 段、≤120 字、信息密度高、可直接群发。",
-  article: "深度文章：4-6 段、有导语/背景/核心/意义/结语，逻辑完整。",
-  image_text: "社媒图文贴：3 段左右、开头有钩子、口语化、结尾有互动引导。",
-};
+const ARTICLE_MODEL = "deepseek-v4-flash";
 
 const PLATFORM_HINT: Record<ArticlePlatform, string> = {
-  xiaohongshu: "小红书：标题党+emoji、口语种草、短句、可加话题标签。",
-  linkedin: "领英：专业、第一人称、行业视角、克制。",
-  moments: "朋友圈：极短、个人化、一句话观点+转发理由。",
-  x: "X/推特：≤280 字、有观点、可加 hashtag。",
-  website: "公司官网：正式、第三人称、结构清晰。",
-  sms: "短信：≤70 字、一句话通知、含关键信息。",
+  weibo: "新浪微博：短平快、有观点、口语化、可加话题#标签#。",
+  linkedin_article: "领英文章：专业长文、第一人称、行业视角、结构完整。",
+  linkedin_post: "领英动态：专业但简短、第一人称、一个观点+引导讨论。",
+  wechat_mp: "微信公众号推文：有标题、有小标题分段、可读性强、适度专业。",
+  xiaohongshu: "小红书图文：标题党+emoji、口语种草、短句、结尾话题标签。",
+  email: "邮件：有主题行、称呼、正文、落款，正式而清晰。",
+  im: "即时消息（Whatsapp/短信/Telegram）：极短、一句话直达、含关键信息与下一步。",
+  meeting_summary: "会议总结：结构化要点、决议、待办，第三人称、客观。",
+};
+
+const ROLE_HINT: Record<ArticleAudienceRole, string> = {
+  buyer: "采购商：关注供货能力、价格、交期、质量与合规。",
+  distributor: "经销商：关注渠道政策、利润空间、市场前景与支持。",
+  manufacturer: "生产商：关注产能、工艺、原材料、技术与产业链。",
+};
+
+const REGION_HINT: Record<ArticleAudienceRegion, string> = {
+  domestic: "国内读者：中文语境、本土表达。",
+  asia: "海外·亚洲读者：留意区域市场差异。",
+  europe: "海外·欧洲读者：重合规、专业、克制。",
+  africa: "海外·非洲读者：重性价比与可得性。",
+  oceania: "海外·大洋洲读者。",
+  north_america: "海外·北美读者：直接、数据驱动。",
 };
 
 interface GenArgs {
   brief: EditorialBrief;
   topicCard: TopicCard | null;
-  type: ArticleType;
   platform: ArticlePlatform;
-  audience: string;
+  audienceRole: ArticleAudienceRole;
+  audienceRegion: ArticleAudienceRegion;
+}
+
+/** 把平台的硬性字数限制拼成中文约束句（写进 prompt；超出会被要求压缩重写）。 */
+export function platformLimitClause(platform: ArticlePlatform): string {
+  const lim = PLATFORM_LIMITS[platform];
+  const parts: string[] = [];
+  if (lim.titleMax) parts.push(`标题（含 emoji 与标点）≤ ${lim.titleMax} 字`);
+  if (lim.bodyMax) parts.push(`正文 ≤ ${lim.bodyMax} 字${lim.bodyBest ? `（${lim.bodyBest} 字内最佳）` : ""}`);
+  return parts.length ? `【硬性字数限制】${parts.join("；")}。超出会被强制压缩重写，请务必在限制内。` : "";
 }
 
 export function buildArticlePrompt(a: GenArgs): string {
@@ -35,13 +64,16 @@ export function buildArticlePrompt(a: GenArgs): string {
     `【事实要点】`,
     ...facts.map((f) => `- ${f}`),
     `【为什么重要】${a.brief.whyItMatters}`,
-    `【发布类型】${TYPE_HINT[a.type]}`,
     `【平台】${PLATFORM_HINT[a.platform]}`,
-    `【目标受众】${a.audience || "未指定，按平台默认受众"}`,
+    `【受众角色】${ROLE_HINT[a.audienceRole]}`,
+    `【受众区域】${REGION_HINT[a.audienceRegion]}`,
+    platformLimitClause(a.platform),
     `只输出一个 JSON 对象（不要解释、不要 markdown 代码块）：`,
     `{"sections":[{"id":"lead","label":"段标题","body":"该段中文正文"}]}`,
-    `要求：分段合理、每段 id 唯一且语义稳定、body 为中文可直接发布、贴合平台风格与受众。只输出 json。`,
-  ].join("\n");
+    `要求：分段合理、每段 id 唯一且语义稳定、body 为中文可直接发布、贴合平台风格与受众、不超字数限制。只输出 json。`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 export function buildSectionRegenPrompt(a: GenArgs, section: ArticleSection): string {
@@ -84,8 +116,6 @@ export function parseSections(jsonText: string): ArticleSection[] | null {
   }
   return out;
 }
-
-const ARTICLE_MODEL = "deepseek-v4-flash";
 
 export interface ArticleDeps {
   complete: (prompt: string) => Promise<{ text: string; usage: TokenUsage | null }>;

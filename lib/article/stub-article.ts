@@ -1,26 +1,34 @@
-import type { ArticleLang, ArticlePlatform, ArticleSection, ArticleType } from "@/lib/domain/article";
+import type {
+  ArticleAudienceRegion,
+  ArticleAudienceRole,
+  ArticleLang,
+  ArticlePlatform,
+  ArticleSection,
+  PlatformForm,
+} from "@/lib/domain/article";
+import { PLATFORM_LIMITS } from "@/lib/domain/article";
 import type { EditorialBrief, TopicCard } from "@/lib/domain/types";
 
 interface StubArgs {
   brief: EditorialBrief;
   topicCard: TopicCard | null;
-  type: ArticleType;
   platform: ArticlePlatform;
-  audience: string;
+  audienceRole: ArticleAudienceRole;
+  audienceRegion: ArticleAudienceRegion;
 }
 
-/** 不同类型的段落骨架。短讯最短，文章最长，图文贴居中。 */
-const SKELETON: Record<ArticleType, { id: string; label: string }[]> = {
+/** 段落骨架按平台形态（短/标准/长）伸缩。 */
+const SKELETON: Record<PlatformForm, { id: string; label: string }[]> = {
   short: [
     { id: "lead", label: "一句话要点" },
     { id: "body", label: "正文" },
   ],
-  image_text: [
+  standard: [
     { id: "hook", label: "开头钩子" },
     { id: "body", label: "正文" },
     { id: "cta", label: "互动引导" },
   ],
-  article: [
+  long: [
     { id: "lead", label: "导语" },
     { id: "background", label: "背景" },
     { id: "core", label: "核心" },
@@ -30,23 +38,42 @@ const SKELETON: Record<ArticleType, { id: string; label: string }[]> = {
 };
 
 const PLATFORM_WORD: Record<ArticlePlatform, string> = {
+  weibo: "微博",
+  linkedin_article: "领英文章",
+  linkedin_post: "领英动态",
+  wechat_mp: "公众号",
   xiaohongshu: "小红书",
-  linkedin: "领英",
-  moments: "朋友圈",
-  x: "X",
-  website: "官网",
-  sms: "短信",
+  email: "邮件",
+  im: "即时消息",
+  meeting_summary: "会议总结",
+};
+
+const ROLE_WORD: Record<ArticleAudienceRole, string> = {
+  buyer: "采购商",
+  distributor: "经销商",
+  manufacturer: "生产商",
+};
+
+const REGION_WORD: Record<ArticleAudienceRegion, string> = {
+  domestic: "国内",
+  asia: "海外·亚洲",
+  europe: "海外·欧洲",
+  africa: "海外·非洲",
+  oceania: "海外·大洋洲",
+  north_america: "海外·北美洲",
 };
 
 /** 无 AI / AI 失败时的确定性草稿，保证流程可走通（不臆造，标注「草稿」）。 */
 export function buildArticleStub(args: StubArgs): ArticleSection[] {
-  const { brief, topicCard, type, platform, audience } = args;
+  const { brief, topicCard, platform, audienceRole, audienceRegion } = args;
   const title = topicCard?.workingTitle ?? brief.briefTitle;
   const facts = brief.factBullets ?? [brief.factSummary];
-  return SKELETON[type].map((s, i) => ({
+  const form = PLATFORM_LIMITS[platform].form;
+  const who = `${REGION_WORD[audienceRegion]}${ROLE_WORD[audienceRole]}`;
+  return SKELETON[form].map((s, i) => ({
     id: s.id,
     label: s.label,
-    body: `（草稿）${title} · ${s.label}：${facts[i % facts.length] ?? brief.whyItMatters}。编辑可在此覆写为面向「${audience || "目标读者"}」的${PLATFORM_WORD[platform]}文案。`,
+    body: `（草稿）${title} · ${s.label}：${facts[i % facts.length] ?? brief.whyItMatters}。编辑可在此覆写为面向「${who}」的${PLATFORM_WORD[platform]}文案。`,
   }));
 }
 
