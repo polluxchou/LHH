@@ -88,4 +88,15 @@ describe("verifyOnX", () => {
     expect(got.fromDate).toBe("2026-06-10");
     expect(got.toDate).toBe("2026-06-16");
   });
+
+  it("无事件日期 → search 不带日期窗口(both undefined)", async () => {
+    let got: { fromDate?: string; toDate?: string } = { fromDate: "x", toDate: "y" };
+    await verifyOnX(
+      { claim: "x", brand: "y", eventDate: null },
+      { search: async (_p, opts) => { got = opts; return { text: "{}", citations: [] }; } },
+      () => "AT",
+    );
+    expect(got.fromDate).toBeUndefined();
+    expect(got.toDate).toBeUndefined();
+  });
 });

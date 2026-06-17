@@ -29,6 +29,8 @@ function nonEmpty(v: unknown): string {
 }
 
 function evidenceFrom(citations: Citation[]): VerificationEvidence[] {
+  // citation 的 title 当作证据片段(excerpt);official 暂统一 false(v1 不逐条标官方,
+  // "优先官方" 体现在 Grok 的判定里,见 buildVerifyPrompt)。
   return (citations ?? [])
     .map((c) => ({ handle: nonEmpty(c.handle), url: nonEmpty(c.url), excerpt: nonEmpty(c.title), official: false }))
     .filter((e) => e.url);
@@ -157,7 +159,13 @@ export async function verifyOnX(
   deps: VerifyDeps = defaultDeps(),
   now: () => string = () => new Date().toISOString(),
 ): Promise<Verification> {
-  const checkedAt = now();
+  // never-throws 契约:连注入的 now() 抛错也兜住。
+  let checkedAt: string;
+  try {
+    checkedAt = now();
+  } catch {
+    checkedAt = new Date().toISOString();
+  }
   try {
     const prompt = buildVerifyPrompt(opts.claim, { brand: opts.brand, eventDate: opts.eventDate });
     const result = await deps.search(prompt, {
