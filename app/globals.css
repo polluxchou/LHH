@@ -3977,6 +3977,30 @@ body.theme-dark .tw-option { background: rgba(255,255,255,0.04); }
   color: var(--color-text);
 }
 .mbp-block li + li { margin-top: 4px; }
+/* X 事实核查块:盒子复用 .mbp-block(边框/底色/暗色一致),这里只管内部排版 */
+.brief-verify { display: grid; gap: 8px; }
+.bv-badge {
+  justify-self: start;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-muted);
+  color: var(--color-text);
+}
+.bv-corroborated { color: #15803d; background: rgba(22,163,74,0.10); border-color: rgba(22,163,74,0.32); }
+.bv-disputed     { color: #b45309; background: rgba(217,119,6,0.10); border-color: rgba(217,119,6,0.32); }
+.bv-contradicted { color: #b91c1c; background: rgba(220,38,38,0.10); border-color: rgba(220,38,38,0.32); }
+.bv-summary { margin: 0; font-size: 13px; line-height: 1.65; color: var(--color-text); }
+.bv-evidence { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 8px; }
+.bv-evidence li { border-top: 1px solid var(--color-border); padding-top: 8px; }
+.bv-evidence li:first-child { border-top: 0; padding-top: 0; }
+.bv-evidence a, .bv-acct { font-size: 12.5px; font-weight: 600; }
+.bv-evidence a { color: #1d9bf0; text-decoration: none; }
+.bv-evidence a:hover { text-decoration: underline; }
+.bv-acct { color: var(--color-text); }
+.bv-excerpt { margin: 4px 0 0; font-size: 12.5px; line-height: 1.55; color: var(--color-text-light); }
 .mbp-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

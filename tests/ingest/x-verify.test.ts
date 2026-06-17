@@ -1,5 +1,19 @@
 import { describe, it, expect } from "vitest";
-import { buildVerifyPrompt, parseVerification, type Citation, verifyOnX, type VerifyDeps } from "@/lib/ingest/x-verify";
+import { buildVerifyPrompt, parseVerification, deriveHandle, type Citation, verifyOnX, type VerifyDeps } from "@/lib/ingest/x-verify";
+
+describe("deriveHandle", () => {
+  it("从帖子 URL 解析账号名", () => {
+    expect(deriveHandle("https://x.com/SpaceX/status/123")).toBe("SpaceX");
+    expect(deriveHandle("https://twitter.com/NASA/status/9")).toBe("NASA");
+    expect(deriveHandle("https://www.x.com/Rocket_Lab")).toBe("Rocket_Lab");
+  });
+  it("保留路径(如 /i/web/...)或非 X 域名 → 空", () => {
+    expect(deriveHandle("https://x.com/i/web/status/1")).toBe("");
+    expect(deriveHandle("https://example.com/foo")).toBe("");
+    expect(deriveHandle("")).toBe("");
+    expect(deriveHandle("not a url")).toBe("");
+  });
+});
 
 describe("buildVerifyPrompt", () => {
   const p = buildVerifyPrompt("SpaceX 完成第35次复用", { brand: "SpaceX", eventDate: "2026-06-13" });
@@ -48,6 +62,15 @@ describe("parseVerification", () => {
   it("confidence 夹到 0-1", () => {
     const v = parseVerification(JSON.stringify({ status: "disputed", confidence: 5, summary: "x" }), [], { checkedAt: AT });
     expect(v.confidence).toBe(1);
+  });
+  it("citation 缺 handle 时从 url 回填账号名", () => {
+    const v = parseVerification(JSON.stringify({ status: "corroborated", confidence: 0.5, summary: "x" }), [{ url: "https://x.com/NASA/status/7" }], { checkedAt: AT });
+    expect(v.evidence[0].handle).toBe("NASA");
+  });
+  it("只有原文(无 url) → 保留为证据(不被丢弃)", () => {
+    const v = parseVerification(JSON.stringify({ status: "disputed", confidence: 0.3, summary: "x" }), [{ url: "", title: "帖子原文片段" }], { checkedAt: AT });
+    expect(v.evidence).toHaveLength(1);
+    expect(v.evidence[0].excerpt).toBe("帖子原文片段");
   });
 });
 

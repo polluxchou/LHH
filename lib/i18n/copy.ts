@@ -519,6 +519,7 @@ const en = {
       blockSources: "Source summary",
       blockAngles: "Possible angles",
       blockQuestions: "Open questions",
+      blockVerify: "X fact-check",
     },
     tweaks: {
       head: "Display settings · TWEAKS",
@@ -1057,6 +1058,7 @@ const zh: typeof en = {
       blockSources: "来源摘要",
       blockAngles: "可写角度",
       blockQuestions: "待确认问题",
+      blockVerify: "X 事实核查",
     },
     tweaks: {
       head: "显示设置 · TWEAKS",

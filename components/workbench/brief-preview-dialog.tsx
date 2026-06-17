@@ -66,17 +66,30 @@ export function BriefPreviewDialog({
             <p>{preview.whyItMatters}</p>
           </section>
           {brief.verification ? (
-            <section className="brief-verify">
+            <section className="mbp-block brief-verify">
+              <div className="mbp-label">{d.blockVerify}</div>
               <span className={`bv-badge bv-${brief.verification.status}`}>{verifyLabel(brief.verification.status)}</span>
               <p className="bv-summary">{brief.verification.summary}</p>
               {brief.verification.evidence.length ? (
                 <ul className="bv-evidence">
-                  {brief.verification.evidence.map((e) => (
-                    <li key={e.url}>
-                      <a href={e.url} target="_blank" rel="noreferrer">{e.handle ? `@${e.handle}` : e.url}</a>
-                      {e.excerpt ? <span className="bv-excerpt"> · {e.excerpt}</span> : null}
-                    </li>
-                  ))}
+                  {brief.verification.evidence.map((e, i) => {
+                    // 账号名为可点链接:有帖子链接 → 直达该帖;否则回落到账号主页。
+                    const href = e.url || (e.handle ? `https://x.com/${e.handle}` : "");
+                    const label = e.handle ? `@${e.handle}` : e.url;
+                    return (
+                      <li key={e.url || e.handle || i}>
+                        {label ? (
+                          href ? (
+                            <a href={href} target="_blank" rel="noreferrer">{label}</a>
+                          ) : (
+                            <span className="bv-acct">{label}</span>
+                          )
+                        ) : null}
+                        {/* 去不到帖子时,这里就是展示的「帖子原文」 */}
+                        {e.excerpt ? <p className="bv-excerpt">{e.excerpt}</p> : null}
+                      </li>
+                    );
+                  })}
                 </ul>
               ) : null}
             </section>

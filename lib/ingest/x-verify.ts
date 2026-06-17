@@ -28,12 +28,43 @@ function nonEmpty(v: unknown): string {
   return typeof v === "string" ? v.trim() : "";
 }
 
+// X 上的保留路径段,这些不是账号名。
+const RESERVED_X_PATHS = new Set([
+  "i", "home", "search", "explore", "hashtag", "notifications", "messages", "settings", "compose",
+]);
+
+/**
+ * 从 X/Twitter 帖子 URL 解析账号名(不含 @)。
+ * 形如 x.com/<account>/status/... → <account>;保留路径(/i/...)或非 X 域名 → ""。
+ * xAI 的 citations 多为纯 URL 字符串(无 handle 字段),用它把账号名显示出来。
+ */
+export function deriveHandle(url: string): string {
+  if (!url) return "";
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./, "").replace(/^mobile\./, "");
+    if (host !== "x.com" && host !== "twitter.com") return "";
+    const seg = u.pathname.split("/").filter(Boolean);
+    if (!seg.length) return "";
+    const handle = seg[0].replace(/^@/, "");
+    if (RESERVED_X_PATHS.has(handle.toLowerCase())) return "";
+    return handle;
+  } catch {
+    return "";
+  }
+}
+
 function evidenceFrom(citations: Citation[]): VerificationEvidence[] {
-  // citation 的 title 当作证据片段(excerpt);official 暂统一 false(v1 不逐条标官方,
+  // citation 的 title 当作证据片段(excerpt);handle 缺失时从 url 回填账号名,
+  // 让详情页能以「@账号名」可点链接呈现。official 暂统一 false(v1 不逐条标官方,
   // "优先官方" 体现在 Grok 的判定里,见 buildVerifyPrompt)。
+  // 过滤放宽:有 url 或 handle 或 excerpt 任一即保留,以便"去不到帖子时展示原文"。
   return (citations ?? [])
-    .map((c) => ({ handle: nonEmpty(c.handle), url: nonEmpty(c.url), excerpt: nonEmpty(c.title), official: false }))
-    .filter((e) => e.url);
+    .map((c) => {
+      const url = nonEmpty(c.url);
+      return { handle: nonEmpty(c.handle) || deriveHandle(url), url, excerpt: nonEmpty(c.title), official: false };
+    })
+    .filter((e) => e.url || e.handle || e.excerpt);
 }
 
 export function parseVerification(
@@ -125,8 +156,20 @@ function extractCitations(data: Record<string, unknown>): Citation[] {
   const raw = (data as { citations?: unknown }).citations;
   if (!Array.isArray(raw)) return [];
   return raw
-    .map((c) => (typeof c === "string" ? { url: c } : (c as Citation)))
-    .filter((c) => c && typeof c.url === "string");
+    .map((c) => {
+      if (typeof c === "string") return { url: c } as Citation;
+      const o = (c ?? {}) as Record<string, unknown>;
+      // 帖子原文优先取 text/snippet/quote,回落到 title。
+      const title = [o.text, o.snippet, o.quote, o.title].find(
+        (v) => typeof v === "string" && v.trim(),
+      ) as string | undefined;
+      return {
+        url: typeof o.url === "string" ? o.url : "",
+        title,
+        handle: typeof o.handle === "string" ? o.handle : undefined,
+      } as Citation;
+    })
+    .filter((c) => c && typeof c.url === "string" && c.url);
 }
 
 function defaultDeps(): VerifyDeps {
