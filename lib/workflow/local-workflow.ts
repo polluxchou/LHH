@@ -16,6 +16,7 @@ import { generateEditorialBrief } from "@/lib/briefing/brief-generator";
 import { applyScreeningTransition } from "@/lib/domain/screening-transition";
 import { createStubProduction } from "@/lib/production/stub-production";
 import type { ProductionPackage, StoryboardShot } from "@/lib/domain/production";
+import type { ArticleDraft } from "@/lib/domain/article";
 import type { AnalyzedBrief } from "@/lib/ingest/types";
 import type {
   CandidateSignal,
@@ -88,6 +89,8 @@ export interface LocalWorkflowState {
   locationAnchors: LocationAnchor[];
   /** script / storyboard / task drafts per editorial brief id (支持二次编辑) */
   productionDrafts: Record<string, ProductionPackage>;
+  /** 「生成文章」客户端草稿态，key = topicCard.id（刷新重置） */
+  articleDrafts: Record<string, ArticleDraft>;
   selectedTrackingObjectId: string;
   activeBriefId: string | null;
   lastFeedback: WorkflowFeedback | null;
@@ -146,6 +149,7 @@ export function createInitialWorkflowState(): LocalWorkflowState {
     topicCards: [...topicCards],
     locationAnchors: [...locationAnchors],
     productionDrafts: cloneProductions(productions),
+    articleDrafts: {},
     selectedTrackingObjectId: trackingObjects.some((object) => object.id === "starbase")
       ? "starbase"
       : (trackingObjects[0]?.id ?? ""),

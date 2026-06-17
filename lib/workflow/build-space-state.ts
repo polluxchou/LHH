@@ -60,6 +60,7 @@ export function buildSpaceState({ dbContent, members, currentUserId, isDemoSpace
     topicCards: [],
     locationAnchors: [],
     productionDrafts: {},
+    articleDrafts: {},
     selectedTrackingObjectId: dbContent.trackingObjects[0]?.id ?? "",
     activeBriefId: null,
     lastFeedback: null,
