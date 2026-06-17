@@ -407,6 +407,8 @@ const en = {
     addTracked: {
       kicker: "Add tracked object",
       title: "Add a new tracked object",
+      titleThemed: (theme: string) => `Add a new “${theme}” tracked object`,
+      egPrefix: "e.g. ",
       sub: "The daily search covers it automatically · subscribe yourself, or recommend it to the team",
       close: "Close",
       nameZhLabel: "Chinese name",
@@ -502,6 +504,7 @@ const en = {
     briefGenFailed: (msg: string) => `Brief generation failed · ${msg}`,
     aiFailedTemplate: (reason: string) => `AI generation failed, used template draft · ${reason}`,
     aiBriefDone: (headline: string) => `AI brief generated · ${headline}`,
+    briefNotPersisted: (reason: string) => `Brief shown locally but not saved · ${reason}`,
     openBrief: (title: string) => `Opened generated brief: ${title}`,
     screenFailed: (msg: string) => `Screening action failed · ${msg}`,
     observeFailed: (msg: string) => `Failed to start watching · ${msg}`,
@@ -890,6 +893,8 @@ const zh: typeof en = {
     addTracked: {
       kicker: "新增追踪对象",
       title: "添加一个新的追踪对象",
+      titleThemed: (theme) => `添加一个新的「${theme}」追踪对象`,
+      egPrefix: "例：",
       sub: "每天的日更搜索会自动覆盖它 · 你可以选择只自己订阅，或者推荐给团队",
       close: "关闭",
       nameZhLabel: "中文名称",
@@ -982,6 +987,7 @@ const zh: typeof en = {
     briefGenFailed: (msg) => `简报生成失败 · ${msg}`,
     aiFailedTemplate: (reason) => `AI 生成失败，已用模板草稿 · ${reason}`,
     aiBriefDone: (headline) => `AI 简报生成完成 · ${headline}`,
+    briefNotPersisted: (reason) => `简报已在本地生成但未能保存 · ${reason}`,
     openBrief: (title) => `打开已生成简报：${title}`,
     screenFailed: (msg) => `筛选操作失败 · ${msg}`,
     observeFailed: (msg) => `加入持续观察失败 · ${msg}`,

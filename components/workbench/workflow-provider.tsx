@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import { useRouter } from "next/navigation";
 import type { TeamMember } from "@/lib/domain/types";
 import { useSpaceSession } from "@/components/account/space-provider";
-import { addTrackingObjectToSpace, deleteTrackingObject, runSearchForObject, setSubscription } from "@/lib/account/content-mutations";
+import { addTrackingObjectToSpace, deleteTrackingObject, runSearchForObject, setSubscription, persistGeneratedBrief } from "@/lib/account/content-mutations";
 import {
   appendWorkflowLog,
   claimTopicCard,
@@ -304,10 +304,14 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
         });
       }
 
+      // 1) Commit to the in-memory store for instant feedback (functional updater so it
+      //    composes off the latest state — e.g. any AI-failure warning logged above).
+      let failed = false;
       setState((current) => {
         try {
           return generateBriefForSignal(current, signalId, { locale: "zh", now: nowIso(), ai });
         } catch (error) {
+          failed = true;
           return appendWorkflowLog(
             current,
             { level: "error", message: L.briefGenFailed(error instanceof Error ? error.message : L.errWorkflow) },
@@ -315,8 +319,48 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
           );
         }
       });
+      if (failed) return;
       if (ai) store.logDemo("success", L.aiBriefDone(signal.headline), `brief-${signalId}`);
       setExpandedBriefIds((previous) => new Set(previous).add(`brief-${signalId}`));
+
+      // 2) Persist to the DB so the brief survives a refresh (mirrors the search path).
+      //    Recompute the brief fields deterministically from the snapshot — pure, used
+      //    only to read fields; the DB generates the row id.
+      const draft = generateBriefForSignal(state, signalId, { locale: "zh", now: nowIso(), ai });
+      const brief = draft.editorialBriefs.find((b) => b.candidateSignalId === signalId);
+      const score = brief ? draft.contentValueScores.find((s) => s.editorialBriefId === brief.id) : undefined;
+      if (!brief || !score) return;
+      persistGeneratedBrief({
+        trackingObjectId: brief.trackingObjectId,
+        candidateSignalId: signalId,
+        briefTitle: brief.briefTitle,
+        tagline: brief.tagline ?? null,
+        factBullets: brief.factBullets ?? [],
+        factSummary: brief.factSummary,
+        sourceSummary: brief.sourceSummary,
+        mapContext: brief.mapContext ?? null,
+        whyItMatters: brief.whyItMatters,
+        possibleAngles: brief.possibleAngles,
+        openQuestions: brief.openQuestions,
+        riskNotes: brief.riskNotes ?? [],
+        status: brief.status,
+        score: {
+          freshnessScore: score.freshnessScore,
+          importanceScore: score.importanceScore,
+          rarityScore: score.rarityScore,
+          audienceInterestScore: score.audienceInterestScore,
+          visualPotentialScore: score.visualPotentialScore,
+          riskScore: score.riskScore,
+          overallRecommendation: score.overallRecommendation,
+          scoringNotes: score.scoringNotes,
+        },
+      })
+        .then((res) => {
+          if (!res.ok) store.logDemo("warning", L.briefNotPersisted(res.reason ?? L.errUnknown), `brief-${signalId}`);
+        })
+        .catch((error) => {
+          store.logDemo("warning", L.briefNotPersisted(error instanceof Error ? error.message : L.errUnknown), `brief-${signalId}`);
+        });
     },
 
     openBriefFromSignal: (signalId) => {

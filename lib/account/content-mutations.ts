@@ -51,6 +51,93 @@ export async function runSearchForObject(trackingObjectId: string): Promise<{ wr
   });
 }
 
+export interface PersistBriefInput {
+  trackingObjectId: string;
+  candidateSignalId: string;
+  briefTitle: string;
+  tagline: string | null;
+  factBullets: string[];
+  factSummary: string;
+  sourceSummary: string;
+  mapContext: string | null;
+  whyItMatters: string;
+  possibleAngles: string[];
+  openQuestions: string[];
+  riskNotes: string[];
+  status: "draft" | "ready_for_screening" | "screened";
+  score: {
+    freshnessScore: number;
+    importanceScore: number;
+    rarityScore: number;
+    audienceInterestScore: number;
+    visualPotentialScore: number;
+    riskScore: number;
+    overallRecommendation: "strong" | "medium" | "weak";
+    scoringNotes: string;
+  };
+}
+
+/**
+ * Persist an on-demand「生成简报」brief so it survives a refresh. Mirrors the ingest
+ * writer's brief+score write (editorial_briefs + content_value_scores), scoped to the
+ * tracking object's space with a membership check via the service-role client.
+ * The DB generates the brief id (uuid); location_anchor_ids is left to its '{}' default
+ * since in-memory anchor ids are not DB uuids. Returns the new brief id.
+ */
+export async function persistGeneratedBrief(
+  input: PersistBriefInput,
+): Promise<{ ok: boolean; id?: string; reason?: string }> {
+  const admin = createSupabaseAdminClient();
+  const { data: obj, error: objErr } = await admin
+    .from("tracking_objects")
+    .select("id, space_id")
+    .eq("id", input.trackingObjectId)
+    .single();
+  if (objErr || !obj) return { ok: false, reason: "object_not_found" };
+
+  const mine = await getMySpaces();
+  if (!mine.some((m) => m.space.id === obj.space_id)) return { ok: false, reason: "forbidden" };
+
+  const { data: brief, error: brErr } = await admin
+    .from("editorial_briefs")
+    .insert({
+      candidate_signal_id: input.candidateSignalId,
+      tracking_object_id: input.trackingObjectId,
+      space_id: obj.space_id,
+      brief_title: input.briefTitle,
+      tagline: input.tagline,
+      fact_bullets: input.factBullets,
+      fact_summary: input.factSummary,
+      source_summary: input.sourceSummary,
+      map_context: input.mapContext,
+      why_it_matters: input.whyItMatters,
+      possible_angles: input.possibleAngles,
+      open_questions: input.openQuestions,
+      risk_notes: input.riskNotes,
+      status: input.status,
+    })
+    .select("id")
+    .single();
+  if (brErr || !brief) return { ok: false, reason: `brief: ${brErr?.message ?? "insert_failed"}` };
+
+  const s = input.score;
+  const { error: scErr } = await admin.from("content_value_scores").insert({
+    editorial_brief_id: brief.id,
+    space_id: obj.space_id,
+    freshness_score: s.freshnessScore,
+    importance_score: s.importanceScore,
+    rarity_score: s.rarityScore,
+    audience_interest_score: s.audienceInterestScore,
+    visual_potential_score: s.visualPotentialScore,
+    risk_score: s.riskScore,
+    overall_recommendation: s.overallRecommendation,
+    scoring_notes: s.scoringNotes,
+  });
+  if (scErr) return { ok: false, reason: `score: ${scErr.message}` };
+
+  return { ok: true, id: brief.id as string };
+}
+
 /**
  * Persist a new tracking object into a space. Membership is checked against the
  * RLS-scoped getMySpaces(); the write goes through the service-role client (content
