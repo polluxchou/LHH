@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import type { GeminiNewsItem, AnalyzedBrief } from "@/lib/ingest/types";
 import type { CandidateSignalType } from "@/lib/domain/types";
+import { extractOpenAIUsage, type TokenUsage, type UsageSink } from "@/lib/usage/extract";
 
 const SIGNAL_TYPES: CandidateSignalType[] = [
   "technical_project_milestone",
@@ -83,7 +84,7 @@ export function parseAnalysis(jsonText: string): AnalyzedBrief | null {
 }
 
 export interface AnalyzeDeps {
-  complete: (prompt: string) => Promise<string>;
+  complete: (prompt: string) => Promise<{ text: string; usage: TokenUsage | null }>;
 }
 
 function defaultDeps(): AnalyzeDeps {
@@ -99,16 +100,18 @@ function defaultDeps(): AnalyzeDeps {
         response_format: { type: "json_object" },
         max_tokens: 2000,
       });
-      return res.choices[0]?.message?.content ?? "";
+      return { text: res.choices[0]?.message?.content ?? "", usage: extractOpenAIUsage(res) };
     },
   };
 }
 
 export async function analyzeBrief(
   opts: { brand: string; items: GeminiNewsItem[] },
+  onUsage?: UsageSink,
   deps: AnalyzeDeps = defaultDeps(),
 ): Promise<AnalyzedBrief | null> {
   if (opts.items.length === 0) return null;
-  const out = await deps.complete(buildAnalyzePrompt(opts.brand, opts.items));
-  return parseAnalysis(out);
+  const { text, usage } = await deps.complete(buildAnalyzePrompt(opts.brand, opts.items));
+  onUsage?.({ provider: "deepseek", model: "deepseek-v4-flash", usage });
+  return parseAnalysis(text);
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildArticlePrompt, buildTranslatePrompt, parseSections } from "@/lib/article/deepseek-article";
+import { buildArticlePrompt, buildTranslatePrompt, parseSections, generateArticle } from "@/lib/article/deepseek-article";
 import type { EditorialBrief } from "@/lib/domain/types";
 
 const brief = {
@@ -11,10 +11,12 @@ const brief = {
 } as unknown as EditorialBrief;
 
 describe("buildArticlePrompt", () => {
-  it("includes type/platform/audience and demands JSON", () => {
-    const p = buildArticlePrompt({ brief, topicCard: null, type: "short", platform: "xiaohongshu", audience: "新手妈妈" });
+  it("includes platform/role/region hints and demands JSON", () => {
+    const p = buildArticlePrompt({
+      brief, topicCard: null, platform: "xiaohongshu", audienceRole: "buyer", audienceRegion: "domestic",
+    });
     expect(p).toContain("小红书");
-    expect(p).toContain("新手妈妈");
+    expect(p).toContain("采购商");
     expect(p.toLowerCase()).toContain("json");
   });
 });
@@ -36,5 +38,20 @@ describe("buildTranslatePrompt", () => {
     const p = buildTranslatePrompt([{ id: "lead", label: "导语", body: "正文" }], "en");
     expect(p.toLowerCase()).toContain("json");
     expect(p).toContain("en");
+  });
+});
+
+describe("generateArticle onUsage", () => {
+  it("forwards usage with deepseek provider+model", async () => {
+    const events: unknown[] = [];
+    const out = await generateArticle(
+      { brief, topicCard: null, platform: "xiaohongshu", audienceRole: "buyer", audienceRegion: "domestic" },
+      (e) => events.push(e),
+      { complete: async () => ({ text: '{"sections":[{"id":"lead","label":"导语","body":"正文"}]}', usage: { promptTokens: 300, completionTokens: 80, totalTokens: 380 } }) },
+    );
+    expect(out).toEqual([{ id: "lead", label: "导语", body: "正文" }]);
+    expect(events).toEqual([
+      { provider: "deepseek", model: "deepseek-v4-flash", usage: { promptTokens: 300, completionTokens: 80, totalTokens: 380 } },
+    ]);
   });
 });

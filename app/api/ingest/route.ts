@@ -5,6 +5,7 @@ import { searchRecentNews } from "@/lib/ingest/gemini-search";
 import { analyzeBrief } from "@/lib/ingest/deepseek-analyze";
 import { writeIngestResult } from "@/lib/db/ingest-writer";
 import { canonicalizeUrl } from "@/lib/search/dedupe";
+import { recordUsage } from "@/lib/usage/record";
 
 export const maxDuration = 300;
 
@@ -61,8 +62,15 @@ async function handle(req: Request) {
           windowDays: 7,
           seenCanonicalUrls,
           search: (brand, since, today, keywords, excludedTerms) =>
-            searchRecentNews({ brand, sinceDate: since, todayDate: today, keywords, excludedTerms }),
-          analyze: (brand, items) => analyzeBrief({ brand, items }),
+            searchRecentNews(
+              { brand, sinceDate: since, todayDate: today, keywords, excludedTerms },
+              (e) => void recordUsage({ ...e, operation: "ingest_search", spaceId: b.space_id }),
+            ),
+          analyze: (brand, items) =>
+            analyzeBrief(
+              { brand, items },
+              (e) => void recordUsage({ ...e, operation: "ingest_analyze", spaceId: b.space_id }),
+            ),
         },
       );
       const w = await writeIngestResult(db, result);

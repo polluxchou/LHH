@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import { useRouter } from "next/navigation";
 import type { TeamMember } from "@/lib/domain/types";
 import { useSpaceSession } from "@/components/account/space-provider";
-import { addTrackingObjectToSpace, deleteTrackingObject, runSearchForObject, setSubscription, persistGeneratedBrief } from "@/lib/account/content-mutations";
+import { addTrackingObjectToSpace, deleteTrackingObject, runSearchForObject, setSubscription, persistGeneratedBrief, persistScreeningDecision, persistTopicCardOwner } from "@/lib/account/content-mutations";
 import {
   appendWorkflowLog,
   claimTopicCard,
@@ -42,7 +42,13 @@ import {
   upsertTranslation,
   editTranslationSection,
 } from "@/lib/workflow/article-draft";
-import type { ArticleLang, ArticlePlatform, ArticleSection, ArticleType } from "@/lib/domain/article";
+import type {
+  ArticleAudienceRegion,
+  ArticleAudienceRole,
+  ArticleLang,
+  ArticlePlatform,
+  ArticleSection,
+} from "@/lib/domain/article";
 import type { AnalyzedBrief } from "@/lib/ingest/types";
 import type { StoryboardShot } from "@/lib/domain/production";
 import type { TrackedScope } from "@/components/workbench/tracked-list";
@@ -99,7 +105,7 @@ export interface WorkbenchStore {
   busyArticleSectionKeys: ReadonlySet<string>;
   generateArticle: (
     topicCardId: string,
-    cfg: { type: ArticleType; platform: ArticlePlatform; audience: string },
+    cfg: { platform: ArticlePlatform; audienceRole: ArticleAudienceRole; audienceRegion: ArticleAudienceRegion },
   ) => Promise<void>;
   regenerateArticleSection: (topicCardId: string, sectionId: string) => Promise<void>;
   translateArticleLangs: (topicCardId: string, langs: ArticleLang[]) => Promise<void>;
@@ -187,6 +193,44 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
   }, [visibleTracked, state.selectedTrackingObjectId]);
 
   const nowIso = () => new Date().toISOString();
+
+  // Persist a screening decision (+ its topic card, for approvals) to the DB so the pool
+  // selection survives a refresh. Extracts the entities from the (deterministically
+  // recomputed) post-transition state; fire-and-forget with a warning log on failure.
+  const persistDecisionFrom = (next: LocalWorkflowState, briefId: string) => {
+    const dec = next.screeningDecisions.find((d) => d.editorialBriefId === briefId);
+    if (!dec) return;
+    const card = next.topicCards.find((c) => c.sourceEditorialBriefId === briefId);
+    void persistScreeningDecision({
+      editorialBriefId: briefId,
+      decision: dec.decision,
+      reason: dec.reason,
+      observationDimensions: dec.observationDimensions ?? [],
+      decidedBy: dec.decidedBy,
+      decidedAt: dec.decidedAt,
+      topicCard: card
+        ? {
+            sourceEditorialBriefId: card.sourceEditorialBriefId,
+            workingTitle: card.workingTitle,
+            coreQuestion: card.coreQuestion,
+            recommendedFormat: card.recommendedFormat,
+            formatLabel: card.formatLabel ?? null,
+            keyFacts: card.keyFacts,
+            sourceIds: card.sourceIds,
+            mapContext: card.mapContext,
+            status: card.status,
+            ownerId: card.ownerId ?? null,
+            observationDimensions: card.observationDimensions ?? [],
+          }
+        : undefined,
+    })
+      .then((res) => {
+        if (!res.ok) store.logDemo("warning", L.decisionNotPersisted(res.reason ?? L.errUnknown), briefId);
+      })
+      .catch((error) => {
+        store.logDemo("warning", L.decisionNotPersisted(error instanceof Error ? error.message : L.errUnknown), briefId);
+      });
+  };
 
   const store: WorkbenchStore = {
     state,
@@ -419,14 +463,13 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
     },
 
     decide: (briefId, decision) => {
+      const input = { briefId, ...DECISION_INPUT[decision], decidedBy: currentMember.id };
+      let failed = false;
       setState((current) => {
         try {
-          return screenBrief(
-            current,
-            { briefId, ...DECISION_INPUT[decision], decidedBy: current.currentMemberId },
-            { now: nowIso() },
-          );
+          return screenBrief(current, { ...input, decidedBy: current.currentMemberId }, { now: nowIso() });
         } catch (error) {
+          failed = true;
           return appendWorkflowLog(
             current,
             {
@@ -442,23 +485,28 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
       if (decision === "pool") {
         setRightTab("pool");
       }
+      if (failed) return;
+      try {
+        persistDecisionFrom(screenBrief(state, input, { now: nowIso() }), briefId);
+      } catch {
+        /* the in-memory commit above already logged the failure */
+      }
     },
 
     observeWithDimensions: (briefId, dimensions) => {
+      const input = {
+        briefId,
+        decision: "watch" as const,
+        reason: L.reasonObserve,
+        observationDimensions: dimensions,
+        decidedBy: currentMember.id,
+      };
+      let failed = false;
       setState((current) => {
         try {
-          return screenBrief(
-            current,
-            {
-              briefId,
-              decision: "watch",
-              reason: L.reasonObserve,
-              observationDimensions: dimensions,
-              decidedBy: current.currentMemberId,
-            },
-            { now: nowIso() },
-          );
+          return screenBrief(current, { ...input, decidedBy: current.currentMemberId }, { now: nowIso() });
         } catch (error) {
+          failed = true;
           return appendWorkflowLog(
             current,
             {
@@ -470,10 +518,26 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
           );
         }
       });
+      if (failed) return;
+      try {
+        persistDecisionFrom(screenBrief(state, input, { now: nowIso() }), briefId);
+      } catch {
+        /* the in-memory commit above already logged the failure */
+      }
     },
 
     claim: (topicCardId) => {
+      const card = state.topicCards.find((c) => c.id === topicCardId);
       setState((current) => claimTopicCard(current, topicCardId, current.currentMemberId, { now: nowIso() }));
+      if (card) {
+        void persistTopicCardOwner(card.sourceEditorialBriefId, currentMember.id)
+          .then((res) => {
+            if (!res.ok) store.logDemo("warning", L.decisionNotPersisted(res.reason ?? L.errUnknown));
+          })
+          .catch((error) => {
+            store.logDemo("warning", L.decisionNotPersisted(error instanceof Error ? error.message : L.errUnknown));
+          });
+      }
     },
 
     switchMember: (memberId) => {
@@ -597,7 +661,9 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
       setGeneratingArticleKeys((p) => new Set(p).add(topicCardId));
       let sections: ArticleSection[] | null = null;
       try {
-        const r = await generateArticleAction({ brief, topicCard, type: cfg.type, platform: cfg.platform, audience: cfg.audience });
+        const r = await generateArticleAction({
+          brief, topicCard, platform: cfg.platform, audienceRole: cfg.audienceRole, audienceRegion: cfg.audienceRegion,
+        });
         if (r.ok) sections = r.value;
         else store.logDemo("warning", A.genFailLog(r.reason));
       } catch (e) {
@@ -606,10 +672,13 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
         setGeneratingArticleKeys((p) => { const n = new Set(p); n.delete(topicCardId); return n; });
       }
       const finalSections =
-        sections ?? buildArticleStub({ brief, topicCard, type: cfg.type, platform: cfg.platform, audience: cfg.audience });
+        sections ?? buildArticleStub({
+          brief, topicCard, platform: cfg.platform, audienceRole: cfg.audienceRole, audienceRegion: cfg.audienceRegion,
+        });
       setState((cur) =>
         setArticleDraft(cur, topicCardId, {
-          type: cfg.type, platform: cfg.platform, audience: cfg.audience, sections: finalSections, translations: [],
+          platform: cfg.platform, audienceRole: cfg.audienceRole, audienceRegion: cfg.audienceRegion,
+          sections: finalSections, translations: [],
         }),
       );
     },
@@ -627,7 +696,7 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
       setBusyArticleSectionKeys((p) => new Set(p).add(key));
       try {
         const r = await regenerateArticleSectionAction({
-          brief, topicCard, type: draft.type, platform: draft.platform, audience: draft.audience, section,
+          brief, topicCard, platform: draft.platform, audienceRole: draft.audienceRole, audienceRegion: draft.audienceRegion, section,
         });
         if (r.ok) setState((cur) => setArticleSectionBody(cur, topicCardId, sectionId, r.value));
         else store.logDemo("warning", A.genFailLog(r.reason));

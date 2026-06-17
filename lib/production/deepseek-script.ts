@@ -3,8 +3,10 @@ import type { ScriptSection, StoryboardShot, ProductionPackage } from "@/lib/dom
 import type { EditorialBrief, TopicCard } from "@/lib/domain/types";
 import { productions } from "@/lib/data/phase1-fixtures";
 import { buildTaskScaffold, deriveTargetDuration } from "@/lib/production/stub-production";
+import { extractOpenAIUsage, type TokenUsage, type UsageSink } from "@/lib/usage/extract";
 
 const REQUIRED_SECTION_IDS = ["hook", "context", "core", "close"] as const;
+const SCRIPT_MODEL = "deepseek-v4-flash";
 
 /** 取 b-cna-01 精品包的 script+storyboard 作为 few-shot 范本(只读,单一来源)。 */
 function exemplarBlock(): string {
@@ -119,7 +121,7 @@ export function parseProduction(
 }
 
 export interface GenerateDeps {
-  complete: (prompt: string) => Promise<string>;
+  complete: (prompt: string) => Promise<{ text: string; usage: TokenUsage | null }>;
 }
 
 function defaultDeps(): GenerateDeps {
@@ -130,19 +132,20 @@ function defaultDeps(): GenerateDeps {
   return {
     complete: async (prompt) => {
       const res = await client.chat.completions.create({
-        model: "deepseek-v4-flash",
+        model: SCRIPT_MODEL,
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
         // 长视频(12-15 min)需 4 段脚本 + ~10-13 个分镜的完整 JSON;留足上限避免截断导致 JSON 解析失败。
         max_tokens: 8000,
       });
-      return res.choices[0]?.message?.content ?? "";
+      return { text: res.choices[0]?.message?.content ?? "", usage: extractOpenAIUsage(res) };
     },
   };
 }
 
 export async function generateProduction(
   opts: { brief: EditorialBrief; topicCard?: TopicCard | null; targetDuration?: string },
+  onUsage?: UsageSink,
   deps: GenerateDeps = defaultDeps(),
 ): Promise<ProductionPackage> {
   const topicCard = opts.topicCard ?? null;
@@ -150,9 +153,16 @@ export async function generateProduction(
   // 用户在工作室选定的时长优先;否则回退到选题卡 formatLabel 推导。
   const targetDuration = opts.targetDuration?.trim() || deriveTargetDuration(formatLabel);
   const prompt = buildScriptPrompt(opts.brief, topicCard, targetDuration);
+
+  const runOnce = async (): Promise<{ sections: ScriptSection[]; storyboard: StoryboardShot[] } | null> => {
+    const { text, usage } = await deps.complete(prompt);
+    onUsage?.({ provider: "deepseek", model: SCRIPT_MODEL, usage });
+    return parseProduction(text);
+  };
+
   // 真实模型偶发输出不达标(已实测);重试一次(temperature>0,重试通常不同)再放弃。
-  let parsed = parseProduction(await deps.complete(prompt));
-  if (!parsed) parsed = parseProduction(await deps.complete(prompt));
+  let parsed = await runOnce();
+  if (!parsed) parsed = await runOnce();
   if (!parsed) throw new Error("DeepSeek 生产包解析失败");
   const wordCount = parsed.sections.reduce((sum, s) => sum + s.body.length, 0);
   return {

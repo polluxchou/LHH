@@ -2,12 +2,19 @@
 
 import { useEffect, useState } from "react";
 import type {
+  ArticleAudienceRegion,
+  ArticleAudienceRole,
   ArticleDraft,
   ArticleLang,
   ArticlePlatform,
-  ArticleType,
 } from "@/lib/domain/article";
-import { ARTICLE_LANGS, ARTICLE_PLATFORMS, ARTICLE_TYPES } from "@/lib/domain/article";
+import {
+  ARTICLE_AUDIENCE_REGIONS,
+  ARTICLE_AUDIENCE_ROLES,
+  ARTICLE_LANGS,
+  ARTICLE_PLATFORMS,
+  PLATFORM_LIMITS,
+} from "@/lib/domain/article";
 import type { EditorialBrief, TopicCard } from "@/lib/domain/types";
 import { useCopy } from "@/lib/i18n/locale-context";
 
@@ -22,7 +29,11 @@ interface ArticleStudioProps {
   /** 译文段 ↻ 是否在重译 */
   isTransBusy: (lang: ArticleLang, sectionId: string) => boolean;
   onClose: () => void;
-  onGenerate: (cfg: { type: ArticleType; platform: ArticlePlatform; audience: string }) => void;
+  onGenerate: (cfg: {
+    platform: ArticlePlatform;
+    audienceRole: ArticleAudienceRole;
+    audienceRegion: ArticleAudienceRegion;
+  }) => void;
   onRegenSection: (sectionId: string) => void;
   onEditSection: (sectionId: string, body: string) => void;
   onTranslate: (langs: ArticleLang[]) => void;
@@ -49,9 +60,9 @@ export function ArticleStudio({
   const hasContent = Boolean(draft && draft.sections.length > 0);
 
   const [step, setStep] = useState<1 | 2 | 3>(hasContent ? 2 : 1);
-  const [type, setType] = useState<ArticleType>(draft?.type ?? "article");
-  const [platform, setPlatform] = useState<ArticlePlatform>(draft?.platform ?? "linkedin");
-  const [audience, setAudience] = useState(draft?.audience ?? "");
+  const [platform, setPlatform] = useState<ArticlePlatform>(draft?.platform ?? "wechat_mp");
+  const [audienceRole, setAudienceRole] = useState<ArticleAudienceRole>(draft?.audienceRole ?? "buyer");
+  const [audienceRegion, setAudienceRegion] = useState<ArticleAudienceRegion>(draft?.audienceRegion ?? "domestic");
   const [langs, setLangs] = useState<ReadonlySet<ArticleLang>>(() => new Set());
 
   useEffect(() => {
@@ -77,8 +88,15 @@ export function ArticleStudio({
       return next;
     });
 
+  const cfg = { platform, audienceRole, audienceRegion };
+  const lim = PLATFORM_LIMITS[platform];
+  const limitLines = [
+    lim.titleMax ? a.limitTitleMax(lim.titleMax) : null,
+    lim.bodyMax ? `${a.limitBodyMax(lim.bodyMax)}${lim.bodyBest ? ` ${a.limitBest(lim.bodyBest)}` : ""}` : null,
+  ].filter(Boolean) as string[];
+
   const runGenerate = () => {
-    onGenerate({ type, platform, audience });
+    onGenerate(cfg);
     setStep(2);
   };
 
@@ -119,22 +137,10 @@ export function ArticleStudio({
           {step === 1 ? (
             <div className="article-config">
               <div className="article-field">
-                <span className="article-field-l">{a.typeLabel}</span>
-                <div className="article-opt">
-                  {ARTICLE_TYPES.map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      className={`article-opt-chip ${type === t ? "on" : ""}`}
-                      onClick={() => setType(t)}
-                    >
-                      {a.type[t]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="article-field">
-                <span className="article-field-l">{a.platformLabel}</span>
+                <span className="article-field-l">
+                  {a.platformLabel}
+                  <span className="article-field-hint">{a.platformHint}</span>
+                </span>
                 <div className="article-opt">
                   {ARTICLE_PLATFORMS.map((p) => (
                     <button
@@ -149,15 +155,49 @@ export function ArticleStudio({
                 </div>
               </div>
               <div className="article-field">
-                <span className="article-field-l">{a.audienceLabel}</span>
-                <textarea
-                  className="at-textarea"
-                  rows={3}
-                  placeholder={a.audiencePlaceholder}
-                  value={audience}
-                  onChange={(event) => setAudience(event.target.value)}
-                />
+                <span className="article-field-l">{a.audienceRoleLabel}</span>
+                <div className="article-opt">
+                  {ARTICLE_AUDIENCE_ROLES.map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      className={`article-opt-chip ${audienceRole === r ? "on" : ""}`}
+                      onClick={() => setAudienceRole(r)}
+                    >
+                      {a.audienceRole[r]}
+                    </button>
+                  ))}
+                </div>
               </div>
+              <div className="article-field">
+                <span className="article-field-l">{a.audienceRegionLabel}</span>
+                <div className="article-opt">
+                  {ARTICLE_AUDIENCE_REGIONS.map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      className={`article-opt-chip ${audienceRegion === r ? "on" : ""}`}
+                      onClick={() => setAudienceRegion(r)}
+                    >
+                      {a.audienceRegion[r]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {limitLines.length > 0 ? (
+                <div className="article-limit">
+                  <div className="article-limit-h">
+                    {a.limitTitle}
+                    <span className="article-limit-plat">{a.platform[platform]}</span>
+                  </div>
+                  <ul className="article-limit-list">
+                    {limitLines.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                  <p className="article-limit-note">{a.limitNote}</p>
+                </div>
+              ) : null}
             </div>
           ) : null}
 
@@ -271,7 +311,7 @@ export function ArticleStudio({
                 type="button"
                 className="studio-foot-btn ghost"
                 disabled={generating}
-                onClick={() => onGenerate({ type, platform, audience })}
+                onClick={() => onGenerate(cfg)}
               >
                 {generating ? a.generating : a.regenAll}
               </button>

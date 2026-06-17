@@ -56,8 +56,8 @@ export function buildSpaceState({ dbContent, members, currentUserId, isDemoSpace
     candidateSignals: dbContent.candidateSignals,
     editorialBriefs: dbContent.editorialBriefs,
     contentValueScores: dbContent.contentValueScores,
-    screeningDecisions: [],
-    topicCards: [],
+    screeningDecisions: dbContent.screeningDecisions,
+    topicCards: dbContent.topicCards,
     locationAnchors: [],
     productionDrafts: {},
     articleDrafts: {},
@@ -69,15 +69,30 @@ export function buildSpaceState({ dbContent, members, currentUserId, isDemoSpace
 
   if (!isDemoSpace) return base;
 
+  // Demo space: keep the curated fixtures overlay for seeded decisions/topic cards, then
+  // APPEND any DB rows the overlay doesn't already cover (i.e. runtime-created ones, which
+  // carry real uuids that never collide with the fid()-remapped seeds). Dedup by the
+  // source brief id (1:1 + stable across the in-memory/DB id split), so seeds never double.
+  const overlayDecisions = fxDecisions.map((d) => ({
+    ...d, editorialBriefId: fid(d.editorialBriefId), decidedBy: memberRemap(d.decidedBy),
+  }));
+  const overlayCards = fxTopicCards.map((t) => ({
+    ...t, id: fid(t.id), sourceEditorialBriefId: fid(t.sourceEditorialBriefId),
+    sourceIds: t.sourceIds.map(fid), ownerId: t.ownerId ? memberRemap(t.ownerId) : t.ownerId,
+  }));
+  const seededDecisionBriefs = new Set(overlayDecisions.map((d) => d.editorialBriefId));
+  const seededCardBriefs = new Set(overlayCards.map((c) => c.sourceEditorialBriefId));
+
   return {
     ...base,
-    screeningDecisions: fxDecisions.map((d) => ({
-      ...d, editorialBriefId: fid(d.editorialBriefId), decidedBy: memberRemap(d.decidedBy),
-    })),
-    topicCards: fxTopicCards.map((t) => ({
-      ...t, id: fid(t.id), sourceEditorialBriefId: fid(t.sourceEditorialBriefId),
-      sourceIds: t.sourceIds.map(fid), ownerId: t.ownerId ? memberRemap(t.ownerId) : t.ownerId,
-    })),
+    screeningDecisions: [
+      ...overlayDecisions,
+      ...dbContent.screeningDecisions.filter((d) => !seededDecisionBriefs.has(d.editorialBriefId)),
+    ],
+    topicCards: [
+      ...overlayCards,
+      ...dbContent.topicCards.filter((c) => !seededCardBriefs.has(c.sourceEditorialBriefId)),
+    ],
     locationAnchors: fxAnchors.map((a) => ({
       ...a, id: fid(a.id), relatedTrackingObjectIds: a.relatedTrackingObjectIds.map(fid),
       sourceIds: a.sourceIds.map(fid),

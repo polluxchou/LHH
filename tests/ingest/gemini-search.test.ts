@@ -4,6 +4,7 @@ import {
   buildSearchPrompt,
   isLikelyHomepageUrl,
   chooseSourceUrl,
+  searchRecentNews,
 } from "@/lib/ingest/gemini-search";
 
 describe("buildSearchPrompt", () => {
@@ -105,5 +106,26 @@ describe("parseGeminiResponse", () => {
   it("drops an item with no url and no grounding source", () => {
     const text = '[{"title":"T","url":"","publishedDate":"2026-06-14","summary":"s"}]';
     expect(parseGeminiResponse(text, [])).toEqual([]);
+  });
+});
+
+describe("searchRecentNews onUsage", () => {
+  it("forwards normalized usage with gemini provider+model", async () => {
+    const events: unknown[] = [];
+    const items = await searchRecentNews(
+      { brand: "SpaceX", sinceDate: "2026-06-08", todayDate: "2026-06-15" },
+      (e) => events.push(e),
+      {
+        generate: async () => ({
+          text: '[{"title":"T","url":"https://x.com/a","publishedDate":"2026-06-14","summary":"s"}]',
+          groundingChunks: [],
+          usage: { promptTokens: 100, completionTokens: 20, totalTokens: 120 },
+        }),
+      },
+    );
+    expect(items).toHaveLength(1);
+    expect(events).toEqual([
+      { provider: "gemini", model: "gemini-3.5-flash", usage: { promptTokens: 100, completionTokens: 20, totalTokens: 120 } },
+    ]);
   });
 });
