@@ -1,6 +1,7 @@
 "use server";
 
 import { analyzeBrief } from "@/lib/ingest/deepseek-analyze";
+import { recordUsage } from "@/lib/usage/record";
 import type { AnalyzedBrief, GeminiNewsItem } from "@/lib/ingest/types";
 
 export type GenerateBriefResult =
@@ -33,7 +34,10 @@ export async function generateBriefAction(input: {
       })),
     ].filter((it) => it.title);
 
-    const analyzed = await analyzeBrief({ brand: input.brand, items });
+    const analyzed = await analyzeBrief(
+      { brand: input.brand, items },
+      (e) => void recordUsage({ ...e, operation: "ingest_analyze" }),
+    );
     if (!analyzed) return { ok: false, reason: "AI 未返回有效结果" };
     return { ok: true, analyzed };
   } catch (err) {

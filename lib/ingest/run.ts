@@ -3,6 +3,7 @@ import { runIngestForBrand, type PipelineDeps } from "@/lib/ingest/pipeline";
 import { searchRecentNews } from "@/lib/ingest/gemini-search";
 import { analyzeBrief } from "@/lib/ingest/deepseek-analyze";
 import { writeIngestResult } from "@/lib/db/ingest-writer";
+import { recordUsage } from "@/lib/usage/record";
 
 /** 单对象按需抓取的入参(与 pipeline 的 BrandInput 同形状)。 */
 export interface IngestBrandInput {
@@ -40,8 +41,15 @@ export async function ingestTrackingObject(
     windowDays: opts?.windowDays ?? 7,
     seenCanonicalUrls: new Set<string>(),
     search: (b, since, today, keywords, excludedTerms) =>
-      searchRecentNews({ brand: b, sinceDate: since, todayDate: today, keywords, excludedTerms }),
-    analyze: (b, items) => analyzeBrief({ brand: b, items }),
+      searchRecentNews(
+        { brand: b, sinceDate: since, todayDate: today, keywords, excludedTerms },
+        (e) => void recordUsage({ ...e, operation: "ingest_search", spaceId: brand.spaceId }),
+      ),
+    analyze: (b, items) =>
+      analyzeBrief(
+        { brand: b, items },
+        (e) => void recordUsage({ ...e, operation: "ingest_analyze", spaceId: brand.spaceId }),
+      ),
   };
   const result = await runIngestForBrand(brand, deps);
   return writeIngestResult(db, result);
