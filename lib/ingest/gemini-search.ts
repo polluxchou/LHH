@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import type { GeminiNewsItem } from "@/lib/ingest/types";
 import { isLikelyHomepageUrl } from "@/lib/search/url";
+import { extractGeminiUsage, type TokenUsage, type UsageSink } from "@/lib/usage/extract";
 
 export interface GroundingChunk {
   web?: { uri?: string; title?: string };
@@ -116,7 +117,7 @@ export function parseGeminiResponse(
 export interface SearchDeps {
   generate: (
     prompt: string,
-  ) => Promise<{ text: string; groundingChunks: GroundingChunk[] }>;
+  ) => Promise<{ text: string; groundingChunks: GroundingChunk[]; usage: TokenUsage | null }>;
 }
 
 function defaultDeps(): SearchDeps {
@@ -130,16 +131,22 @@ function defaultDeps(): SearchDeps {
       });
       const chunks =
         res.candidates?.[0]?.groundingMetadata?.groundingChunks ?? [];
-      return { text: res.text ?? "", groundingChunks: chunks as GroundingChunk[] };
+      return {
+        text: res.text ?? "",
+        groundingChunks: chunks as GroundingChunk[],
+        usage: extractGeminiUsage(res),
+      };
     },
   };
 }
 
 export async function searchRecentNews(
   opts: { brand: string; sinceDate: string; todayDate: string; keywords?: string[]; excludedTerms?: string[] },
+  onUsage?: UsageSink,
   deps: SearchDeps = defaultDeps(),
 ): Promise<GeminiNewsItem[]> {
   const prompt = buildSearchPrompt(opts.brand, opts.sinceDate, opts.todayDate, opts.keywords ?? [], opts.excludedTerms ?? []);
-  const { text, groundingChunks } = await deps.generate(prompt);
+  const { text, groundingChunks, usage } = await deps.generate(prompt);
+  onUsage?.({ provider: "gemini", model: "gemini-3.5-flash", usage });
   return parseGeminiResponse(text, groundingChunks);
 }
