@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildAnalyzePrompt, parseAnalysis } from "@/lib/ingest/deepseek-analyze";
-import { analyzeBrief } from "@/lib/ingest/deepseek-analyze";
+import { analyzeBrief, buildAnalyzePrompt, parseAnalysis } from "@/lib/ingest/deepseek-analyze";
 
 describe("buildAnalyzePrompt", () => {
   it("mentions json and includes item titles", () => {
