@@ -3,9 +3,11 @@
 import { analyzeBrief } from "@/lib/ingest/deepseek-analyze";
 import { recordUsage } from "@/lib/usage/record";
 import type { AnalyzedBrief, GeminiNewsItem } from "@/lib/ingest/types";
+import { verifyOnX } from "@/lib/ingest/x-verify";
+import type { Verification } from "@/lib/domain/types";
 
 export type GenerateBriefResult =
-  | { ok: true; analyzed: AnalyzedBrief }
+  | { ok: true; analyzed: AnalyzedBrief; verification: Verification }
   | { ok: false; reason: string };
 
 /**
@@ -39,7 +41,12 @@ export async function generateBriefAction(input: {
       (e) => void recordUsage({ ...e, operation: "ingest_analyze" }),
     );
     if (!analyzed) return { ok: false, reason: "AI 未返回有效结果" };
-    return { ok: true, analyzed };
+    const verification = await verifyOnX({
+      claim: `${analyzed.headline}。${analyzed.factSummary}`,
+      brand: input.brand,
+      eventDate: analyzed.eventDate,
+    });
+    return { ok: true, analyzed, verification };
   } catch (err) {
     // 脱敏：只回简短原因，不泄露 key/堆栈
     return { ok: false, reason: err instanceof Error ? err.message : "生成失败" };
