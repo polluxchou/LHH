@@ -1,5 +1,35 @@
 import { describe, it, expect } from "vitest";
-import { buildVerifyPrompt, parseVerification, deriveHandle, type Citation, verifyOnX, type VerifyDeps } from "@/lib/ingest/x-verify";
+import { buildVerifyPrompt, parseVerification, deriveHandle, extractCitations, type Citation, verifyOnX, type VerifyDeps } from "@/lib/ingest/x-verify";
+
+describe("extractCitations", () => {
+  it("从 output[].content[].annotations[](url_citation)抽引用", () => {
+    const data = {
+      output: [{ type: "message", content: [{ type: "output_text", text: "{}", annotations: [
+        { type: "url_citation", url: "https://x.com/Nasdaq/status/9", title: "Nasdaq-100 announcement", start_index: 0, end_index: 5 },
+      ] }] }],
+    };
+    const c = extractCitations(data);
+    expect(c).toHaveLength(1);
+    expect(c[0].url).toBe("https://x.com/Nasdaq/status/9");
+    expect(c[0].title).toBe("Nasdaq-100 announcement");
+  });
+  it("兜底读顶层 citations(URL 字符串)", () => {
+    const c = extractCitations({ citations: ["https://x.com/RocketLab/status/1"] });
+    expect(c[0].url).toBe("https://x.com/RocketLab/status/1");
+  });
+  it("两来源合并并按 url 去重", () => {
+    const data = {
+      output: [{ content: [{ annotations: [{ type: "url_citation", url: "https://x.com/A/status/1" }] }] }],
+      citations: ["https://x.com/A/status/1", "https://x.com/B/status/2"],
+    };
+    const c = extractCitations(data);
+    expect(c.map((x) => x.url).sort()).toEqual(["https://x.com/A/status/1", "https://x.com/B/status/2"]);
+  });
+  it("无引用 → 空数组(不抛)", () => {
+    expect(extractCitations({})).toEqual([]);
+    expect(extractCitations({ output: "nope", citations: 42 })).toEqual([]);
+  });
+});
 
 describe("deriveHandle", () => {
   it("从帖子 URL 解析账号名", () => {

@@ -149,27 +149,63 @@ function extractText(data: Record<string, unknown>): string {
 
 /**
  * Extract citations from the xAI Responses API response.
- * Per docs: response.citations is a top-level array of URL strings or citation objects.
- * Each citation may be a plain URL string or an object with at least a `url` field.
+ *
+ * Per xAI docs there are TWO places citations can live, and the Responses API
+ * primarily uses the first:
+ *   1. output[].content[].annotations[]  — objects {type:"url_citation", url, title, ...}
+ *      (the Responses API attaches per-source citations here; the top-level array is
+ *       often empty under /v1/responses).
+ *   2. response.citations               — top-level array of URL strings (or objects).
+ * We read both and merge, deduped by url, so we capture citations regardless of which
+ * field the API populates. (Earlier we only read #2 → evidence came back empty.)
  */
-function extractCitations(data: Record<string, unknown>): Citation[] {
+export function extractCitations(data: Record<string, unknown>): Citation[] {
+  const out: Citation[] = [];
+  const seen = new Set<string>();
+  const push = (url: unknown, title?: unknown, handle?: unknown) => {
+    const u = typeof url === "string" ? url.trim() : "";
+    if (!u || seen.has(u)) return;
+    seen.add(u);
+    out.push({
+      url: u,
+      title: typeof title === "string" && title.trim() ? title : undefined,
+      handle: typeof handle === "string" && handle.trim() ? handle : undefined,
+    });
+  };
+
+  // 1) output[].content[].annotations[] with type "url_citation"
+  const output = (data as { output?: unknown }).output;
+  if (Array.isArray(output)) {
+    for (const block of output) {
+      const content = (block as { content?: unknown }).content;
+      if (!Array.isArray(content)) continue;
+      for (const item of content) {
+        const annotations = (item as { annotations?: unknown }).annotations;
+        if (!Array.isArray(annotations)) continue;
+        for (const a of annotations) {
+          const ann = (a ?? {}) as { type?: unknown; url?: unknown; title?: unknown };
+          if (ann.type === "url_citation") push(ann.url, ann.title);
+        }
+      }
+    }
+  }
+
+  // 2) top-level citations (URL strings or objects) — fallback / supplement
   const raw = (data as { citations?: unknown }).citations;
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .map((c) => {
-      if (typeof c === "string") return { url: c } as Citation;
-      const o = (c ?? {}) as Record<string, unknown>;
-      // 帖子原文优先取 text/snippet/quote,回落到 title。
-      const title = [o.text, o.snippet, o.quote, o.title].find(
-        (v) => typeof v === "string" && v.trim(),
-      ) as string | undefined;
-      return {
-        url: typeof o.url === "string" ? o.url : "",
-        title,
-        handle: typeof o.handle === "string" ? o.handle : undefined,
-      } as Citation;
-    })
-    .filter((c) => c && typeof c.url === "string" && c.url);
+  if (Array.isArray(raw)) {
+    for (const c of raw) {
+      if (typeof c === "string") {
+        push(c);
+      } else if (c && typeof c === "object") {
+        const o = c as Record<string, unknown>;
+        // 帖子原文优先取 text/snippet/quote,回落到 title。
+        const title = [o.text, o.snippet, o.quote, o.title].find((v) => typeof v === "string" && (v as string).trim());
+        push(o.url, title, o.handle);
+      }
+    }
+  }
+
+  return out;
 }
 
 function defaultDeps(): VerifyDeps {
