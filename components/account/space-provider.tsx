@@ -55,9 +55,26 @@ export function SpaceProvider({
   }, []);
 
   // Local mutable copy for in-session editorial edits; re-synced to the server-built
-  // content whenever it changes (e.g. after router.refresh() following a search/add).
+  // content whenever it changes (e.g. the route refresh Next.js runs after a Server
+  // Action, or after a search/add).
   const [store, setStore] = useState<Record<string, LocalWorkflowState>>(contentBySpace);
-  useEffect(() => { setStore(contentBySpace); }, [contentBySpace]);
+  useEffect(() => {
+    // Carry the in-session tracked-object selection across the re-sync. buildSpaceState
+    // always defaults selectedTrackingObjectId to trackingObjects[0]; honoring that on
+    // every re-sync snaps the user back to the first object whenever a Server Action
+    // (e.g. generate / regenerate brief) refreshes the route. Keep the previous selection
+    // when it still exists; fall back to the server default only if it's gone.
+    setStore((prev) => {
+      const next: Record<string, LocalWorkflowState> = {};
+      for (const sid of Object.keys(contentBySpace)) {
+        const server = contentBySpace[sid];
+        const prevSel = prev[sid]?.selectedTrackingObjectId;
+        const keep = prevSel && server.trackingObjects.some((o) => o.id === prevSel);
+        next[sid] = keep ? { ...server, selectedTrackingObjectId: prevSel } : server;
+      }
+      return next;
+    });
+  }, [contentBySpace]);
 
   const current = mySpaces.find((s) => s.space.id === currentSpaceId) ?? null;
   const members = currentSpaceId ? (membersBySpace[currentSpaceId] ?? []) : [];
