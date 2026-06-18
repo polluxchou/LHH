@@ -18,6 +18,9 @@ export async function generateBriefAction(input: {
   brand: string;
   signal: { headline: string; summary: string; eventDate: string | null };
   sources: { title: string; url: string; publishedAt: string | null }[];
+  /** 当前空间/用户，用于把 token 成本归属到正确的空间（缺省则落 null）。 */
+  spaceId?: string | null;
+  userId?: string | null;
 }): Promise<GenerateBriefResult> {
   try {
     // 以信号本身为主条目，来源作为补充条目，喂给 analyzeBrief。
@@ -38,7 +41,7 @@ export async function generateBriefAction(input: {
 
     const analyzed = await analyzeBrief(
       { brand: input.brand, items },
-      (e) => void recordUsage({ ...e, operation: "ingest_analyze" }),
+      (e) => void recordUsage({ ...e, operation: "ingest_analyze", spaceId: input.spaceId, userId: input.userId }),
     );
     if (!analyzed) return { ok: false, reason: "AI 未返回有效结果" };
     const verification = await verifyOnX({
