@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { useSpaceSession } from "@/components/account/space-provider";
+import { getCopy } from "@/lib/i18n/copy";
 
 export function AccountMenu({ locale }: { locale: "en" | "zh" }) {
   const s = useSpaceSession();
@@ -12,6 +13,8 @@ export function AccountMenu({ locale }: { locale: "en" | "zh" }) {
   const name = me?.profile.displayName ?? s.profile?.displayName ?? s.email;
   const avatarChar = me?.profile.avatarChar ?? s.profile?.avatarChar ?? (name?.[0] ?? "·");
   const color = me?.profile.color ?? s.profile?.color ?? "#888888";
+  const canViewUsage = s.isOwnerOfCurrent || s.currentRole === "admin";
+  const cu = getCopy(locale);
   const roleLabel = s.isOwnerOfCurrent
     ? (locale === "zh" ? "所有者" : "Owner")
     : s.currentRole === "admin" ? (locale === "zh" ? "管理员" : "Admin") : (locale === "zh" ? "成员" : "Member");
@@ -48,6 +51,17 @@ export function AccountMenu({ locale }: { locale: "en" | "zh" }) {
       {open ? (
         <div className="user-popover">
           <div className="user-popover-head">{locale === "zh" ? "账号" : "Account"}</div>
+          {canViewUsage ? (
+            <button
+              type="button"
+              className="user-row"
+              onClick={() => router.push(locale === "zh" ? "/zh/usage" : "/usage")}
+            >
+              <span className="urowtxt">
+                <span className="urowname">{cu.account.usageLink}</span>
+              </span>
+            </button>
+          ) : null}
           <button type="button" className="user-row" onClick={logout}>
             <span className="urowtxt">
               <span className="urowname">{locale === "zh" ? "登出" : "Sign out"}</span>
