@@ -120,9 +120,13 @@ export function parseVerification(
 
 // ── verifyOnX ────────────────────────────────────────────────────────────────
 
-// 事件日期前后各取 N 天作为 x-search 时间窗。放宽到 ±7 以减少"误判式 unverifiable":
-// 合练/里程碑类信号常在事件后数天才被官方/媒体在 X 上提及。
-const WINDOW_DAYS = 7;
+// x-search 时间窗:相对事件日期不对称取窗。
+// 公告/指数纳入/里程碑通稿等几乎都在「生效日」之前数天到数周就由官方发布,
+// 而 analyzed.eventDate 往往落在生效日 → 对称窗会把最权威的原始公告挡在 fromDate 之前
+// (如 Rocket Lab 6/12 官宣、6/22 生效)。故回看放宽到 30 天;
+// 前看保留 7 天,兼顾事件后数天才被官方/媒体提及的合练/里程碑类信号。
+const LOOKBACK_DAYS = 30;
+const LOOKAHEAD_DAYS = 7;
 
 export interface VerifyDeps {
   search: (prompt: string, opts: { fromDate?: string; toDate?: string }) => Promise<{ text: string; citations: Citation[] }>;
@@ -271,8 +275,8 @@ export async function verifyOnX(
   try {
     const prompt = buildVerifyPrompt(opts.claim, { brand: opts.brand, eventDate: opts.eventDate });
     const result = await deps.search(prompt, {
-      fromDate: shiftDate(opts.eventDate, -WINDOW_DAYS),
-      toDate: shiftDate(opts.eventDate, WINDOW_DAYS),
+      fromDate: shiftDate(opts.eventDate, -LOOKBACK_DAYS),
+      toDate: shiftDate(opts.eventDate, LOOKAHEAD_DAYS),
     });
     return parseVerification(result.text, result.citations, { checkedAt });
   } catch {

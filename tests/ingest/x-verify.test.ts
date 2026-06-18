@@ -152,15 +152,30 @@ describe("verifyOnX", () => {
     expect(v.checkedAt).toBe("2026-06-15T00:00:00.000Z");
   });
 
-  it("传入事件日期 → search 收到 ±7 天窗口", async () => {
+  it("传入事件日期 → search 收到不对称窗口(回看 -30 / 前看 +7)", async () => {
     let got: { fromDate?: string; toDate?: string } = {};
     await verifyOnX(
       { claim: "x", brand: "y", eventDate: "2026-06-13" },
       { search: async (_p, opts) => { got = opts; return { text: "{}", citations: [] }; } },
       () => "AT",
     );
-    expect(got.fromDate).toBe("2026-06-06");
+    // 公告常先于事件数天到数周发布 → 回看放宽到 30 天,前看保留 7 天。
+    expect(got.fromDate).toBe("2026-05-14");
     expect(got.toDate).toBe("2026-06-20");
+  });
+
+  it("公告早于生效日(Rocket Lab 6/12 发、6/22 生效)→ 窗口仍覆盖公告日", async () => {
+    let got: { fromDate?: string; toDate?: string } = {};
+    await verifyOnX(
+      // eventDate 取生效日 6/22,官方公告在 6/12——±7 对称窗会漏掉,回看 30 天能覆盖。
+      { claim: "Rocket Lab 入选纳指100", brand: "Rocket Lab", eventDate: "2026-06-22" },
+      { search: async (_p, opts) => { got = opts; return { text: "{}", citations: [] }; } },
+      () => "AT",
+    );
+    expect(got.fromDate).toBe("2026-05-23");
+    expect(got.toDate).toBe("2026-06-29");
+    // 公告日 2026-06-12 必须落在 [fromDate, toDate] 内。
+    expect(got.fromDate! <= "2026-06-12" && "2026-06-12" <= got.toDate!).toBe(true);
   });
 
   it("无事件日期 → search 不带日期窗口(both undefined)", async () => {
