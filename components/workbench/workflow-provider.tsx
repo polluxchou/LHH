@@ -118,6 +118,26 @@ export interface WorkbenchStore {
 
 const WorkflowContext = createContext<WorkbenchStore | null>(null);
 
+/** Sentinel thrown by withTimeout so callers can distinguish a timeout from other errors. */
+const TIMEOUT_ERROR = "__brief_ai_timeout__";
+
+/**
+ * Client-side timeout for the brief-generation server action. The action (DeepSeek +
+ * x-search) runs serially and can be slow; on a serverless host the response may stall
+ * past the function limit so the promise never settles. Racing it against a timer
+ * guarantees the caller's `finally` runs and the spinner always clears. The server work
+ * cannot be cancelled — we just stop waiting on it. 75s sits just above Vercel's 60s
+ * Hobby function cap, so a normal call (which the platform itself bounds) wins the race.
+ */
+const BRIEF_AI_TIMEOUT_MS = 75_000;
+function withTimeout<T>(promise: Promise<T>, ms = BRIEF_AI_TIMEOUT_MS): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<T>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(TIMEOUT_ERROR)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 export function useWorkflow(): WorkbenchStore {
   const store = useContext(WorkflowContext);
 
@@ -364,19 +384,18 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
       let ai: AnalyzedBrief | undefined;
       let verification: Verification | undefined;
       try {
-        const result = await generateBriefAction({
+        const result = await withTimeout(generateBriefAction({
           brand,
           signal: { headline: signal.headline, summary: signal.summary, eventDate: signal.eventDate },
           sources: sources.map((s) => ({ title: s.title, url: s.url, publishedAt: s.publishedAt })),
-        });
+        }));
         if (result.ok) { ai = result.analyzed; verification = result.verification; }
         else store.logDemo("warning", L.aiFailedTemplate(result.reason), `brief-${signalId}`);
       } catch (error) {
-        store.logDemo(
-          "warning",
-          L.aiFailedTemplate(error instanceof Error ? error.message : L.errUnknown),
-          `brief-${signalId}`,
-        );
+        const reason =
+          error instanceof Error && error.message === TIMEOUT_ERROR ? L.errTimeout
+          : error instanceof Error ? error.message : L.errUnknown;
+        store.logDemo("warning", L.aiFailedTemplate(reason), `brief-${signalId}`);
       } finally {
         setGeneratingBriefIds((prev) => {
           const next = new Set(prev);
@@ -470,27 +489,31 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
       setGeneratingBriefIds((prev) => new Set(prev).add(signalId));
       let ai: AnalyzedBrief | undefined;
       let verification: Verification | undefined;
+      let ok = false;
       try {
-        const result = await generateBriefAction({
+        const result = await withTimeout(generateBriefAction({
           brand,
           signal: { headline: signal.headline, summary: signal.summary, eventDate: signal.eventDate },
           sources: sources.map((s) => ({ title: s.title, url: s.url, publishedAt: s.publishedAt })),
-        });
-        if (result.ok) { ai = result.analyzed; verification = result.verification; }
-        else store.logDemo("warning", L.aiFailedTemplate(result.reason), `brief-${signalId}`);
+        }));
+        if (result.ok) { ai = result.analyzed; verification = result.verification; ok = true; }
+        else store.logDemo("warning", L.briefRegenKept(result.reason), `brief-${signalId}`);
       } catch (error) {
-        store.logDemo(
-          "warning",
-          L.aiFailedTemplate(error instanceof Error ? error.message : L.errUnknown),
-          `brief-${signalId}`,
-        );
+        const reason =
+          error instanceof Error && error.message === TIMEOUT_ERROR ? L.errTimeout
+          : error instanceof Error ? error.message : L.errUnknown;
+        store.logDemo("warning", L.briefRegenKept(reason), `brief-${signalId}`);
       } finally {
+        // ALWAYS clear the spinner — even if the AI promise timed out / never settled.
         setGeneratingBriefIds((prev) => {
           const next = new Set(prev);
           next.delete(signalId);
           return next;
         });
       }
+      // Regenerate replaces ONLY on success: a failure/timeout keeps the existing brief
+      // intact (never overwrite a good brief with a template draft).
+      if (!ok) return;
 
       // 1) 内存覆盖：先剥掉旧简报，再生成（functional updater，叠在最新 state 上）。
       let failed = false;

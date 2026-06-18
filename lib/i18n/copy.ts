@@ -568,6 +568,8 @@ const en = {
   log: {
     errUnknown: "Unknown error",
     errWorkflow: "Unknown workflow error",
+    errTimeout: "request timed out",
+    briefRegenKept: (reason: string) => `Regeneration failed · kept the existing brief · ${reason}`,
     searchNoNew: "no new content",
     defaultSubject: "this tracked object",
     simulatedFailure: "API gateway timeout · 3/18 sources returned errors",
@@ -1130,6 +1132,8 @@ const zh: typeof en = {
   log: {
     errUnknown: "未知错误",
     errWorkflow: "未知工作流错误",
+    errTimeout: "请求超时",
+    briefRegenKept: (reason) => `重新生成失败 · 已保留原简报 · ${reason}`,
     searchNoNew: "无新内容",
     defaultSubject: "该追踪对象",
     simulatedFailure: "API 网关超时 · 3/18 来源返回错误",
