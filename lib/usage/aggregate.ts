@@ -2,6 +2,7 @@ import type { Provider } from "@/lib/usage/pricing";
 import type { UsageOperation } from "@/lib/usage/record";
 
 export interface UsageRow {
+  space_id: string | null;
   provider: Provider;
   model: string;
   operation: UsageOperation;
@@ -10,7 +11,7 @@ export interface UsageRow {
   created_at: string;
 }
 
-export type GroupDim = "provider" | "model" | "operation" | "day";
+export type GroupDim = "provider" | "model" | "operation" | "day" | "space";
 
 export interface UsageGroup {
   key: Partial<Record<GroupDim, string>>;
@@ -21,6 +22,7 @@ export interface UsageGroup {
 
 function dimValue(row: UsageRow, dim: GroupDim): string {
   if (dim === "day") return row.created_at.slice(0, 10);
+  if (dim === "space") return row.space_id ?? "";
   return String(row[dim]);
 }
 
