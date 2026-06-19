@@ -26,16 +26,28 @@ export function SourcePanel({ sources, briefTitle }: { sources: Source[]; briefT
               <span className="pub">{source.publisher ?? t.workbench.sourcePanel.unknownPublisher}</span>
               <span className={`source-kind ${kind.className}`}>{t.labels.sourceKind[kind.key]}</span>
             </div>
-            <div className="source-title">{source.title}</div>
+            <div className="source-title">
+              {source.url ? (
+                <a
+                  className="source-title-link"
+                  href={source.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={t.workbench.signals.viewSource}
+                >
+                  {source.title}
+                  <span className="source-link-ic" aria-hidden="true">↗</span>
+                </a>
+              ) : (
+                source.title
+              )}
+            </div>
             <div className="source-credibility">
               <span className="cbar">
                 <i className={barClass} style={{ width: `${credibility}%` }} />
               </span>
               <span>{t.workbench.sourcePanel.credible(credibility)}</span>
             </div>
-            <a className="source-url" href={source.url} target="_blank" rel="noreferrer">
-              {source.url}
-            </a>
           </div>
         );
       })}

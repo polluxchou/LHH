@@ -1733,13 +1733,17 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .source-credibility .cbar i.low  { background: var(--color-danger); }
 .source-credibility .cbar i.mid  { background: var(--color-warning); }
 .source-credibility .cbar i.hi   { background: var(--color-success); }
-.source-url {
-  font-size: 11px;
-  color: var(--color-primary);
+.source-title-link {
+  color: inherit;
   text-decoration: none;
-  word-break: break-all;
 }
-.source-url:hover { text-decoration: underline; }
+.source-title-link:hover { text-decoration: underline; }
+.source-link-ic {
+  margin-left: 4px;
+  color: var(--color-primary);
+  font-size: 11px;
+  vertical-align: baseline;
+}
 
 /* map */
 .map-pin {
