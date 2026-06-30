@@ -150,6 +150,8 @@ describe("verifyOnX", () => {
     );
     expect(v.status).toBe("unverifiable");
     expect(v.checkedAt).toBe("2026-06-15T00:00:00.000Z");
+    // 失败原因要透出到 summary，方便从简报本身定位（网络/HTTP 状态等），而非泛化的"调用失败"。
+    expect(v.summary).toContain("network");
   });
 
   it("传入事件日期 → search 收到不对称窗口(回看 -30 / 前看 +7)", async () => {
