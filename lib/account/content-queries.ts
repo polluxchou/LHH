@@ -124,7 +124,12 @@ export async function getSpaceContent(spaceId: string): Promise<SpaceContent> {
 export async function getSpaceSubscriptions(spaceId: string): Promise<Record<string, string[]>> {
   if (!spaceId) return {};
   const db = await createSupabaseServerClient();
-  const { data } = await db.from("space_subscriptions").select("user_id, tracking_object_id").eq("space_id", spaceId);
+  const { data } = await db
+    .from("space_subscriptions")
+    .select("user_id, tracking_object_id, sort_order")
+    .eq("space_id", spaceId)
+    .order("sort_order", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: true });
   const byUser: Record<string, string[]> = {};
   for (const r of rows(data)) (byUser[r.user_id] ??= []).push(r.tracking_object_id);
   return byUser;
