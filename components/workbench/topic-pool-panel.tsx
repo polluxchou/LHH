@@ -39,11 +39,13 @@ export function TopicPoolPanel({ items, currentMember, onClaim, onAdvance, onGen
         <span>{t.workbench.pool.shared(items.length)}</span>
         <span className="aux">{t.workbench.pool.allVisible}</span>
       </div>
-      {items.map(({ topicCard, score, createdAt, addedBy, owner }) => {
+      {items.map(({ topicCard, score, createdAt, addedBy, owner }, index) => {
         const isMine = owner?.id === currentMember.id;
+        // 列表按入库时间倒序，第一条即最新入选题库的条目 — 样式上强调。
+        const isNewest = index === 0;
 
         return (
-          <div key={topicCard.id} className="pool-item">
+          <div key={topicCard.id} className={`pool-item ${isNewest ? "is-newest" : ""}`}>
             <div className="pheadline">{topicCard.workingTitle}</div>
             <div className="pq">{t.workbench.pool.coreQuestion(topicCard.coreQuestion)}</div>
             {topicCard.observationDimensions && topicCard.observationDimensions.length > 0 ? (

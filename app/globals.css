@@ -1921,6 +1921,12 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   gap: 6px;
 }
 .pool-item:hover { box-shadow: var(--shadow-card-sm); }
+/* 最新入选题库的条目：加重左侧主色描边 + 淡主色底 + 柔光，突出"刚进库" */
+.pool-item.is-newest {
+  border-left-width: 5px;
+  background: rgba(139, 94, 60, 0.05);
+  box-shadow: 0 2px 12px rgba(139, 94, 60, 0.14);
+}
 .pool-item .pheadline {
   font-family: var(--font-display);
   font-size: 14px;

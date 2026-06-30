@@ -45,7 +45,7 @@ const en = {
   // Shared enum labels (used by both the home workbench and the route views).
   labels: {
     signalKind: { milestone: "Milestone", policy: "Policy / regulatory", facility: "Facility / site" },
-    briefStatus: { pending: "Pending", pool: "In topic pool", watch: "Watching", rejected: "Rejected" },
+    briefStatus: { pending: "Pending", pool: "In pool", watch: "Watching", rejected: "Rejected" },
     sourceKind: {
       official: "Official",
       regulatory: "Regulator",
@@ -622,7 +622,7 @@ const zh: typeof en = {
   },
   labels: {
     signalKind: { milestone: "里程碑", policy: "政策 / 监管", facility: "设施 / 地点" },
-    briefStatus: { pending: "待筛", pool: "已入选题库", watch: "观察中", rejected: "已拒绝" },
+    briefStatus: { pending: "待筛", pool: "已入选", watch: "观察中", rejected: "已拒绝" },
     sourceKind: {
       official: "官方",
       regulatory: "监管",
