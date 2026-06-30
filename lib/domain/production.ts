@@ -16,9 +16,13 @@ export interface StoryboardShot {
   n: number;
   time: string;
   shot: string;
+  /** Derived cache of the script narration for this shot. Read-only in the UI;
+   *  always (re)written by deriveVoiceOvers. */
   voiceOver: string;
   visual: string;
   notes: string;
+  /** No-voice shot (title / transition card). Defaults to false. */
+  silent?: boolean;
 }
 
 export interface ProductionChecklistItem {

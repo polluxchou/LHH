@@ -15,6 +15,7 @@ import {
 import { generateEditorialBrief } from "@/lib/briefing/brief-generator";
 import { applyScreeningTransition } from "@/lib/domain/screening-transition";
 import { createStubProduction } from "@/lib/production/stub-production";
+import { deriveVoiceOvers } from "@/lib/production/derive-voiceovers";
 import type { ProductionPackage, StoryboardShot } from "@/lib/domain/production";
 import type { ArticleDraft } from "@/lib/domain/article";
 import type { AnalyzedBrief } from "@/lib/ingest/types";
@@ -738,6 +739,16 @@ export function ensureProductionDraft(state: LocalWorkflowState, briefId: string
   };
 }
 
+/** Storyboard voice-over is always derived from the script (single source of truth). */
+const VOICE_OVER_NONE = "（无）";
+function recomputeStoryboardVoiceOvers(draft: ProductionPackage): ProductionPackage {
+  const derived = deriveVoiceOvers(draft.script, draft.storyboard, VOICE_OVER_NONE);
+  return {
+    ...draft,
+    storyboard: draft.storyboard.map((shot, i) => ({ ...shot, voiceOver: derived[i] })),
+  };
+}
+
 export function updateScriptSection(
   state: LocalWorkflowState,
   briefId: string,
@@ -745,14 +756,15 @@ export function updateScriptSection(
   body: string,
 ): LocalWorkflowState {
   const draft = assertProductionDraftExists(state, briefId);
-
-  return withProductionDraft(state, briefId, {
+  const nextDraft: ProductionPackage = {
     ...draft,
     script: {
       ...draft.script,
       sections: draft.script.sections.map((section) => (section.id === sectionId ? { ...section, body } : section)),
     },
-  });
+  };
+
+  return withProductionDraft(state, briefId, recomputeStoryboardVoiceOvers(nextDraft));
 }
 
 export function updateStoryboardShot(
@@ -762,11 +774,14 @@ export function updateStoryboardShot(
   patch: Partial<Omit<StoryboardShot, "n">>,
 ): LocalWorkflowState {
   const draft = assertProductionDraftExists(state, briefId);
-
-  return withProductionDraft(state, briefId, {
+  // voiceOver is derived from the script, never set directly — strip it from the patch.
+  const { voiceOver: _ignored, ...safe } = patch;
+  const nextDraft: ProductionPackage = {
     ...draft,
-    storyboard: draft.storyboard.map((shot) => (shot.n === shotNumber ? { ...shot, ...patch } : shot)),
-  });
+    storyboard: draft.storyboard.map((shot) => (shot.n === shotNumber ? { ...shot, ...safe } : shot)),
+  };
+
+  return withProductionDraft(state, briefId, recomputeStoryboardVoiceOvers(nextDraft));
 }
 
 export function toggleProductionChecklistItem(
