@@ -33,6 +33,35 @@ export async function setSubscription(spaceId: string, trackingObjectId: string,
   }
 }
 
+/**
+ * Persist the current user's「我关注的」order within a space: set sort_order = index
+ * for each subscribed tracking object. Membership-checked; writes via service-role
+ * (subscriptions table is read-only under RLS). Ids not currently subscribed are
+ * ignored.
+ */
+export async function reorderSubscriptions(
+  spaceId: string,
+  orderedTrackingObjectIds: string[],
+): Promise<{ ok: boolean; reason?: string }> {
+  const mine = await getMySpaces();
+  if (!mine.some((m) => m.space.id === spaceId)) return { ok: false, reason: "forbidden" };
+  const supabase = await createSupabaseServerClient();
+  const { data: user } = await supabase.auth.getUser();
+  const userId = user.user?.id;
+  if (!userId) return { ok: false, reason: "no_user" };
+  const admin = createSupabaseAdminClient();
+  for (let i = 0; i < orderedTrackingObjectIds.length; i++) {
+    const { error } = await admin
+      .from("space_subscriptions")
+      .update({ sort_order: i })
+      .eq("space_id", spaceId)
+      .eq("user_id", userId)
+      .eq("tracking_object_id", orderedTrackingObjectIds[i]);
+    if (error) return { ok: false, reason: error.message };
+  }
+  return { ok: true };
+}
+
 export async function runSearchForObject(trackingObjectId: string): Promise<{ wrote: boolean; reason?: string }> {
   const admin = createSupabaseAdminClient();
   const { data: obj, error } = await admin
