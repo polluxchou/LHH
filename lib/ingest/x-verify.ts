@@ -253,7 +253,10 @@ function defaultDeps(): VerifyDeps {
           ],
         }),
       });
-      if (!res.ok) throw new Error(`x-search HTTP ${res.status}`);
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        throw new Error(`x-search HTTP ${res.status}${body ? `: ${body.slice(0, 300)}` : ""}`);
+      }
       const data = (await res.json()) as Record<string, unknown>;
       return { text: extractText(data), citations: extractCitations(data) };
     },
@@ -279,7 +282,10 @@ export async function verifyOnX(
       toDate: shiftDate(opts.eventDate, LOOKAHEAD_DAYS),
     });
     return parseVerification(result.text, result.citations, { checkedAt });
-  } catch {
-    return { status: "unverifiable", confidence: 0, summary: "X 核查调用失败", evidence: [], checkedAt };
+  } catch (err) {
+    // 透出真实原因(HTTP 状态/网络错误)而非泛化文案,便于从简报本身 + 服务端日志定位。
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error("[x-verify] verifyOnX failed:", detail);
+    return { status: "unverifiable", confidence: 0, summary: `X 核查调用失败：${detail}`, evidence: [], checkedAt };
   }
 }
