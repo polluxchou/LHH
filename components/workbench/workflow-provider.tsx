@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import { useRouter } from "next/navigation";
 import type { TeamMember, Verification } from "@/lib/domain/types";
 import { useSpaceSession } from "@/components/account/space-provider";
-import { addTrackingObjectToSpace, deleteTrackingObject, runSearchForObject, setSubscription, persistGeneratedBrief, persistScreeningDecision, persistTopicCardOwner } from "@/lib/account/content-mutations";
+import { addTrackingObjectToSpace, deleteTrackingObject, runSearchForObject, setSubscription, persistGeneratedBrief, persistScreeningDecision, persistTopicCardOwner, reorderSubscriptions } from "@/lib/account/content-mutations";
 import {
   appendWorkflowLog,
   claimTopicCard,
@@ -88,6 +88,8 @@ export interface WorkbenchStore {
   claim: (topicCardId: string) => void;
   switchMember: (memberId: string) => void;
   subToggle: (trackingObjectId: string) => void;
+  /** 拖拽排序「我关注的」：乐观更新内存顺序 + 落库 */
+  reorderTracked: (orderedTrackingObjectIds: string[]) => void;
   addTracked: (input: AddTrackingObjectInput) => void;
   removeTracked: (trackingObjectId: string) => void;
   logDemo: (level: WorkflowRunLogEntry["level"], message: string, briefId?: string) => void;
@@ -684,6 +686,24 @@ export function WorkflowProvider({ locale, children }: { locale: Locale; childre
       flip(); // optimistic
       if (spaceId) {
         setSubscription(spaceId, trackingObjectId, !wasSubscribed).catch(() => flip()); // persist; revert on failure
+      }
+    },
+
+    reorderTracked: (orderedTrackingObjectIds) => {
+      const spaceId = session.currentSpaceId;
+      const memberId = currentMember.id;
+      setState((current) => ({
+        ...current,
+        teamMembers: current.teamMembers.map((m) =>
+          m.id === memberId ? { ...m, trackingObjectIds: orderedTrackingObjectIds } : m,
+        ),
+      }));
+      if (spaceId) {
+        reorderSubscriptions(spaceId, orderedTrackingObjectIds)
+          .then((res) => {
+            if (!res.ok) store.logDemo("warning", L.reorderFailed(res.reason ?? L.errUnknown));
+          })
+          .catch((e) => store.logDemo("warning", L.reorderFailed(e instanceof Error ? e.message : L.errUnknown)));
       }
     },
 

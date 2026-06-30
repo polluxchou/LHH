@@ -36,8 +36,10 @@ export function Workbench() {
     if (store.scope === "team") {
       return state.trackingObjects;
     }
-
-    return state.trackingObjects.filter((object) => store.currentMember.trackingObjectIds.includes(object.id));
+    const byId = new Map(state.trackingObjects.map((object) => [object.id, object]));
+    return store.currentMember.trackingObjectIds
+      .map((id) => byId.get(id))
+      .filter((object): object is (typeof state.trackingObjects)[number] => Boolean(object));
   }, [state.trackingObjects, store.scope, store.currentMember]);
 
   const activeTracked =
@@ -183,6 +185,7 @@ export function Workbench() {
           onCollapsedChange={setTrackedCollapsed}
           onScopeChange={store.setScope}
           onSubToggle={store.subToggle}
+          onReorder={store.reorderTracked}
           onAdd={() => store.setAddOpen(true)}
         />
 

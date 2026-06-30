@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { moveItem } from "@/lib/workflow/reorder";
 import type { TeamMember, TrackingObject } from "@/lib/domain/types";
 import { getTrackedAbbreviation, getTrackedCountRatio, getTrackedRailLabel } from "@/lib/workflow/tracked-counts";
 import { priorityClass } from "@/components/workbench/helpers";
@@ -20,6 +22,8 @@ interface TrackedListProps {
   onCollapsedChange: (collapsed: boolean) => void;
   onScopeChange: (scope: TrackedScope) => void;
   onSubToggle: (trackingObjectId: string) => void;
+  /** 仅「我关注的」可用：拖拽得到新顺序 */
+  onReorder: (orderedTrackingObjectIds: string[]) => void;
   onAdd: () => void;
 }
 
@@ -36,10 +40,25 @@ export function TrackedList({
   onCollapsedChange,
   onScopeChange,
   onSubToggle,
+  onReorder,
   onAdd,
 }: TrackedListProps) {
   const t = useCopy();
   const tk = t.workbench.tracked;
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+  const canReorder = scope === "mine" && !collapsed;
+
+  const handleDrop = (toIndex: number) => {
+    if (dragIndex === null || dragIndex === toIndex) {
+      setDragIndex(null);
+      setOverIndex(null);
+      return;
+    }
+    onReorder(moveItem(items.map((o) => o.id), dragIndex, toIndex));
+    setDragIndex(null);
+    setOverIndex(null);
+  };
   const mineCount = allItems.filter((item) => currentMember.trackingObjectIds.includes(item.id)).length;
   const trackedCountRatio = getTrackedCountRatio(allItems, currentMember);
   const railLabel = getTrackedRailLabel(allItems, currentMember);
@@ -102,7 +121,7 @@ export function TrackedList({
         </button>
       </div>
       <div className="tracked-list">
-        {items.map((item) => {
+        {items.map((item, index) => {
           const subscribers = members.filter((member) => member.trackingObjectIds.includes(item.id));
           const isSubscribed = currentMember.trackingObjectIds.includes(item.id);
           const signalCount = signalCounts[item.id] ?? 0;
@@ -113,7 +132,14 @@ export function TrackedList({
               type="button"
               className={`tracked-item prio-${priorityClass(item.priority)} ${item.id === activeId ? "active" : ""} ${
                 !isSubscribed && scope === "team" ? "not-mine" : ""
+              } ${canReorder ? "draggable" : ""} ${dragIndex === index ? "dragging" : ""} ${
+                canReorder && overIndex === index && dragIndex !== index ? "drag-over" : ""
               }`}
+              draggable={canReorder}
+              onDragStart={canReorder ? () => setDragIndex(index) : undefined}
+              onDragOver={canReorder ? (e) => { e.preventDefault(); setOverIndex(index); } : undefined}
+              onDrop={canReorder ? (e) => { e.preventDefault(); handleDrop(index); } : undefined}
+              onDragEnd={canReorder ? () => { setDragIndex(null); setOverIndex(null); } : undefined}
               onClick={() => onPick(item.id)}
             >
               <span className="tdot"></span>

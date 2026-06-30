@@ -1733,13 +1733,17 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .source-credibility .cbar i.low  { background: var(--color-danger); }
 .source-credibility .cbar i.mid  { background: var(--color-warning); }
 .source-credibility .cbar i.hi   { background: var(--color-success); }
-.source-url {
-  font-size: 11px;
-  color: var(--color-primary);
+.source-title-link {
+  color: inherit;
   text-decoration: none;
-  word-break: break-all;
 }
-.source-url:hover { text-decoration: underline; }
+.source-title-link:hover { text-decoration: underline; }
+.source-link-ic {
+  margin-left: 4px;
+  color: var(--color-primary);
+  font-size: 11px;
+  vertical-align: baseline;
+}
 
 /* map */
 .map-pin {
@@ -5288,3 +5292,6 @@ body.theme-dark .lv-day-n { background: rgba(255,255,255,0.06); }
   color: var(--color-text-sub);
   margin-top: 8px;
 }
+.tracked-item.draggable { cursor: grab; }
+.tracked-item.dragging { opacity: 0.45; }
+.tracked-item.drag-over { box-shadow: inset 0 2px 0 0 var(--color-primary); }
