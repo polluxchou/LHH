@@ -300,7 +300,7 @@ function ScriptPanel({
 interface ShotDraft {
   time: string;
   shot: string;
-  voiceOver: string;
+  silent: boolean;
   visual: string;
   notes: string;
 }
@@ -320,7 +320,7 @@ function StoryboardPanel({
 
   const beginEdit = (shot: StoryboardShot) => {
     setEditingShot(shot.n);
-    setDraft({ time: shot.time, shot: shot.shot, voiceOver: shot.voiceOver, visual: shot.visual, notes: shot.notes });
+    setDraft({ time: shot.time, shot: shot.shot, silent: shot.silent ?? false, visual: shot.visual, notes: shot.notes });
   };
 
   const cancelEdit = () => {
@@ -345,7 +345,7 @@ function StoryboardPanel({
   return (
     <div className="sb-panel">
       <div className="sb-help">
-        <span>{s.sbHelp}</span>
+        <span>{s.sbHelpDerived}</span>
       </div>
       <div className="sb-table">
         <div className="sb-row sb-head">
@@ -371,6 +371,14 @@ function StoryboardPanel({
                 </span>
                 <span className="c-time">
                   <input className="sb-input" value={draft.time} onChange={(event) => patchDraft({ time: event.target.value })} />
+                  <label className="sb-silent">
+                    <input
+                      type="checkbox"
+                      checked={draft.silent ?? false}
+                      onChange={(event) => patchDraft({ silent: event.target.checked })}
+                    />
+                    {s.sbSilentToggle}
+                  </label>
                 </span>
                 <span className="c-shot">
                   <textarea
@@ -380,14 +388,7 @@ function StoryboardPanel({
                     rows={3}
                   />
                 </span>
-                <span className="c-vo">
-                  <textarea
-                    className="sb-textarea vo"
-                    value={draft.voiceOver}
-                    onChange={(event) => patchDraft({ voiceOver: event.target.value })}
-                    rows={3}
-                  />
-                </span>
+                <span className="c-vo">{shot.silent ? "（无）" : `“${shot.voiceOver}”`}</span>
                 <span className="c-visual">
                   <textarea
                     className="sb-textarea"
@@ -426,7 +427,7 @@ function StoryboardPanel({
               </span>
               <span className="c-time">{shot.time}</span>
               <span className="c-shot">{shot.shot}</span>
-              <span className="c-vo">“{shot.voiceOver}”</span>
+              <span className="c-vo">{shot.silent ? "（无）" : `“${shot.voiceOver}”`}</span>
               <span className="c-visual">{shot.visual}</span>
               <span className="c-notes">
                 {shot.notes || "—"}
