@@ -11,6 +11,8 @@ export interface PoolItemViewModel {
   topicCard: TopicCard;
   score: number;
   createdAt: string;
+  /** 入选题库时间（决策 decidedAt）；用于「最新入库置顶」排序 */
+  decidedAt: string;
   addedBy?: TeamMember;
   owner?: TeamMember;
 }

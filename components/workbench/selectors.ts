@@ -43,11 +43,13 @@ export function buildPoolItems(state: LocalWorkflowState): PoolItemViewModel[] {
         topicCard,
         score: compositeScoreFor(topicCard.sourceEditorialBriefId, state.contentValueScores),
         createdAt: brief?.createdAt ?? "",
+        decidedAt: decision?.decidedAt ?? "",
         addedBy: state.teamMembers.find((member) => member.id === decision?.decidedBy),
         owner: state.teamMembers.find((member) => member.id === topicCard.ownerId),
       } satisfies PoolItemViewModel;
     })
-    .sort((a, b) => b.score - a.score);
+    // 最新入选题库的排最前；同一时间再按价值分降序
+    .sort((a, b) => b.decidedAt.localeCompare(a.decidedAt) || b.score - a.score);
 }
 
 export function getSignalCounts(state: LocalWorkflowState): Record<string, number> {
