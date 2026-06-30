@@ -231,34 +231,56 @@ export function extractCitations(data: Record<string, unknown>): Citation[] {
   return out;
 }
 
+// Vercel serverless → api.x.ai 偶发 fetch failed / UND_ERR_CONNECT_TIMEOUT(已知平台 egress 问题)。
+// 网络层失败时重试 2 次;HTTP 响应(4xx/5xx)是服务端真实回答,不重试。每次有超时上限,
+// 控制总耗时不超 maxDuration。失败时把底层 cause.code 透出(区分超时/DNS/拒绝)。
+const XAI_ATTEMPTS = 2;
+const XAI_TIMEOUT_MS = 20_000;
+
 function defaultDeps(): VerifyDeps {
   return {
     search: async (prompt, opts) => {
-      const res = await fetch("https://api.x.ai/v1/responses", {
-        method: "POST",
-        headers: {
-          authorization: `Bearer ${process.env.XAI_API_KEY ?? ""}`,
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "grok-4.3",
-          // Per xAI docs: input is an array of message objects
-          input: [{ role: "user", content: prompt }],
-          tools: [
-            {
-              type: "x_search",
-              ...(opts.fromDate ? { from_date: opts.fromDate } : {}),
-              ...(opts.toDate ? { to_date: opts.toDate } : {}),
-            },
-          ],
-        }),
+      const body = JSON.stringify({
+        model: "grok-4.3",
+        // Per xAI docs: input is an array of message objects
+        input: [{ role: "user", content: prompt }],
+        tools: [
+          {
+            type: "x_search",
+            ...(opts.fromDate ? { from_date: opts.fromDate } : {}),
+            ...(opts.toDate ? { to_date: opts.toDate } : {}),
+          },
+        ],
       });
-      if (!res.ok) {
-        const body = await res.text().catch(() => "");
-        throw new Error(`x-search HTTP ${res.status}${body ? `: ${body.slice(0, 300)}` : ""}`);
+      let lastErr: unknown;
+      for (let attempt = 0; attempt < XAI_ATTEMPTS; attempt++) {
+        try {
+          const res = await fetch("https://api.x.ai/v1/responses", {
+            method: "POST",
+            headers: {
+              authorization: `Bearer ${process.env.XAI_API_KEY ?? ""}`,
+              "content-type": "application/json",
+            },
+            body,
+            signal: AbortSignal.timeout(XAI_TIMEOUT_MS),
+          });
+          if (!res.ok) {
+            const errBody = await res.text().catch(() => "");
+            // 拿到 HTTP 响应即服务端真实回答(鉴权/请求问题),重试无意义 → 直接抛出。
+            throw new Error(`x-search HTTP ${res.status}${errBody ? `: ${errBody.slice(0, 300)}` : ""}`);
+          }
+          const data = (await res.json()) as Record<string, unknown>;
+          return { text: extractText(data), citations: extractCitations(data) };
+        } catch (e) {
+          if (e instanceof Error && e.message.startsWith("x-search HTTP")) throw e;
+          lastErr = e; // 网络层失败 → 退避后重试
+          if (attempt < XAI_ATTEMPTS - 1) await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+        }
       }
-      const data = (await res.json()) as Record<string, unknown>;
-      return { text: extractText(data), citations: extractCitations(data) };
+      // 重试用尽:透出底层网络错误码(UND_ERR_CONNECT_TIMEOUT / ENOTFOUND / ECONNREFUSED…)。
+      const cause = (lastErr as { cause?: { code?: string; message?: string } } | undefined)?.cause;
+      const detail = cause?.code || cause?.message || (lastErr instanceof Error ? lastErr.message : String(lastErr));
+      throw new Error(`x-search 网络连接失败(${detail})`);
     },
   };
 }
