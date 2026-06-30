@@ -3,6 +3,7 @@ import type { ScriptSection, StoryboardShot, ProductionPackage } from "@/lib/dom
 import type { EditorialBrief, TopicCard } from "@/lib/domain/types";
 import { productions } from "@/lib/data/phase1-fixtures";
 import { buildTaskScaffold, deriveTargetDuration } from "@/lib/production/stub-production";
+import { deriveVoiceOvers } from "@/lib/production/derive-voiceovers";
 import { extractOpenAIUsage, type TokenUsage, type UsageSink } from "@/lib/usage/extract";
 
 const REQUIRED_SECTION_IDS = ["hook", "context", "core", "close"] as const;
@@ -164,10 +165,25 @@ export async function generateProduction(
   let parsed = await runOnce();
   if (!parsed) parsed = await runOnce();
   if (!parsed) throw new Error("DeepSeek 生产包解析失败");
+
+  // 标记纯标题卡/字幕卡(voiceOver 为空或"（无）")为静音，再按时长把脚本正文重新切分到各非静音镜头，
+  // 保证分镜旁白与脚本正文严格对齐(单一来源:脚本)。
+  const NONE = "（无）";
+  const withSilent = parsed.storyboard.map((shot) => ({
+    ...shot,
+    silent: shot.voiceOver.trim() === "" || shot.voiceOver.trim() === NONE,
+  }));
+  const derived = deriveVoiceOvers(
+    { targetDuration, wordCount: 0, sections: parsed.sections },
+    withSilent,
+    NONE,
+  );
+  const storyboard = withSilent.map((shot, i) => ({ ...shot, voiceOver: derived[i] }));
+
   const wordCount = parsed.sections.reduce((sum, s) => sum + s.body.length, 0);
   return {
     script: { targetDuration, wordCount, sections: parsed.sections },
-    storyboard: parsed.storyboard,
+    storyboard,
     task: buildTaskScaffold(opts.brief, topicCard),
   };
 }

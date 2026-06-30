@@ -151,6 +151,37 @@ describe("目标时长覆盖", () => {
   });
 });
 
+describe("generateProduction 旁白派生 + 静音标记", () => {
+  it("marks （无） shots silent and derives voiceOver from the script", async () => {
+    const fake = {
+      sections: [
+        { id: "hook", label: "开场 · 钩子", duration: "0:00–0:12", body: "甲。乙。" },
+        { id: "context", label: "背景", duration: "0:12–0:24", body: "丙。" },
+        { id: "core", label: "核心 · 为什么重要", duration: "0:24–0:48", body: "丁。" },
+        { id: "close", label: "收束", duration: "0:48–1:00", body: "戊。" },
+      ],
+      storyboard: [
+        { n: 1, time: "0:00-0:06", shot: "标题卡", voiceOver: "（无）", visual: "v", notes: "" },
+        { n: 2, time: "0:06-0:12", shot: "镜2", voiceOver: "甲。乙。", visual: "v", notes: "" },
+        { n: 3, time: "0:12-0:24", shot: "镜3", voiceOver: "丙。", visual: "v", notes: "" },
+        { n: 4, time: "0:24-0:36", shot: "镜4", voiceOver: "丁。", visual: "v", notes: "" },
+        { n: 5, time: "0:36-0:48", shot: "镜5", voiceOver: "戊。", visual: "v", notes: "" },
+        { n: 6, time: "0:48-1:00", shot: "镜6", voiceOver: "（无）", visual: "v", notes: "" },
+      ],
+    };
+    const pkg = await generateProduction(
+      { brief, topicCard: null },
+      undefined,
+      { complete: async () => ({ text: JSON.stringify(fake), usage: null }) },
+    );
+    const sb = pkg.storyboard;
+    expect(sb[0].silent).toBe(true);
+    expect(sb[5].silent).toBe(true);
+    const assigned = sb.filter((s) => s.voiceOver !== "（无）").map((s) => s.voiceOver).join("");
+    expect(assigned).toBe("甲。乙。丙。丁。戊。");
+  });
+});
+
 describe("generateProduction onUsage", () => {
   const okJson4 = JSON.stringify({ sections: goodSections, storyboard: goodShots });
   it("forwards usage per completion call", async () => {
